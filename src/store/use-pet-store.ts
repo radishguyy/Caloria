@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { PetAnimationState } from "@/types";
 import { PET_CONFIG, PetSpeciesId } from "@/lib/constants";
 
@@ -8,112 +9,136 @@ interface PetStoreState {
   stage: number;
   level: number;
   exp: number;
+  coins: number;
   hunger: number;
   happiness: number;
   health: number;
   animationState: PetAnimationState;
 
   // Actions
-  feedPet: (caloriesFed?: number) => void;
+  feedPet: (caloriesFed?: number, xpReward?: number, coinReward?: number) => void;
   petInteract: () => void;
   toggleSleep: () => void;
   gainExp: (amount: number) => void;
+  addCoins: (amount: number) => void;
   setAnimationState: (state: PetAnimationState) => void;
   setPetName: (name: string) => void;
   setSpecies: (species: PetSpeciesId) => void;
-  
+
   // Helpers
   getExpNeededForNextLevel: () => number;
 }
 
-export const usePetStore = create<PetStoreState>((set, get) => ({
-  name: "Pyro",
-  species: "flameling",
-  stage: 2, // Hatchling
-  level: 4,
-  exp: 140,
-  hunger: 75,
-  happiness: 85,
-  health: 100,
-  animationState: "idle",
+export const usePetStore = create<PetStoreState>()(
+  persist(
+    (set, get) => ({
+      name: "Pyro",
+      species: "flameling",
+      stage: 2, // Hatchling
+      level: 4,
+      exp: 140,
+      coins: 240,
+      hunger: 75,
+      happiness: 85,
+      health: 100,
+      animationState: "idle",
 
-  getExpNeededForNextLevel: () => {
-    const { level } = get();
-    return Math.round(PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, level - 1));
-  },
+      getExpNeededForNextLevel: () => {
+        const { level } = get();
+        return Math.round(
+          PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, level - 1)
+        );
+      },
 
-  feedPet: (caloriesFed = 300) => {
-    const current = get();
-    // More calories fed -> recovers hunger proportionally
-    const hungerGain = Math.min(30, Math.max(10, Math.round(caloriesFed / 25)));
-    const newHunger = Math.min(PET_CONFIG.MAX_HUNGER, current.hunger + hungerGain);
-    
-    set({
-      hunger: newHunger,
-      animationState: "eating",
-    });
+      feedPet: (caloriesFed = 300, xpReward = 25, coinReward = 10) => {
+        const current = get();
+        const hungerGain = Math.min(30, Math.max(10, Math.round(caloriesFed / 25)));
+        const newHunger = Math.min(
+          PET_CONFIG.MAX_HUNGER,
+          current.hunger + hungerGain
+        );
 
-    get().gainExp(25);
+        set({
+          hunger: newHunger,
+          coins: current.coins + coinReward,
+          animationState: "eating",
+        });
 
-    setTimeout(() => {
-      set({ animationState: "happy" });
-      setTimeout(() => {
-        set({ animationState: "idle" });
-      }, 1800);
-    }, 1500);
-  },
+        get().gainExp(xpReward);
 
-  petInteract: () => {
-    const current = get();
-    const newHappiness = Math.min(PET_CONFIG.MAX_HAPPINESS, current.happiness + 15);
-    
-    set({
-      happiness: newHappiness,
-      animationState: "happy",
-    });
+        setTimeout(() => {
+          set({ animationState: "happy" });
+          setTimeout(() => {
+            set({ animationState: "idle" });
+          }, 1800);
+        }, 1500);
+      },
 
-    get().gainExp(10);
+      petInteract: () => {
+        const current = get();
+        const newHappiness = Math.min(
+          PET_CONFIG.MAX_HAPPINESS,
+          current.happiness + 15
+        );
 
-    setTimeout(() => {
-      set({ animationState: "idle" });
-    }, 2000);
-  },
+        set({
+          happiness: newHappiness,
+          animationState: "happy",
+        });
 
-  toggleSleep: () => {
-    const current = get();
-    const nextState = current.animationState === "sleeping" ? "idle" : "sleeping";
-    set({ animationState: nextState });
-  },
+        get().gainExp(10);
 
-  gainExp: (amount: number) => {
-    set((state) => {
-      let newExp = state.exp + amount;
-      let newLevel = state.level;
-      let newStage = state.stage;
+        setTimeout(() => {
+          set({ animationState: "idle" });
+        }, 2000);
+      },
 
-      const expNeeded = Math.round(
-        PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, newLevel - 1)
-      );
+      toggleSleep: () => {
+        const current = get();
+        const nextState =
+          current.animationState === "sleeping" ? "idle" : "sleeping";
+        set({ animationState: nextState });
+      },
 
-      if (newExp >= expNeeded) {
-        newLevel += 1;
-        newExp = newExp - expNeeded;
+      gainExp: (amount: number) => {
+        set((state) => {
+          let newExp = state.exp + amount;
+          let newLevel = state.level;
+          let newStage = state.stage;
 
-        // Stage evolution check
-        if (newLevel >= 15) newStage = 4; // Adult
-        else if (newLevel >= 7) newStage = 3; // Juvenile
-        else if (newLevel >= 3) newStage = 2; // Hatchling
-      }
+          const expNeeded = Math.round(
+            PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, newLevel - 1)
+          );
 
-      return {
-        exp: newExp,
-        level: newLevel,
-        stage: newStage,
-      };
-    });
-  },
+          if (newExp >= expNeeded) {
+            newLevel += 1;
+            newExp = newExp - expNeeded;
 
-  setAnimationState: (animationState: PetAnimationState) => set({ animationState }),
-  setPetName: (name: string) => set({ name }),
-  setSpecies: (species: PetSpeciesId) => set({ species }),
-}));
+            // Stage evolution check
+            if (newLevel >= 30) newStage = 5; // Mythic
+            else if (newLevel >= 15) newStage = 4; // Adult
+            else if (newLevel >= 7) newStage = 3; // Juvenile
+            else if (newLevel >= 3) newStage = 2; // Hatchling
+          }
+
+          return {
+            exp: newExp,
+            level: newLevel,
+            stage: newStage,
+          };
+        });
+      },
+
+      addCoins: (amount: number) =>
+        set((state) => ({ coins: Math.max(0, state.coins + amount) })),
+
+      setAnimationState: (animationState: PetAnimationState) =>
+        set({ animationState }),
+      setPetName: (name: string) => set({ name }),
+      setSpecies: (species: PetSpeciesId) => set({ species }),
+    }),
+    {
+      name: "caloria-pet-storage",
+    }
+  )
+);

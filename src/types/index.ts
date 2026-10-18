@@ -34,6 +34,8 @@ export interface MacroTargets {
   protein: number; // grams
   carbs: number;   // grams
   fat: number;     // grams
+  fiber?: number;  // grams
+  sugar?: number;  // grams
   waterMl?: number;
 }
 
@@ -42,6 +44,42 @@ export interface MacroCurrent {
   protein: number;
   carbs: number;
   fat: number;
+  fiber: number;
+  sugar: number;
+}
+
+export type GoalProgramType = "diet" | "bulking" | "maintenance";
+
+export interface UserGoalPlan {
+  goalType: GoalProgramType;
+  currentWeightKg: number;
+  targetWeightKg: number;
+  heightCm: number;
+  bmiScore: number;
+  bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese";
+  totalProjectedDays: number;
+  currentDayNumber: number;
+  dailyMarginKcal: number; // e.g. -500 for diet, +400 for bulking, 0 for maintenance
+}
+
+export interface FoodCatalogItem {
+  id: string;
+  name: string;
+  category: string;
+  calories: number; // per default serving
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG: number;
+  sugarG: number;
+  defaultServingSize: number;
+  servingUnit: string;
+  gramsPerUnit: number;
+}
+
+export interface ExtendedFoodLog extends FoodLog {
+  fiberG?: number;
+  sugarG?: number;
 }
 
 export interface DailyNutritionSummary {
@@ -49,7 +87,7 @@ export interface DailyNutritionSummary {
   consumed: MacroCurrent;
   target: MacroTargets;
   percentage: number;
-  logs: FoodLog[];
+  logs: ExtendedFoodLog[];
 }
 
 export interface FoodItemInput {
@@ -59,6 +97,8 @@ export interface FoodItemInput {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  fiberG?: number;
+  sugarG?: number;
   servingSize?: number;
   servingUnit?: string;
 }
@@ -79,7 +119,7 @@ export interface PetStats {
   status: PetAnimationState;
 }
 
-// Co-op Streak Types
+// Co-op Streak & Social Types
 export interface CoopMemberWithProfile extends CoopMember {
   profile: Pick<Profile, "id" | "username" | "fullName" | "avatarUrl">;
 }
@@ -87,3 +127,29 @@ export interface CoopMemberWithProfile extends CoopMember {
 export interface CoopPartyDetails extends CoopParty {
   members: CoopMemberWithProfile[];
 }
+
+export interface SocialFriendMember {
+  id: string;
+  username: string;
+  fullName: string;
+  avatarColor: string;
+  petName: string;
+  petSpecies: PetSpeciesId;
+  petLevel: number;
+  goalType: GoalProgramType;
+  caloriesLoggedToday: number;
+  calorieTarget: number;
+  mealsLoggedToday: number;
+  dailyGoalMet: boolean;
+  lastActiveText: string;
+  lastPokedAt?: string | null;
+}
+
+export interface PokeNotification {
+  id: string;
+  fromUser: string;
+  toUser: string;
+  message: string;
+  timestamp: string;
+}
+
