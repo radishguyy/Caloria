@@ -155,6 +155,23 @@ export function MacroBar() {
           </div>
         </div>
       </div>
+
+      {/* Fiber & Sugar Micronutrient Details */}
+      <div className="grid grid-cols-2 gap-3 pt-3 mt-3 border-t border-border/60 text-xs">
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-muted/40">
+          <span className="text-muted-foreground">Serat (Fiber)</span>
+          <span className="font-semibold text-foreground">
+            {consumed.fiber} <span className="text-[10px] text-muted-foreground font-normal">/ {targets.fiber ?? 28}g</span>
+          </span>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-muted/40">
+          <span className="text-muted-foreground">Gula (Sugar)</span>
+          <span className="font-semibold text-foreground">
+            {consumed.sugar} <span className="text-[10px] text-muted-foreground font-normal">/ {targets.sugar ?? 45}g</span>
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
+

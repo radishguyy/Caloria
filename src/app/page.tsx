@@ -1,69 +1,245 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import {
+  Flame,
+  PlusCircle,
+  Users,
+  Target,
+  Calendar,
+  Sparkles,
+  ArrowRight,
+  TrendingDown,
+  Award,
+  Clock,
+  Coins,
+} from "lucide-react";
+import { PetRenderer } from "@/components/pet/pet-renderer";
+import { MacroBar } from "@/components/diary/macro-bar";
+import { useFoodStore } from "@/store/use-food-store";
+import { usePetStore } from "@/store/use-pet-store";
+import { useSocialStore } from "@/store/use-social-store";
+import { MEAL_TYPES } from "@/lib/constants";
+
+export default function DashboardPage() {
+  const { goalPlan, getMealLogs, getConsumed } = useFoodStore();
+  const { name, level, stage, coins } = usePetStore();
+  const { coopStreakDays, partyName, friends } = useSocialStore();
+
+  const consumed = getConsumed();
+  const remainingDays = Math.max(0, goalPlan.totalProjectedDays - goalPlan.currentDayNumber);
+  const progressPercent = Math.min(
+    100,
+    Math.round((goalPlan.currentDayNumber / goalPlan.totalProjectedDays) * 100)
+  );
+
+  const pendingFriends = friends.filter((f) => !f.dailyGoalMet);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
+      {/* 1. Goal & N-Day Projection Banner */}
+      <section className="rounded-3xl border bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent p-5 sm:p-6 relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500 text-white shadow-xs">
+                Program {goalPlan.goalType}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-background border text-foreground">
+                BMI: {goalPlan.bmiScore} ({goalPlan.bmiCategory})
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-background border text-muted-foreground flex items-center gap-1">
+                <Target className="h-3 w-3 text-orange-500" />
+                Target: {goalPlan.currentWeightKg} kg &rarr; {goalPlan.targetWeightKg} kg
+              </span>
+            </div>
+
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground pt-1">
+              Hari ke-{goalPlan.currentDayNumber} dari {goalPlan.totalProjectedDays} Hari
+            </h1>
+
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Dengan defisit {Math.abs(goalPlan.dailyMarginKcal)} kkal/hari, kamu diproyeksikan mencapai target berat badan dalam{" "}
+              <strong className="text-foreground">{remainingDays} hari lagi</strong>.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-muted-foreground font-medium">Sisa Waktu</p>
+              <p className="text-2xl font-black text-orange-600 dark:text-orange-400">
+                {remainingDays} <span className="text-xs font-semibold">Hari</span>
+              </p>
+            </div>
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-accent text-xs font-semibold transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <span>Ubah Target</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+        {/* Progress Bar for N-Day Mission */}
+        <div className="mt-4 space-y-1.5">
+          <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+            <span>Progres Program</span>
+            <span>{progressPercent}% tercapai</span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* 2. Co-op Streak Alert Banner (Social Accountability) */}
+      <section className="rounded-2xl border border-orange-500/30 bg-orange-500/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-white font-black shadow-sm">
+            <Flame className="h-6 w-6 fill-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-foreground">
+                Co-op Streak: {coopStreakDays} Hari Bersama {partyName}
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {pendingFriends.length > 0
+                ? `${pendingFriends.length} teman belum mencatat makanan hari ini. Senggol mereka agar streak tidak putus!`
+                : "Semua teman di party sudah mencatat makanan hari ini! Streak kalian aman."}
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/social"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition-transform active:scale-95 self-end sm:self-auto"
+        >
+          <Users className="h-3.5 w-3.5" />
+          <span>Buka Co-op & Senggol</span>
+        </Link>
+      </section>
+
+      {/* 3. Main Two-Column Section: Pet Room & Daily Nutrition */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Ruang Pet Virtual (Interaktif) */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="rounded-3xl border bg-card p-5 sm:p-6 shadow-xs relative overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-orange-500" />
+                <h2 className="text-sm font-bold tracking-tight text-foreground">
+                  Ruang Pet Virtual
+                </h2>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold">
+                <Coins className="h-3.5 w-3.5 text-amber-500" />
+                <span>{coins} Koin</span>
+              </div>
+            </div>
+
+            {/* Interactive Pet Canvas */}
+            <PetRenderer interactive={true} size="md" />
+
+            {/* Pet Wardrobe Link Shortcut */}
+            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Kustomisasi & Toko Pet</span>
+              <Link
+                href="/pet"
+                className="inline-flex items-center gap-1 font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+              >
+                <span>Buka Wardrobe</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Quick Pet Gamification Rules Card */}
+          <div className="rounded-2xl border bg-muted/40 p-4 text-xs text-muted-foreground space-y-1.5">
+            <p className="font-semibold text-foreground flex items-center gap-1.5">
+              <Award className="h-4 w-4 text-amber-500" />
+              Mekanisme Reward Gizi ke XP:
+            </p>
+            <ul className="list-disc list-inside space-y-1 pl-1">
+              <li>Catat makanan harian: +20 sampai +35 Base XP.</li>
+              <li>Capai target protein / makro seimbang: Bonus Multiplier XP.</li>
+              <li>Penuhi kalori harian: Jackpot XP + Caloria Coins untuk wardrobe.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Right Column: Ringkasan Nutrisi Harian & Quick Actions */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Circular Calorie Tracker & Macros */}
+          <MacroBar />
+
+          {/* Quick Action Button: + Catat Makanan */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link
+              href="/diary"
+              className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-98"
+            >
+              <PlusCircle className="h-5 w-5" />
+              <span>+ Catat Makanan Hari Ini</span>
+            </Link>
+
+            <Link
+              href="/social"
+              className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border border-border bg-card hover:bg-accent text-foreground font-semibold text-sm transition-colors"
+            >
+              <Users className="h-4 w-4 text-orange-500" />
+              <span>Cek Status Teman ({friends.length})</span>
+            </Link>
+          </div>
+
+          {/* Today's Meal Breakdown Quick List */}
+          <div className="rounded-2xl border bg-card p-5 space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground">
+                Catatan Waktu Makan Hari Ini
+              </h3>
+              <Link
+                href="/diary"
+                className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+              >
+                Lihat Semua di Diary
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {MEAL_TYPES.map((meal) => {
+                const logs = getMealLogs(meal.id);
+                const mealCalories = logs.reduce((sum, item) => sum + item.calories, 0);
+
+                return (
+                  <Link
+                    key={meal.id}
+                    href={`/diary?meal=${meal.id}`}
+                    className="p-3 rounded-xl border bg-muted/30 hover:bg-muted/60 transition-colors flex flex-col justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">
+                        {meal.label}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {logs.length > 0 ? `${logs.length} item` : "Belum dicatat"}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold text-orange-600 dark:text-orange-400 mt-2">
+                      {mealCalories} <span className="text-[10px] text-muted-foreground font-normal">kcal</span>
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
