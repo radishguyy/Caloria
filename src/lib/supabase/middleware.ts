@@ -39,10 +39,13 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/register");
 
   const isProtectedPage =
+    request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/diary") ||
     request.nextUrl.pathname.startsWith("/pet") ||
+    request.nextUrl.pathname.startsWith("/pet-customization") ||
     request.nextUrl.pathname.startsWith("/social") ||
-    request.nextUrl.pathname.startsWith("/onboarding");
+    request.nextUrl.pathname.startsWith("/onboarding") ||
+    request.nextUrl.pathname.startsWith("/profile");
 
   // Only redirect if real Supabase keys are configured (skip in local dummy mode if no credentials)
   const isConfigured =

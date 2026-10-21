@@ -8,6 +8,7 @@ import {
   coopMembers,
 } from "@/db/schema";
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
+import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
 // Database Model Types
 export type Profile = InferSelectModel<typeof profiles>;
@@ -55,11 +56,15 @@ export interface UserGoalPlan {
   currentWeightKg: number;
   targetWeightKg: number;
   heightCm: number;
+  gender: "male" | "female";
+  age: number;
+  activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
   bmiScore: number;
   bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese";
   totalProjectedDays: number;
   currentDayNumber: number;
   dailyMarginKcal: number; // e.g. -500 for diet, +400 for bulking, 0 for maintenance
+  startDate: string;
 }
 
 export interface FoodCatalogItem {
@@ -106,6 +111,14 @@ export interface FoodItemInput {
 // Pet Types
 export type PetAnimationState = "idle" | "eating" | "happy" | "sleeping" | "sad";
 
+export interface EquippedCosmetics {
+  head: string;
+  body: string;
+  glasses: string;
+  skin: string;
+  room: string;
+}
+
 export interface PetStats {
   name: string;
   species: PetSpeciesId;
@@ -113,10 +126,12 @@ export interface PetStats {
   level: number;
   exp: number;
   expToNextLevel: number;
+  coins: number;
   hunger: number; // 0 - 100
   happiness: number; // 0 - 100
   health: number; // 0 - 100
   status: PetAnimationState;
+  equipped: EquippedCosmetics;
 }
 
 // Co-op Streak & Social Types
@@ -153,3 +168,21 @@ export interface PokeNotification {
   timestamp: string;
 }
 
+// Weight Tracking Entry
+export interface WeightLogEntry {
+  id: string;
+  date: string;
+  weightKg: number;
+  notes?: string;
+}
+
+// Notification Center
+export interface AppNotification {
+  id: string;
+  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement";
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+  actionUrl?: string;
+}

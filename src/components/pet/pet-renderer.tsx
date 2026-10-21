@@ -4,15 +4,22 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Sparkles, Utensils, Moon, Sun, AlertCircle } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
+import { useCosmeticsStore } from "@/store/use-cosmetics-store";
+import { COSMETICS_CATALOG } from "@/lib/cosmetics-catalog";
 import { PET_CONFIG, PET_SPECIES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface PetRendererProps {
   interactive?: boolean;
   size?: "sm" | "md" | "lg";
+  dialogMessage?: string | null;
 }
 
-export function PetRenderer({ interactive = true, size = "md" }: PetRendererProps) {
+export function PetRenderer({
+  interactive = true,
+  size = "md",
+  dialogMessage = null,
+}: PetRendererProps) {
   const {
     name,
     species,
@@ -28,12 +35,20 @@ export function PetRenderer({ interactive = true, size = "md" }: PetRendererProp
     getExpNeededForNextLevel,
   } = usePetStore();
 
+  const { equipped } = useCosmeticsStore();
+
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
 
   const expNeeded = getExpNeededForNextLevel();
   const expPercent = Math.min(100, Math.round((exp / expNeeded) * 100));
 
   const speciesInfo = PET_SPECIES.find((s) => s.id === species) || PET_SPECIES[0];
+
+  // Equipped cosmetic details
+  const headItem = COSMETICS_CATALOG.find((i) => i.id === equipped.head);
+  const glassesItem = COSMETICS_CATALOG.find((i) => i.id === equipped.glasses);
+  const bodyItem = COSMETICS_CATALOG.find((i) => i.id === equipped.body);
+  const roomItem = COSMETICS_CATALOG.find((i) => i.id === equipped.room);
 
   const handlePetClick = () => {
     if (!interactive || animationState === "sleeping") return;
@@ -60,7 +75,22 @@ export function PetRenderer({ interactive = true, size = "md" }: PetRendererProp
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4">
+    <div className="flex flex-col items-center justify-center p-3 relative">
+      {/* Dialog Speech Bubble (if provided) */}
+      <AnimatePresence>
+        {dialogMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-2 px-3.5 py-1.5 rounded-2xl bg-card border border-border/80 shadow-md text-xs font-medium text-foreground text-center max-w-xs relative"
+          >
+            <span>{dialogMessage}</span>
+            <div className="w-2.5 h-2.5 bg-card border-b border-r border-border/80 rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Pet Canvas Area */}
       <div className="relative flex items-center justify-center select-none">
         {/* Floating Heart Particles */}
@@ -148,6 +178,13 @@ export function PetRenderer({ interactive = true, size = "md" }: PetRendererProp
             {/* Belly highlight */}
             <ellipse cx="100" cy="125" rx="35" ry="32" fill="url(#bellyGrad)" />
 
+            {/* Equipped Body Item Preview */}
+            {bodyItem && !bodyItem.isDefaultFree && (
+              <text x="100" y="145" textAnchor="middle" fontSize="24">
+                {bodyItem.previewEmoji}
+              </text>
+            )}
+
             {/* Stage indicator details (horns/leaves/fins) */}
             {stage >= 2 && species === "flameling" && (
               <>
@@ -172,6 +209,13 @@ export function PetRenderer({ interactive = true, size = "md" }: PetRendererProp
                 <circle cx="100" cy="30" r="8" fill="#38bdf8" />
                 <path d="M 92 35 C 92 35, 100 20, 108 35 Z" fill="#38bdf8" />
               </>
+            )}
+
+            {/* Equipped Head Item Preview */}
+            {headItem && !headItem.isDefaultFree && (
+              <text x="100" y="32" textAnchor="middle" fontSize="28">
+                {headItem.previewEmoji}
+              </text>
             )}
 
             {/* Face Expressions */}
@@ -219,6 +263,13 @@ export function PetRenderer({ interactive = true, size = "md" }: PetRendererProp
               </>
             )}
 
+            {/* Equipped Glasses Preview */}
+            {glassesItem && !glassesItem.isDefaultFree && (
+              <text x="100" y="102" textAnchor="middle" fontSize="26">
+                {glassesItem.previewEmoji}
+              </text>
+            )}
+
             {/* Tiny Hands / Wings */}
             <ellipse cx="50" cy="120" rx="10" ry="14" fill="url(#bodyGrad)" />
             <ellipse cx="150" cy="120" rx="10" ry="14" fill="url(#bodyGrad)" />
@@ -235,7 +286,7 @@ export function PetRenderer({ interactive = true, size = "md" }: PetRendererProp
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {speciesInfo.name} • Tahap {stage}
+          {speciesInfo.name} • Tahap {stage} {roomItem && !roomItem.isDefaultFree && `(${roomItem.name})`}
         </p>
       </div>
 

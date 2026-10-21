@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
+import { NotificationDrawer } from "@/components/shared/notification-drawer";
 
 export const metadata: Metadata = {
   title: "Caloria — Nourish Your Body, Level Up Your Pet",
   description:
-    "Aplikasi pencatat nutrisi harian dengan gamifikasi Virtual Pet dan Co-op Streak.",
+    "Aplikasi web pencatat nutrisi gamifikasi dengan Virtual Pet, Daily Missions, dan Co-op Streak.",
 };
 
 export default function RootLayout({
@@ -20,6 +21,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1 pb-24 lg:pb-12">{children}</main>
         <BottomNav />
+        <NotificationDrawer />
       </body>
     </html>
   );
