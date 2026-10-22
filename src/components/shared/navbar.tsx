@@ -40,28 +40,28 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur-md" style={{ borderColor: 'var(--color-border-divider)' }}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         {/* Brand */}
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 transition-transform active:scale-95"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white shadow-md shadow-orange-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md" style={{ background: 'var(--color-accent-orange)' }}>
             <Flame className="h-6 w-6 fill-white" />
           </div>
           <div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
+            <span className="text-xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-heading)' }}>
               Caloria
             </span>
-            <span className="hidden text-xs text-muted-foreground xl:inline-block ml-1.5 font-medium">
+            <span className="hidden text-xs xl:inline-block ml-1.5 font-medium" style={{ color: 'var(--color-text-muted)' }}>
               Nourish & Level Up
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1 bg-muted/50 p-1 rounded-full border border-border/50">
+        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-full border" style={{ background: 'var(--color-surface-subtle)', borderColor: 'var(--color-border-divider)' }}>
           {links.map((link) => {
             const Icon = link.icon;
             const active = isLinkActive(link.href);
@@ -70,15 +70,12 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-2 px-3.5 py-1.5 text-sm font-medium rounded-full transition-all",
-                  active
-                    ? "bg-background text-foreground shadow-sm shadow-black/5"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                  "nav-item flex items-center gap-2 px-3.5 py-1.5 text-sm font-medium transition-all",
+                  active ? "is-selected" : ""
                 )}
+                style={active ? {} : { color: 'var(--color-neutral-10)' }}
               >
-                <Icon
-                  className={cn("h-4 w-4", active ? "text-orange-500" : "")}
-                />
+                <Icon className="h-4 w-4" />
                 <span>{link.label}</span>
               </Link>
             );
@@ -90,19 +87,29 @@ export function Navbar() {
           {/* Caloria Coins Badge */}
           <Link
             href="/pet-customization/shop"
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-xs font-semibold border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors"
+            style={{
+              background: 'color-mix(in srgb, var(--color-accent-orange) 10%, transparent)',
+              color: 'var(--color-accent-orange-dark)',
+              borderColor: 'color-mix(in srgb, var(--color-accent-orange) 20%, transparent)'
+            }}
             title="Caloria Coins — Belanja di Shop"
           >
-            <Coins className="h-3.5 w-3.5 text-amber-500" />
+            <Coins className="h-3.5 w-3.5" style={{ color: 'var(--color-accent-orange)' }} />
             <span>{coins}</span>
           </Link>
 
           {/* Co-op Streak Badge */}
           <Link
             href="/social/coop"
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-semibold border border-orange-500/20 hover:bg-orange-500/15 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors"
+            style={{
+              background: 'color-mix(in srgb, var(--color-accent-orange) 10%, transparent)',
+              color: 'var(--color-accent-orange-dark)',
+              borderColor: 'color-mix(in srgb, var(--color-accent-orange) 20%, transparent)'
+            }}
           >
-            <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
+            <Flame className="h-3.5 w-3.5" style={{ fill: 'var(--color-accent-orange)', color: 'var(--color-accent-orange)' }} />
             <span>{coopStreakDays} Hari</span>
           </Link>
 
@@ -123,13 +130,14 @@ export function Navbar() {
           {/* Pet Indicator */}
           <Link
             href="/pet-customization/wardrobe"
-            className="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1 bg-secondary rounded-full border border-border text-xs font-medium hover:bg-secondary/80 transition-colors"
+            className="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1 rounded-full border text-xs font-medium transition-colors"
+            style={{ background: 'var(--color-surface-subtle)', borderColor: 'var(--color-border-default)' }}
           >
-            <div className="h-5 w-5 rounded-full bg-orange-400/20 flex items-center justify-center text-orange-500 font-bold text-[10px]">
+            <div className="h-5 w-5 rounded-full flex items-center justify-center font-bold text-[10px]" style={{ background: 'color-mix(in srgb, var(--color-accent-orange) 20%, transparent)', color: 'var(--color-accent-orange)' }}>
               {level}
             </div>
-            <span className="truncate max-w-[80px] font-semibold">{name}</span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="truncate max-w-[80px] font-semibold" style={{ color: 'var(--color-neutral-10)' }}>{name}</span>
+            <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
               Stg {stage}
             </span>
           </Link>
@@ -139,12 +147,18 @@ export function Navbar() {
             href="/profile/overview"
             className={cn(
               "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors",
-              pathname.startsWith("/profile")
-                ? "border-orange-500/40 bg-orange-500/10 text-orange-600 dark:text-orange-400"
-                : "border-border hover:bg-accent text-foreground"
+              pathname.startsWith("/profile") ? "" : ""
             )}
+            style={pathname.startsWith("/profile") ? {
+              borderColor: 'color-mix(in srgb, var(--color-accent-orange) 40%, transparent)',
+              background: 'color-mix(in srgb, var(--color-accent-orange) 10%, transparent)',
+              color: 'var(--color-accent-orange-dark)',
+            } : {
+              borderColor: 'var(--color-border-default)',
+              color: 'var(--color-neutral-10)',
+            }}
           >
-            <UserCircle className="h-4 w-4 text-orange-500" />
+            <UserCircle className="h-4 w-4" style={{ color: 'var(--color-accent-orange)' }} />
             <span className="hidden sm:inline">Profil</span>
           </Link>
         </div>
