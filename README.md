@@ -115,11 +115,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 caloria/
 ├── drizzle/                 # Generated SQL migrations
-├── public/                  # Static assets & custom typography (Secuela font)
+├── public/                  # Static assets & HTML wireframes
 ├── src/
 │   ├── app/                 # Next.js App Router (pages & layouts)
 │   │   ├── (auth)/          # Authentication routes (login, register)
 │   │   ├── diary/           # Food diary & meal log workflows
+│   │   ├── fonts/           # Self-hosted typography (Open Runde & Secuela)
 │   │   ├── onboarding/      # Goal, TDEE, and user onboarding steps
 │   │   ├── pet/             # Virtual pet hub, stats, and evolution
 │   │   ├── plaza/           # Wardrobe & cosmetic store
@@ -181,13 +182,11 @@ Caloria tokens are already wired into `src/app/globals.css` (colors, typography,
 
 ## 🔤 Fonts
 
-Both brand fonts are self-hosted in `public/fonts/` and loaded with `@font-face` in `src/app/globals.css`:
+Both brand fonts are self-hosted in `src/app/fonts/` and loaded automatically via `next/font/local` in `src/app/layout.tsx`:
 
-| Font | Role | Files |
-|---|---|---|
-| Open Runde | Body, UI, caption | `public/fonts/openrunde/` |
-| Secuela | Headings (H1/H2) | `public/fonts/secuela/` |
+| Font | Role | Files | CSS variable | Tailwind |
+|---|---|---|---|---|
+| Open Runde | Body, UI, caption | `src/app/fonts/OpenRunde-{Regular,Medium,Semibold,Bold}.woff2` | `--font-open-runde` | `font-sans` |
+| Secuela | Heading (H1/H2) | `src/app/fonts/Secuela-{Regular,Medium,Bold,ExtraBold}.woff2` | `--font-secuela` | `font-heading` |
 
-Use the existing CSS variables `--font-body` (Open Runde) and `--font-heading` (Secuela). No external font requests are required.
-
-Secuela is licensed under the SIL Open Font License 1.1; see `public/fonts/secuela/FONTLOG.txt`.
+Use `font-sans` for body text and `font-heading` for headings. Secuela is licensed under the SIL Open Font License 1.1; see `src/app/fonts/Secuela-FONTLOG.txt`.
