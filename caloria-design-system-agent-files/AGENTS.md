@@ -28,7 +28,8 @@ Do not distribute orange across all cards. Preserve it as a selection signal. Ho
 - H1/H2: Secuela.
 - H3/body/caption: Open Runde.
 - Desktop reference sizes: H1 60px, H2 48px, H3 40px, body 20px, caption 16px.
-- Load the actual font files with `@font-face` or a licensed web-font source.
+- Both fonts are already bundled in the app at `src/app/fonts/` and exposed via `next/font/local`: Open Runde as `--font-open-runde` (body/UI) and Secuela as `--font-secuela` (headings).
+- Use the Tailwind utilities `font-sans` (Open Runde) and `font-heading` (Secuela) instead of adding `@font-face` or extra font files.
 
 ## Spacing and layout
 Use the provided 4px/8px-based spacing tokens. Target 80–96px between major desktop sections, 24–32px card padding, and 24px card gaps. Maintain readable line lengths and a maximum content width. Reduce gutters and section gaps on tablet/mobile.

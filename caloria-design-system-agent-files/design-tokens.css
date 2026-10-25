@@ -16,8 +16,8 @@
   --color-neutral-10: #486284;
   --color-neutral-7: #8CA2C0;
 
-  --font-heading: "Secuela", sans-serif;
-  --font-body: "Open Runde", sans-serif;
+  --font-heading: var(--font-secuela), "Secuela", sans-serif;
+  --font-body: var(--font-open-runde), "Open Runde", sans-serif;
   --text-h1: 60px;
   --text-h2: 48px;
   --text-h3: 40px;
