@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -17,6 +17,8 @@ import {
   Coins,
   Award,
   X,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
@@ -24,9 +26,65 @@ import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 import { FoodCatalogItem } from "@/types";
 import { evaluateFoodReward, RewardEvaluationResult } from "@/lib/reward-engine";
+import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
+import { ReviewScanModal } from "@/components/diary/ReviewScanModal";
 import { cn } from "@/lib/utils";
 
-function DiaryAddFoodContent() {
+/**
+ * Compress an image file on the client using an HTML5 Canvas
+ * (max 1200px width/height, ~80% JPEG quality).
+ */
+async function compressImageFile(
+  file: File,
+  maxDimension = 1200,
+  quality = 0.8
+): Promise<{ blob: Blob; previewUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        if (width >= height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Failed to get 2D canvas context for compression."));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to compress image into JPEG blob."));
+            return;
+          }
+          resolve({ blob, previewUrl: objectUrl });
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to load selected image file."));
+    };
+    img.src = objectUrl;
+  });
+}
+
+export default function DiaryAddFoodPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMeal = (searchParams.get("meal") as MealTypeId) || "breakfast";
@@ -41,6 +99,57 @@ function DiaryAddFoodContent() {
   const [portionMultiplier, setPortionMultiplier] = useState(1);
   const [rewardResult, setRewardResult] = useState<RewardEvaluationResult | null>(null);
   const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
+
+  // Nutrition Label Scanner states
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isScanningLabel, setIsScanningLabel] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [scannedData, setScannedData] = useState<NutritionLabelData | null>(null);
+  const [scannedImagePreviewUrl, setScannedImagePreviewUrl] = useState<string>("");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  const handleLabelFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input value so the same file can be re-selected if needed
+    e.target.value = "";
+    setIsScanningLabel(true);
+    setScanError(null);
+
+    try {
+      const { blob, previewUrl } = await compressImageFile(file, 1200, 0.8);
+      setScannedImagePreviewUrl(previewUrl);
+
+      const formData = new FormData();
+      formData.append("image", blob, "nutrition-label.jpg");
+
+      const res = await fetch("/api/nutrition/scan", {
+        method: "POST",
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.data) {
+        throw new Error(
+          json.error || "Gagal mengekstrak informasi nilai gizi dari gambar."
+        );
+      }
+
+      setScannedData(json.data as NutritionLabelData);
+      setIsReviewModalOpen(true);
+    } catch (err) {
+      setScanError(
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat memindai label nutrisi."
+      );
+    } finally {
+      setIsScanningLabel(false);
+    }
+  };
 
   const consumed = getConsumed();
 
@@ -203,17 +312,76 @@ function DiaryAddFoodContent() {
         {/* Left Column: Catalog Search */}
         <div className="lg:col-span-7 space-y-4">
           <div className="rounded-3xl border bg-card p-5 space-y-3 shadow-xs">
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
+            {/* Search Input & Scan Label Trigger */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Cari makanan (misal: Nasi, Dada Ayam, Tempe, Gado-Gado)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-2xl border border-input bg-background pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-orange-500/30 font-medium"
+                />
+              </div>
+
+              {/* Hidden File Input for Camera / Image Upload */}
               <input
-                type="text"
-                placeholder="Cari makanan (misal: Nasi, Dada Ayam, Tempe, Gado-Gado)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-2xl border border-input bg-background pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-orange-500/30 font-medium"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleLabelFileChange}
+                className="hidden"
               />
+
+              {/* Scan Label Button */}
+              <button
+                type="button"
+                disabled={isScanningLabel}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  "px-3.5 py-2.5 rounded-2xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition-colors",
+                  isScanningLabel && "opacity-60 cursor-wait"
+                )}
+              >
+                {isScanningLabel ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Scanning...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-4 w-4" />
+                    <span>Scan Label</span>
+                  </>
+                )}
+              </button>
             </div>
+
+            {/* Scanning Status Banner */}
+            {isScanningLabel && (
+              <div className="p-3 rounded-2xl border border-orange-500/30 bg-orange-500/10 flex items-center gap-2.5 text-xs text-orange-700 dark:text-orange-300 font-semibold animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <span>
+                  Scanning nutrition label... Mengekstrak kalori & makronutrisi dengan AI Vision.
+                </span>
+              </div>
+            )}
+
+            {/* Scan Error Banner */}
+            {scanError && (
+              <div className="p-3 rounded-2xl border border-destructive/30 bg-destructive/10 flex items-center justify-between gap-2 text-xs text-destructive font-medium">
+                <span>{scanError}</span>
+                <button
+                  type="button"
+                  onClick={() => setScanError(null)}
+                  className="p-1 hover:bg-destructive/20 rounded-lg"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Category Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
@@ -501,21 +669,20 @@ function DiaryAddFoodContent() {
           </div>
         </div>
       )}
+      {/* [Modal] Editable Review & Verification Modal for Scanned Nutrition Label */}
+      {scannedData && (
+        <ReviewScanModal
+          initialData={scannedData}
+          imagePreviewUrl={scannedImagePreviewUrl}
+          mealTime={activeMeal}
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          onSuccess={() => {
+            setIsReviewModalOpen(false);
+            router.push("/diary");
+          }}
+        />
+      )}
     </div>
   );
 }
-
-export default function DiaryAddFoodPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="container mx-auto p-12 text-center text-xs text-muted-foreground">
-          Memuat katalog makanan...
-        </div>
-      }
-    >
-      <DiaryAddFoodContent />
-    </Suspense>
-  );
-}
-
