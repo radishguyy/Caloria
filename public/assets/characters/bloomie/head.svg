@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #4ADE80; --char-secondary: #16A34A; --char-belly: #F0FDF4; --char-inner-ear: #FDA4AF; --char-blush: #FB7185; --char-eye: #1E3A2F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="bloomie">
+  <!-- Soft Mochi-Shaped Bunny Head -->
+  <path d="M 64 36 C 88 36, 104 52, 104 73 C 104 91, 88 101, 64 101 C 40 101, 24 91, 24 73 C 24 52, 40 36, 64 36 Z" fill="var(--char-primary, #4ADE80)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Crown Sprout Leaves -->
+  <path d="M 64 36 C 63 27, 53 23, 51 28 C 49 33, 58 36, 64 36 Z" fill="var(--char-secondary, #16A34A)" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linejoin="round" />
+  <path d="M 64 36 C 66 26, 76 23, 77 28 C 78 33, 70 36, 64 36 Z" fill="var(--char-secondary, #16A34A)" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linejoin="round" />
+  <path d="M 43 44 C 52 40, 65 40, 75 43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.4" />
+</g>
+</svg>

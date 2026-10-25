@@ -1,35 +1,56 @@
 /**
  * Pet Cosmetic Items & Wardrobe Catalog
- * 
+ *
  * Categories:
- * - head: Hats, crowns, ribbons
- * - body: Outfits, capes, shirts
- * - glasses: Shades, nerd glasses
+ * - head: Hats, caps, berets, bows, clips, headbands, headphones
+ * - glasses: Round, rectangular, star glasses, shades
+ * - body: Hoodies, scarves, backpacks, aprons, capes, jerseys
+ * - held: Held food & drink objects (mini burger, apple, carrot, rice bowl, milk carton, water bottle)
  * - skin: Color variants, auras
  * - room: Habitat / background themes
- * 
- * Caloria Coins are used to purchase these cosmetic items.
- * (Note: No Plaza or public pet feeds per product specification)
+ *
+ * Integrated with the Modular SVG Character & Accessory Asset Library
+ * (`src/lib/character-assets/catalog.ts`).
  */
 
-export type CosmeticCategory = "head" | "body" | "glasses" | "skin" | "room";
+import { ACCESSORY_CATALOG } from "@/lib/character-assets/catalog";
+import {
+  AccessoryAnchorId,
+  AccessoryTheme,
+  CharacterId,
+} from "@/lib/character-assets/types";
+
+export type CosmeticCategory =
+  | "head"
+  | "body"
+  | "glasses"
+  | "held"
+  | "skin"
+  | "room";
 
 export interface CosmeticItem {
   id: string;
   name: string;
+  nameEn?: string;
   category: CosmeticCategory;
+  theme?: AccessoryTheme;
   priceCoins: number;
   description: string;
   previewEmoji: string;
   colorAccent: string;
+  svgPath?: string;
+  anchor?: AccessoryAnchorId;
+  scale?: number;
+  layerOrder?: number;
+  compatibleCharacters?: "all" | CharacterId[];
   isDefaultFree?: boolean;
 }
 
-export const COSMETICS_CATALOG: CosmeticItem[] = [
-  // Head
+const DEFAULT_NONE_ITEMS: CosmeticItem[] = [
   {
     id: "head-none",
     name: "Tanpa Topi",
+    nameEn: "No Hat",
     category: "head",
     priceCoins: 0,
     description: "Tampilan alami tanpa penutup kepala.",
@@ -38,37 +59,9 @@ export const COSMETICS_CATALOG: CosmeticItem[] = [
     isDefaultFree: true,
   },
   {
-    id: "head-explorer-hat",
-    name: "Topi Petualang Rimba",
-    category: "head",
-    priceCoins: 50,
-    description: "Topi safari tangguh untuk petualangan membakar kalori.",
-    previewEmoji: "🤠",
-    colorAccent: "#ca8a04",
-  },
-  {
-    id: "head-golden-crown",
-    name: "Mahkota Emas Juara",
-    category: "head",
-    priceCoins: 150,
-    description: "Simbol ketekunan bagi mereka yang disiplin menjaga nutrisi.",
-    previewEmoji: "👑",
-    colorAccent: "#eab308",
-  },
-  {
-    id: "head-red-ribbon",
-    name: "Pita Merah Semangat",
-    category: "head",
-    priceCoins: 40,
-    description: "Pita imut berenergi tinggi penambah keceriaan pet.",
-    previewEmoji: "🎀",
-    colorAccent: "#ef4444",
-  },
-
-  // Glasses
-  {
     id: "glasses-none",
     name: "Tanpa Kacamata",
+    nameEn: "No Glasses",
     category: "glasses",
     priceCoins: 0,
     description: "Mata berbinar alami tanpa kacamata.",
@@ -77,28 +70,9 @@ export const COSMETICS_CATALOG: CosmeticItem[] = [
     isDefaultFree: true,
   },
   {
-    id: "glasses-cool-shades",
-    name: "Kacamata Hitam Sporty",
-    category: "glasses",
-    priceCoins: 60,
-    description: "Kacamata hitam gaya untuk pet yang percaya diri.",
-    previewEmoji: "🕶️",
-    colorAccent: "#1f2937",
-  },
-  {
-    id: "glasses-nerd-specs",
-    name: "Kacamata Cendekiawan",
-    category: "glasses",
-    priceCoins: 45,
-    description: "Kacamata bulat untuk pet yang cerdas menghitung makro.",
-    previewEmoji: "👓",
-    colorAccent: "#3b82f6",
-  },
-
-  // Body Outfits
-  {
     id: "body-none",
     name: "Tanpa Kostum",
+    nameEn: "No Outfit",
     category: "body",
     priceCoins: 0,
     description: "Bentuk murni sang virtual pet.",
@@ -107,40 +81,26 @@ export const COSMETICS_CATALOG: CosmeticItem[] = [
     isDefaultFree: true,
   },
   {
-    id: "body-chef-apron",
-    name: "Celemek Master Chef",
-    category: "body",
-    priceCoins: 100,
-    description: "Kostum koki sehat yang ahli meracik makanan bergizi seimbang.",
-    previewEmoji: "👨‍🍳",
-    colorAccent: "#f97316",
+    id: "held-none",
+    name: "Tanpa Bawaan",
+    nameEn: "Empty Hand",
+    category: "held",
+    priceCoins: 0,
+    description: "Tangan bebas tanpa memegang makanan atau minuman.",
+    previewEmoji: "🐾",
+    colorAccent: "#6b7280",
+    isDefaultFree: true,
   },
-  {
-    id: "body-hero-cape",
-    name: "Jubah Pahlawan Sehat",
-    category: "body",
-    priceCoins: 180,
-    description: "Jubah merah berkibar simbol pejuang konsistensi diet.",
-    previewEmoji: "🦸",
-    colorAccent: "#dc2626",
-  },
-  {
-    id: "body-sport-jersey",
-    name: "Jersey Olahraga Atletik",
-    category: "body",
-    priceCoins: 90,
-    description: "Baju olahraga breathable penyemangat latihan fisik.",
-    previewEmoji: "🎽",
-    colorAccent: "#10b981",
-  },
+];
 
+const SKIN_AND_ROOM_ITEMS: CosmeticItem[] = [
   // Skins
   {
     id: "skin-default",
-    name: "Skin Original Elemen",
+    name: "Skin Original Karakter",
     category: "skin",
     priceCoins: 0,
-    description: "Warna bawaan spesies elemen pet kamu.",
+    description: "Warna bawaan atau warna kustom pilihanmu tanpa efek aura tambahan.",
     previewEmoji: "🔥",
     colorAccent: "#f97316",
     isDefaultFree: true,
@@ -150,7 +110,7 @@ export const COSMETICS_CATALOG: CosmeticItem[] = [
     name: "Aura Neon Cyber",
     category: "skin",
     priceCoins: 200,
-    description: "Pendaran neon futuristik yang bersinar di kegelapan.",
+    description: "Pendaran neon futuristik yang bersinar di sekeliling pet.",
     previewEmoji: "⚡",
     colorAccent: "#06b6d4",
   },
@@ -195,3 +155,26 @@ export const COSMETICS_CATALOG: CosmeticItem[] = [
   },
 ];
 
+const MAPPED_SVG_ACCESSORIES: CosmeticItem[] = ACCESSORY_CATALOG.map((acc) => ({
+  id: acc.id,
+  name: acc.name,
+  nameEn: acc.nameEn,
+  category: acc.category as CosmeticCategory,
+  theme: acc.theme,
+  priceCoins: acc.priceCoins,
+  description: acc.description,
+  previewEmoji: acc.previewEmoji,
+  colorAccent: acc.colorAccent,
+  svgPath: acc.svgPath,
+  anchor: acc.anchor,
+  scale: acc.scale,
+  layerOrder: acc.layerOrder,
+  compatibleCharacters: acc.compatibleCharacters,
+  isDefaultFree: acc.isDefaultFree,
+}));
+
+export const COSMETICS_CATALOG: CosmeticItem[] = [
+  ...DEFAULT_NONE_ITEMS,
+  ...MAPPED_SVG_ACCESSORIES,
+  ...SKIN_AND_ROOM_ITEMS,
+];

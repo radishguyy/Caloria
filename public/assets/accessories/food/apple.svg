@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-apple">
+  <!-- Stem & Leaf -->
+  <path d="M 96 98 Q 97 91 101 90" fill="none" stroke="#78350F" stroke-width="3.2" stroke-linecap="round" />
+  <path d="M 97 94 C 103 89, 110 92, 105 97 C 101 99, 98 96, 97 94 Z" fill="#22C55E" stroke="#231F20" stroke-width="2.8" stroke-linejoin="round" />
+  <!-- Crisp Red Apple Body -->
+  <path d="M 96 99 C 89 95, 81 101, 82 110 C 83 119, 90 123, 96 120 C 102 123, 109 119, 110 110 C 111 101, 103 95, 96 99 Z" fill="#EF4444" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Gloss Highlight -->
+  <path d="M 86 105 C 86 102, 89 100, 91 100" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" opacity="0.85" />
+</g>
+</svg>

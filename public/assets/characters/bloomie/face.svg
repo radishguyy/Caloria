@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #4ADE80; --char-secondary: #16A34A; --char-belly: #F0FDF4; --char-inner-ear: #FDA4AF; --char-blush: #FB7185; --char-eye: #1E3A2F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="bloomie">
+  <!-- Rosy Cheeks -->
+  <ellipse cx="34" cy="78" rx="6.5" ry="4.2" fill="var(--char-blush, #FB7185)" opacity="0.7" />
+  <ellipse cx="94" cy="78" rx="6.5" ry="4.2" fill="var(--char-blush, #FB7185)" opacity="0.7" />
+  <!-- Big Doe Eyes with Starry Highlights -->
+  <circle cx="46" cy="68" r="10.5" fill="var(--char-eye, #1E3A2F)" stroke="var(--char-outline, #231F20)" stroke-width="3.2" />
+  <circle cx="43" cy="64" r="3.8" fill="#FFFFFF" />
+  <circle cx="50" cy="72" r="2" fill="#FFFFFF" />
+  <circle cx="82" cy="68" r="10.5" fill="var(--char-eye, #1E3A2F)" stroke="var(--char-outline, #231F20)" stroke-width="3.2" />
+  <circle cx="79" cy="64" r="3.8" fill="#FFFFFF" />
+  <circle cx="86" cy="72" r="2" fill="#FFFFFF" />
+  <!-- Soft Brows -->
+  <path d="M 39 53 Q 46 50 52 53" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="2.8" stroke-linecap="round" />
+  <path d="M 76 53 Q 82 50 89 53" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="2.8" stroke-linecap="round" />
+  <!-- Bunny Nose, Buck Tooth & W Mouth -->
+  <ellipse cx="64" cy="75" rx="3.2" ry="2.3" fill="var(--char-inner-ear, #FDA4AF)" stroke="var(--char-outline, #231F20)" stroke-width="2.4" />
+  <rect x="61.5" y="81" width="5" height="6" rx="1.5" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="2.6" />
+  <path d="M 54 80 Q 59 85 64 80 Q 69 85 74 80" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

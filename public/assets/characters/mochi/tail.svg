@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #F9A8D4; --char-secondary: #EC4899; --char-belly: #FFF1F2; --char-inner-ear: #F472B6; --char-blush: #FB7185; --char-eye: #0F172A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="mochi">
+  <!-- Slender S-Curved Kitty Tail -->
+  <path d="M 74 128 C 90 132, 104 120, 102 106 C 100 96, 108 92, 110 99 C 113 110, 102 136, 74 135 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

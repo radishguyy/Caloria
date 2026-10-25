@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #5EEAD4; --char-secondary: #0D9488; --char-belly: #CCFBF1; --char-inner-ear: #99F6E4; --char-blush: #2DD4BF; --char-eye: #134E4A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="pippin">
+  <!-- Plump Striped Tanuki Tail -->
+  <path d="M 75 124 C 96 122, 110 132, 104 142 C 97 148, 81 142, 74 133 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 90 125 C 94 131, 94 139, 90 144" fill="none" stroke="var(--char-secondary, #0D9488)" stroke-width="5" stroke-linecap="round" />
+</g>
+</svg>

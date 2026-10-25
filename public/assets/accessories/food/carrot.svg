@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-carrot">
+  <!-- Leafy Green Tops -->
+  <path d="M 101 97 C 101 88, 107 86, 107 93 C 112 89, 115 95, 106 99 Z" fill="#22C55E" stroke="#231F20" stroke-width="3" stroke-linejoin="round" />
+  <!-- Tapered Orange Carrot Body -->
+  <path d="M 96 95 C 102 93, 107 98, 104 104 L 89 124 C 86 126, 83 123, 85 119 Z" fill="#F97316" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Texture Ridges -->
+  <path d="M 95 102 L 99 104 M 91 109 L 95 111 M 88 115 L 91 117" stroke="#C2410C" stroke-width="2.2" stroke-linecap="round" />
+</g>
+</svg>

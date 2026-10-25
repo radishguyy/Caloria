@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #5EEAD4; --char-secondary: #0D9488; --char-belly: #CCFBF1; --char-inner-ear: #99F6E4; --char-blush: #2DD4BF; --char-eye: #134E4A; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="pippin">
+  <!-- Plump Striped Tanuki Tail -->
+  <path d="M 75 124 C 96 122, 110 132, 104 142 C 97 148, 81 142, 74 133 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 90 125 C 94 131, 94 139, 90 144" fill="none" stroke="var(--char-secondary, #0D9488)" stroke-width="5" stroke-linecap="round" />
+</g>
+<g data-layer="ears" data-character="pippin">
+  <!-- Tall Close-Set Tanuki-Rabbit Ears (Ref 1 middle-second) -->
+  <path d="M 44 41 C 43 22, 48 10, 55 10 C 61 10, 63 23, 62 39 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 49 36 C 48 24, 51 17, 55 17 C 58 17, 59 24, 58 35 Z" fill="var(--char-inner-ear, #99F6E4)" />
+  <path d="M 64 39 C 64 23, 68 10, 75 10 C 81 10, 84 22, 82 41 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 68 35 C 68 24, 71 17, 74 17 C 77 17, 79 24, 78 36 Z" fill="var(--char-inner-ear, #99F6E4)" />
+</g>
+<g data-layer="body" data-character="pippin">
+  <!-- Relaxed Upright Chibi Body (Ref 1 middle-second) -->
+  <path d="M 49 97 C 45 106, 45 121, 47 133 L 44 142 C 43 146, 57 146, 59 141 L 61 135 L 67 135 L 69 141 C 71 146, 85 146, 84 142 L 81 133 C 83 121, 83 106, 79 97 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="64" cy="117" rx="11" ry="11" fill="var(--char-belly, #CCFBF1)" />
+  <!-- Relaxed Hanging Stubby Arms -->
+  <path d="M 48 106 C 39 110, 36 119, 41 123 C 45 125, 48 120, 49 114" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 80 106 C 89 110, 92 119, 87 123 C 83 125, 80 120, 79 114" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="head" data-character="pippin">
+  <!-- Round Head with Forehead Wisdom Lines (Ref 1 middle-second) -->
+  <path d="M 64 36 C 88 36, 102 52, 102 74 C 102 91, 86 101, 64 101 C 42 101, 26 91, 26 74 C 26 52, 40 36, 64 36 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Curved Forehead Worry/Wisdom Lines -->
+  <path d="M 55 49 Q 64 46 73 49" fill="none" stroke="var(--char-secondary, #0D9488)" stroke-width="2.8" stroke-linecap="round" />
+  <path d="M 51 54 Q 64 50 77 54" fill="none" stroke="var(--char-secondary, #0D9488)" stroke-width="2.8" stroke-linecap="round" />
+</g>
+<g data-layer="face" data-character="pippin">
+  <!-- Heavy-Lidded Sleepy Droopy Eyes (Ref 1 middle-second) -->
+  <path d="M 33 65 L 55 61 C 57 71, 49 77, 42 76 C 35 75, 31 70, 33 65 Z" fill="var(--char-secondary, #0D9488)" stroke="var(--char-secondary, #0D9488)" stroke-width="2.6" stroke-linejoin="round" />
+  <path d="M 43 64 L 53 62 C 54 68, 50 73, 45 73 Z" fill="var(--char-inner-ear, #99F6E4)" />
+  <path d="M 95 65 L 73 61 C 71 71, 79 77, 86 76 C 93 75, 97 70, 95 65 Z" fill="var(--char-secondary, #0D9488)" stroke="var(--char-secondary, #0D9488)" stroke-width="2.6" stroke-linejoin="round" />
+  <path d="M 85 64 L 75 62 C 74 68, 78 73, 83 73 Z" fill="var(--char-inner-ear, #99F6E4)" />
+  <!-- Flat Deadpan Mouth -->
+  <path d="M 54 85 L 72 85" fill="none" stroke="var(--char-secondary, #0D9488)" stroke-width="3.2" stroke-linecap="round" />
+</g>
+</svg>

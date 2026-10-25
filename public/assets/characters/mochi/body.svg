@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #F9A8D4; --char-secondary: #EC4899; --char-belly: #FFF1F2; --char-inner-ear: #F472B6; --char-blush: #FB7185; --char-eye: #0F172A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="mochi">
+  <!-- Petite Standing Chibi Body (Ref 1 middle-third) -->
+  <path d="M 50 97 C 46 105, 45 120, 47 132 L 45 141 C 44 146, 57 147, 59 141 L 61 134 L 67 134 L 69 141 C 71 147, 84 146, 83 141 L 81 132 C 83 120, 82 105, 78 97 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="64" cy="117" rx="11" ry="11" fill="var(--char-belly, #FFF1F2)" />
+  <!-- Delicate Outward Arms -->
+  <path d="M 48 106 C 38 108, 35 116, 40 120 C 44 123, 48 118, 50 113" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 80 106 C 90 108, 93 116, 88 120 C 84 123, 80 118, 78 113" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

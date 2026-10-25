@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #60A5FA; --char-secondary: #2563EB; --char-belly: #DBEAFE; --char-inner-ear: #93C5FD; --char-blush: #818CF8; --char-eye: #1E1B4B; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="bambi">
+  <!-- Tall Close-Set Pointer Pup Ears (Ref 1 top-second) -->
+  <path d="M 46 40 C 48 22, 56 8, 63 8 C 67 8, 68 22, 66 39 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 66 40 C 70 22, 78 10, 84 10 C 89 10, 89 26, 85 42 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #C084FC; --char-secondary: #7E22CE; --char-belly: #F3E8FF; --char-inner-ear: #E9D5FF; --char-blush: #E879F9; --char-eye: #581C87; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="nyx">
+  <!-- Broad Hybrid Cat-Dog Ears (Ref 1 top-third) -->
+  <path d="M 35 44 C 33 24, 41 10, 50 10 C 57 10, 62 22, 63 38 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 41 38 C 40 26, 45 17, 50 17 C 54 17, 57 25, 58 36 Z" fill="var(--char-inner-ear, #E9D5FF)" />
+  <path d="M 91 44 C 95 24, 88 12, 77 12 C 68 12, 64 24, 64 38 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 85 38 C 87 26, 83 18, 77 18 C 72 18, 69 26, 69 36 Z" fill="var(--char-inner-ear, #E9D5FF)" />
+</g>
+</svg>

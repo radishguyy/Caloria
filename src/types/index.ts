@@ -173,6 +173,7 @@ export interface EquippedCosmetics {
   head: string;
   body: string;
   glasses: string;
+  held: string;
   skin: string;
   room: string;
 }

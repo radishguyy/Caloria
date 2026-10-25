@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-milk-carton">
+  <!-- Striped Bendy Straw -->
+  <path d="M 99 95 L 103 86 L 110 87" fill="none" stroke="#F43F5E" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Carton Body -->
+  <rect x="84" y="100" width="22" height="23" rx="2.5" fill="#FFFFFF" stroke="#231F20" stroke-width="3.4" />
+  <rect x="84" y="107" width="22" height="9" fill="#38BDF8" />
+  <!-- Gable Roof Top -->
+  <polygon points="84,100 95,92 106,100" fill="#E0F2FE" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Milk Drop Icon -->
+  <circle cx="95" cy="111.5" r="2.5" fill="#FFFFFF" />
+</g>
+</svg>

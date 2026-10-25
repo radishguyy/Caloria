@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FB923C; --char-secondary: #C2410C; --char-belly: #FFEDD5; --char-inner-ear: #FDBA74; --char-blush: #F87171; --char-eye: #271C19; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="kuma">
+  <!-- Round Bear Pom-Pom Tail -->
+  <circle cx="80" cy="128" r="8" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" />
+</g>
+<g data-layer="ears" data-character="kuma">
+  <!-- Cub Ears (Ref 1 middle-left) -->
+  <path d="M 38 42 C 34 24, 42 10, 50 10 C 56 10, 61 24, 61 38 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 43 36 C 41 25, 45 17, 50 17 C 53 17, 56 25, 56 35 Z" fill="var(--char-inner-ear, #FDBA74)" />
+  <path d="M 88 42 C 92 24, 84 10, 76 10 C 70 10, 65 24, 65 38 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 83 36 C 85 25, 81 17, 76 17 C 73 17, 70 25, 70 35 Z" fill="var(--char-inner-ear, #FDBA74)" />
+</g>
+<g data-layer="body" data-character="kuma">
+  <!-- Sturdy Little Cub Torso (Ref 1 middle-left) -->
+  <path d="M 48 98 C 44 107, 43 122, 46 133 L 45 142 C 45 147, 57 147, 58 141 L 60 135 L 66 135 L 68 141 C 69 147, 81 147, 81 142 L 80 133 C 83 122, 82 107, 78 98 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="63" cy="118" rx="11" ry="11" fill="var(--char-belly, #FFEDD5)" />
+  <!-- Left Resting Arm -->
+  <path d="M 47 107 C 37 110, 35 120, 41 123 C 45 125, 48 120, 49 114" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="head" data-character="kuma">
+  <!-- Plump Bear Head with Raised Peace-Sign Paw at Right Cheek (Ref 1 middle-left) -->
+  <path d="M 62 36 C 86 36, 102 51, 102 72 C 102 90, 86 101, 62 101 C 38 101, 20 88, 22 70 C 23 51, 38 36, 62 36 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Chubby Peace-Sign Paw on Right Cheek -->
+  <path d="M 84 85 C 78 78, 82 69, 88 72 L 86 62 C 86 58, 92 58, 93 63 L 94 68 L 98 62 C 100 58, 105 61, 103 66 L 100 73 C 107 77, 107 90, 96 93 C 89 95, 86 90, 84 85 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 42 44 C 52 40, 64 40, 74 43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.38" />
+</g>
+<g data-layer="face" data-character="kuma">
+  <!-- Cute Bead-Dot Eyes & Smug Dimpled Smile (Ref 1 middle-left) -->
+  <circle cx="42" cy="68" r="3.8" fill="var(--char-eye, #271C19)" />
+  <circle cx="71" cy="66" r="3.8" fill="var(--char-eye, #271C19)" />
+  <ellipse cx="32" cy="76" rx="5.5" ry="3.5" fill="var(--char-blush, #F87171)" opacity="0.6" />
+  <!-- Dimpled Crooked Smile -->
+  <path d="M 49 77 Q 58 84 65 76" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" />
+  <path d="M 47 74 Q 49 78 46 80" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3" stroke-linecap="round" />
+  <path d="M 64 73 Q 67 76 66 80" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3" stroke-linecap="round" />
+</g>
+</svg>

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Sparkles, Heart } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
+import { CharacterSvg } from "@/components/pet/character-svg";
 import { PET_SPECIES, PetSpeciesId } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,9 @@ export default function OnboardingAdoptPetPage() {
   const { setSpecies, setPetName, name, species } = usePetStore();
   const { completeOnboarding } = useAuthStore();
 
-  const [selectedSpecies, setSelectedSpecies] = useState<PetSpeciesId>(species || "flameling");
+  const [selectedSpecies, setSelectedSpecies] = useState<PetSpeciesId>(
+    species || "flameling"
+  );
   const [petNickname, setPetNickname] = useState(name || "Pyro");
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +36,7 @@ export default function OnboardingAdoptPetPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-8 sm:py-12 space-y-6">
+    <div className="container mx-auto max-w-4xl px-4 py-8 sm:py-12 space-y-6">
       <OnboardingStepper currentStep={4} />
 
       <div className="text-center space-y-2">
@@ -41,12 +44,12 @@ export default function OnboardingAdoptPetPage() {
           Langkah 4: Adopsi Virtual Pet Pertamamu
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto">
-          Pilih telur/karakter pet awal sebagai teman seperjalanan selama masa program misi nutrisimu dan berikan nama terbaik!
+          Pilih salah satu dari 12 karakter pet chibi awal sebagai teman seperjalanan selama masa program misi nutrisimu dan berikan nama terbaik!
         </p>
       </div>
 
-      {/* Starting Pet Species Selection */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
+      {/* Starting Pet Species Selection (All 12 Chibi Characters) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 pt-2">
         {PET_SPECIES.map((spec) => {
           const isSelected = selectedSpecies === spec.id;
           return (
@@ -54,7 +57,7 @@ export default function OnboardingAdoptPetPage() {
               key={spec.id}
               onClick={() => setSelectedSpecies(spec.id)}
               className={cn(
-                "p-4 rounded-3xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2.5 shadow-xs relative",
+                "p-4 rounded-3xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 shadow-xs relative",
                 isSelected
                   ? "border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20"
                   : "border-border bg-card hover:bg-muted/30"
@@ -66,12 +69,15 @@ export default function OnboardingAdoptPetPage() {
                 </span>
               )}
 
-              {/* Egg / Pet Avatar Preview */}
+              {/* Modular SVG Pet Avatar Preview */}
               <div
-                className="h-20 w-20 rounded-full flex items-center justify-center text-3xl shadow-md transition-transform"
-                style={{ backgroundColor: `${spec.color}25` }}
+                className="h-24 w-24 rounded-2xl flex items-center justify-center p-1.5 transition-transform"
+                style={{ backgroundColor: `${spec.color}20` }}
               >
-                {spec.id === "flameling" ? "🔥" : spec.id === "bloomie" ? "🌱" : "💧"}
+                <CharacterSvg
+                  characterId={spec.id}
+                  showRoomBackdrop={false}
+                />
               </div>
 
               <div>
@@ -81,7 +87,7 @@ export default function OnboardingAdoptPetPage() {
                 </span>
               </div>
 
-              <p className="text-[11px] text-muted-foreground leading-tight">
+              <p className="text-[11px] text-muted-foreground leading-tight line-clamp-2">
                 {spec.description}
               </p>
             </div>
@@ -99,7 +105,7 @@ export default function OnboardingAdoptPetPage() {
           type="text"
           value={petNickname}
           onChange={(e) => setPetNickname(e.target.value)}
-          placeholder="misal: Pyro, Leafy, Splash..."
+          placeholder="misal: Pyro, Sprout, Splash..."
           maxLength={25}
           className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:ring-2 focus:ring-orange-500/30 text-foreground"
         />
@@ -122,11 +128,12 @@ export default function OnboardingAdoptPetPage() {
           disabled={loading || !petNickname.trim()}
           className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-95 disabled:opacity-50"
         >
-          <span>{loading ? "Menyiapkan Dashboard..." : "Selesaikan Onboarding & Masuk"}</span>
+          <span>
+            {loading ? "Menyiapkan Dashboard..." : "Selesaikan Onboarding & Masuk"}
+          </span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </div>
   );
 }
-

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #5EEAD4; --char-secondary: #0D9488; --char-belly: #CCFBF1; --char-inner-ear: #99F6E4; --char-blush: #2DD4BF; --char-eye: #134E4A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="pippin">
+  <!-- Heavy-Lidded Sleepy Droopy Eyes (Ref 1 middle-second) -->
+  <path d="M 33 65 L 55 61 C 57 71, 49 77, 42 76 C 35 75, 31 70, 33 65 Z" fill="var(--char-secondary, #0D9488)" stroke="var(--char-secondary, #0D9488)" stroke-width="2.6" stroke-linejoin="round" />
+  <path d="M 43 64 L 53 62 C 54 68, 50 73, 45 73 Z" fill="var(--char-inner-ear, #99F6E4)" />
+  <path d="M 95 65 L 73 61 C 71 71, 79 77, 86 76 C 93 75, 97 70, 95 65 Z" fill="var(--char-secondary, #0D9488)" stroke="var(--char-secondary, #0D9488)" stroke-width="2.6" stroke-linejoin="round" />
+  <path d="M 85 64 L 75 62 C 74 68, 78 73, 83 73 Z" fill="var(--char-inner-ear, #99F6E4)" />
+  <!-- Flat Deadpan Mouth -->
+  <path d="M 54 85 L 72 85" fill="none" stroke="var(--char-secondary, #0D9488)" stroke-width="3.2" stroke-linecap="round" />
+</g>
+</svg>

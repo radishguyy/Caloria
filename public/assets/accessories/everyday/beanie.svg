@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-beanie">
+  <!-- Pom-Pom -->
+  <circle cx="64" cy="14" r="7.5" fill="#FDE68A" stroke="#231F20" stroke-width="3.6" />
+  <!-- Knit Dome -->
+  <path d="M 32 42 C 32 22, 46 16, 64 16 C 82 16, 96 22, 96 42 Z" fill="#F97316" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Knit Seam Curves -->
+  <path d="M 50 18 C 46 25, 45 33, 45 40 M 64 16 L 64 40 M 78 18 C 82 25, 83 33, 83 40" stroke="#EA580C" stroke-width="2.4" stroke-linecap="round" />
+  <!-- Folded Ribbed Cuff -->
+  <rect x="29" y="36" width="70" height="12" rx="6" fill="#FB923C" stroke="#231F20" stroke-width="3.8" />
+  <path d="M 41 37 L 41 47 M 52 37 L 52 47 M 64 37 L 64 47 M 76 37 L 76 47 M 87 37 L 87 47" stroke="#231F20" stroke-width="2.4" stroke-linecap="round" />
+</g>
+</svg>

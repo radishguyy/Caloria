@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-scarf">
+  <!-- Draped Scarf Tail with Stripes & Fringe -->
+  <path d="M 68 102 L 65 126 L 79 126 L 78 102 Z" fill="#EF4444" stroke="#231F20" stroke-width="3.6" stroke-linejoin="round" />
+  <path d="M 66 114 L 78 114 M 66 119 L 78 119" stroke="#FDE047" stroke-width="3" />
+  <path d="M 67 126 L 66 131 M 72 126 L 72 131 M 77 126 L 78 131" stroke="#231F20" stroke-width="2.6" stroke-linecap="round" />
+  <!-- Snug Wrapped Neck Collar -->
+  <rect x="41" y="94" width="46" height="12" rx="6" fill="#DC2626" stroke="#231F20" stroke-width="3.8" />
+  <path d="M 52 94 L 52 106 M 64 94 L 64 106 M 76 94 L 76 106" stroke="#FCA5A5" stroke-width="2.4" />
+</g>
+</svg>

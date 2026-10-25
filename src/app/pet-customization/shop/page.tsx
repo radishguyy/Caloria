@@ -5,12 +5,9 @@ import Link from "next/link";
 import {
   ShoppingBag,
   Coins,
-  Sparkles,
   Check,
   AlertCircle,
   X,
-  ArrowRight,
-  ShieldAlert,
 } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
@@ -19,6 +16,7 @@ import {
   CosmeticItem,
   CosmeticCategory,
 } from "@/lib/cosmetics-catalog";
+import { AccessorySvgPreview } from "@/components/pet/character-svg";
 import { cn } from "@/lib/utils";
 
 export default function PetShopPage() {
@@ -28,7 +26,6 @@ export default function PetShopPage() {
     selectedCategory,
     setSelectedCategory,
     buyItem,
-    equipItem,
   } = useCosmeticsStore();
 
   const [confirmModalItem, setConfirmModalItem] = useState<CosmeticItem | null>(null);
@@ -38,9 +35,10 @@ export default function PetShopPage() {
   } | null>(null);
 
   const categories: { id: CosmeticCategory; label: string }[] = [
-    { id: "head", label: "Topi & Aksesoris" },
+    { id: "head", label: "Topi & Kepala" },
     { id: "glasses", label: "Kacamata" },
-    { id: "body", label: "Pakaian & Jubah" },
+    { id: "body", label: "Pakaian & Tas" },
+    { id: "held", label: "Makanan & Minuman" },
     { id: "skin", label: "Skin & Aura" },
     { id: "room", label: "Dekorasi Ruangan" },
   ];
@@ -163,8 +161,16 @@ export default function PetShopPage() {
                 </span>
               )}
 
-              <div className="space-y-2 text-center pt-2">
-                <div className="text-4xl mx-auto">{item.previewEmoji}</div>
+              {item.theme && (
+                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-muted text-muted-foreground">
+                  {item.theme}
+                </span>
+              )}
+
+              <div className="space-y-2 text-center pt-3">
+                <div className="h-16 w-16 mx-auto flex items-center justify-center">
+                  <AccessorySvgPreview itemId={item.id} />
+                </div>
                 <h3 className="text-sm font-bold text-foreground">{item.name}</h3>
                 <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
                   {item.description}
@@ -211,7 +217,9 @@ export default function PetShopPage() {
       {confirmModalItem && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="w-full max-w-sm rounded-3xl border bg-card p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="text-4xl">{confirmModalItem.previewEmoji}</div>
+            <div className="h-16 w-16 mx-auto flex items-center justify-center">
+              <AccessorySvgPreview itemId={confirmModalItem.id} />
+            </div>
 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -264,4 +272,3 @@ export default function PetShopPage() {
     </div>
   );
 }
-
