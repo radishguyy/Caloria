@@ -166,3 +166,28 @@ caloria/
 1. Always branch off `dev` for feature work (`git checkout -b feature/your-feature dev`).
 2. Test builds & types before committing (`npx tsc --noEmit && npm run build`).
 3. Merge back into `dev` after review.
+
+---
+
+## 🎨 Design System
+
+Design references live alongside the app:
+
+- `Grand Design - Caloria (Gamified Nutrition & Virtual Pet Web App).md` — main design document.
+- `caloria-design-system-agent-files/` — design tokens (`design-tokens.css`, `design-tokens.json`) and implementation rules for agents (`AGENTS.md`).
+- `public/wireframes/` — HTML wireframes for per-page layout reference.
+
+Caloria tokens are already wired into `src/app/globals.css` (colors, typography, spacing, radius, shadows) and mapped to shadcn semantic variables.
+
+## 🔤 Fonts
+
+Both brand fonts are self-hosted in `public/fonts/` and loaded with `@font-face` in `src/app/globals.css`:
+
+| Font | Role | Files |
+|---|---|---|
+| Open Runde | Body, UI, caption | `public/fonts/openrunde/` |
+| Secuela | Headings (H1/H2) | `public/fonts/secuela/` |
+
+Use the existing CSS variables `--font-body` (Open Runde) and `--font-heading` (Secuela). No external font requests are required.
+
+Secuela is licensed under the SIL Open Font License 1.1; see `public/fonts/secuela/FONTLOG.txt`.
