@@ -1,37 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Caloria
 
-## Getting Started
+Aplikasi web pencatat nutrisi bergamifikasi dengan Virtual Pet, Daily Missions, dan Co-op Streak.
 
-First, run the development server:
+## Tech stack
+
+- Next.js 16 (App Router) + React 19
+- Tailwind CSS v4 + shadcn/ui
+- Zustand untuk state management
+- Supabase (auth) + Drizzle ORM (database)
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Jalankan development server |
+| `npm run build` | Build untuk production |
+| `npm run start` | Jalankan hasil build |
+| `npm run lint` | Jalankan ESLint |
+| `npm run db:generate` | Generate migrasi Drizzle |
+| `npm run db:migrate` | Jalankan migrasi |
+| `npm run db:push` | Push schema ke database |
+| `npm run db:studio` | Buka Drizzle Studio |
 
-## Learn More
+## Design system
 
-To learn more about Next.js, take a look at the following resources:
+Referensi desain disimpan terpisah dari kode aplikasi:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `Grand Design - Caloria (Gamified Nutrition & Virtual Pet Web App).md` — dokumen desain utama.
+- `caloria-design-system-agent-files/` — token desain (`design-tokens.css`, `design-tokens.json`) dan aturan implementasi untuk agent (`AGENTS.md`).
+- `public/wireframes/` — wireframe HTML untuk referensi layout per halaman.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Fonts
 
-## Deploy on Vercel
+Kedua font brand sudah tersedia di dalam repo dan dimuat otomatis lewat `next/font/local`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Font | Peran | File | CSS variable | Tailwind |
+| --- | --- | --- | --- | --- |
+| Open Runde | Body, UI, caption | `src/app/fonts/OpenRunde-{Regular,Medium,Semibold,Bold}.woff2` | `--font-open-runde` | `font-sans` |
+| Secuela | Heading (H1/H2) | `src/app/fonts/Secuela-{Regular,Medium,Bold,ExtraBold}.woff2` | `--font-secuela` | `font-heading` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Caloria
+Keduanya dimuat di `src/app/layout.tsx`. Gunakan `font-sans` untuk body dan `font-heading` untuk heading — tidak perlu menambahkan file font lain atau `@font-face` manual.
+
+Secuela dilisensikan under SIL Open Font License 1.1; lihat `src/app/fonts/Secuela-FONTLOG.txt`.

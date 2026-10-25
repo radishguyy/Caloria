@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wireframe 01 — Smart Onboarding · Caloria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Runde:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="caloria-wireframe.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></symbol>
+      <symbol id="i-calc" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></symbol>
+      <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M9.9 15.5A2 2 0 0 0 8.5 14.1l-6.1-1.6a.5.5 0 0 1 0-1L8.5 9.9A2 2 0 0 0 9.9 8.5l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0z"/></symbol>
+      <symbol id="i-egg" viewBox="0 0 24 24"><path d="M12 2c3.3 0 6 7 6 11a6 6 0 0 1-12 0c0-4 2.7-11 6-11Z"/></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+      <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 7.9 7.5 9.5 4.3-1.6 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="artifact">
+    <div class="artifact-topbar">
+      <a class="backlink" href="index.html">
+        <svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+        Index wireframe
+      </a>
+      <span class="meta-pill"><strong>Page 1</strong> · Smart Onboarding</span>
+    </div>
+
+    <header class="artifact-head">
+      <p class="kicker">Wireframe 01 · Iterasi 1</p>
+      <h1 class="artifact-title">Smart Onboarding</h1>
+      <p class="artifact-sub">
+        Pintu masuk pengguna baru. Satu layar fokus tanpa navbar aplikasi, dengan stepper
+        yang memperlihatkan perjalanan empat langkah menuju adopsi pet.
+      </p>
+      <div class="meta-row">
+        <span class="meta-pill"><strong>Route</strong> /onboarding/goal</span>
+        <span class="meta-pill">Desktop 1440</span>
+        <span class="meta-pill">Fokus · tanpa navbar</span>
+        <span class="meta-pill">Goal: Diet · Bulking · Maintenance</span>
+      </div>
+    </header>
+
+    <section class="wf-screen" aria-label="Layar onboarding tujuan utama">
+      <div class="wf-screen-bar">
+        <span>01 · Page 1 — Smart Onboarding</span>
+        <span class="route">1.1 /onboarding/goal · 1440 × auto</span>
+      </div>
+
+      <div class="onboarding-shell">
+        <div class="onboarding-topbar">
+          <span class="brand">
+            <span class="brand-mark"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg></span>
+            Caloria
+          </span>
+          <span style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;color:var(--muted-ink)">Sudah punya akun?</span>
+            <span class="btn btn-outline btn-sm">Masuk</span>
+          </span>
+        </div>
+
+        <div class="stepper" aria-label="Langkah onboarding">
+          <span class="stepper-track"><span style="width:0"></span></span>
+
+          <span class="step active">
+            <span class="step-dot"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-target"/></svg></span>
+            <span class="step-label">Tujuan Utama</span>
+          </span>
+          <span class="step">
+            <span class="step-dot"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-calc"/></svg></span>
+            <span class="step-label">Profil &amp; BMI</span>
+          </span>
+          <span class="step">
+            <span class="step-dot"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sparkles"/></svg></span>
+            <span class="step-label">Proyeksi N Hari</span>
+          </span>
+          <span class="step">
+            <span class="step-dot"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-egg"/></svg></span>
+            <span class="step-label">Adopsi Pet</span>
+          </span>
+        </div>
+
+        <div class="onboarding-head">
+          <span class="tag tag-orange" style="margin-bottom:10px">Langkah 1 dari 4 <span class="pin" aria-hidden="true">1</span></span>
+          <h2>
+            Mulai perjalanan sehatmu,
+            <br>
+            satu langkah kecil.
+          </h2>
+          <p>
+            Pilih fokus utama. Caloria akan menyusun target kalori, makronutrisi,
+            dan misi harian yang menemani pertumbuhan pet-mu.
+          </p>
+        </div>
+
+        <div class="goal-list">
+          <article class="goal-card selected">
+            <span class="goal-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-target"/></svg></span>
+            <div class="goal-main">
+              <div class="goal-top">
+                <span class="goal-name">Diet · Defisit Kalori</span>
+                <span class="tag tag-orange">Direkomendasikan</span>
+              </div>
+              <p class="goal-desc">Turunkan berat badan secara sehat, bertahap, dan terukur.</p>
+              <div class="goal-meta">
+                <span class="tag tag-green">−500 kkal / hari</span>
+                <span class="tag">±0,5 kg / minggu</span>
+                <span class="tag">Target: berat ideal</span>
+              </div>
+            </div>
+            <span class="goal-radio" role="img" aria-label="Dipilih"></span>
+          </article>
+
+          <article class="goal-card">
+            <span class="goal-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-dumbbell"/></svg></span>
+            <div class="goal-main">
+              <div class="goal-top">
+                <span class="goal-name">Bulking · Surplus Kalori</span>
+                <span class="tag">Massa otot</span>
+              </div>
+              <p class="goal-desc">Tambah massa otot dan berat badan dengan asupan protein tinggi.</p>
+              <div class="goal-meta">
+                <span class="tag tag-yellow">+400 kkal / hari</span>
+                <span class="tag">Protein 1,7–2,2 g/kg</span>
+              </div>
+            </div>
+            <span class="goal-radio" role="img" aria-label="Belum dipilih"></span>
+          </article>
+
+          <article class="goal-card">
+            <span class="goal-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield"/></svg></span>
+            <div class="goal-main">
+              <div class="goal-top">
+                <span class="goal-name">Maintenance · Stabil</span>
+                <span class="tag">Pola hidup</span>
+              </div>
+              <p class="goal-desc">Jaga berat badan ideal dan perbaiki komposisi gizi harian.</p>
+              <div class="goal-meta">
+                <span class="tag tag-yellow">TDEE seimbang</span>
+                <span class="tag">Serat 30–35 g</span>
+              </div>
+            </div>
+            <span class="goal-radio" role="img" aria-label="Belum dipilih"></span>
+          </article>
+        </div>
+
+        <p class="onboarding-helper">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+          Tujuan bisa diubah kapan saja lewat menu Profil. Target awal akan dihitung ulang.
+        </p>
+
+        <div class="flow-footer">
+          <span class="btn btn-ghost btn-sm">
+            <svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+            Kembali ke Login
+          </span>
+          <span class="flow-step">Langkah 1 dari 4</span>
+          <a class="btn btn-primary" href="page-1-profile.html" style="text-decoration:none">
+            Lanjut: Profil Fisik
+            <svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <ol class="notes" aria-label="Anotasi wireframe onboarding">
+      <li class="notes-title" style="list-style:none;padding-left:0">Anotasi &amp; state</li>
+      <li>Stepper menunjukkan empat langkah. Semua langkah sudah tersedia; layar ini adalah titik masuk alur onboarding.</li>
+      <li>Kartu terpilih memakai border oranye, latar krem, radio terisi, dan tag “Direkomendasikan”. Hanya satu pilihan aktif.</li>
+      <li>State hover memakai surface kuning pucat, sedangkan fokus keyboard memakai ring hijau 2px di luar border.</li>
+      <li>Diet aktif sebagai default. Jika tim memilih start kosong, CTA “Lanjut” memakai state disabled dengan opacity 48%.</li>
+      <li>Pilihan goal menentukan margin kalori: Diet <code>−500</code>, Bulking <code>+400</code>, Maintenance <code>0</code>; nilai ini dipakai di layar proyeksi.</li>
+      <li>Tombol lanjut menuju <code>/onboarding/profile-calculator</code>. Di layar berikutnya stepper berubah menjadi langkah 2 dengan garis progres hijau.</li>
+      <li>Layar ini tidak memakai navbar aplikasi agar pengguna baru tetap fokus pada satu keputusan.</li>
+    </ol>
+  </div>
+</body>
+</html>
