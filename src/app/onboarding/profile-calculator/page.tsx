@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Calculator, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calculator } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
@@ -70,15 +70,15 @@ export default function OnboardingProfileCalculatorPage() {
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
           Langkah 2: Profil Fisik & Kalkulator BMI
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto">
+        <p className="text-xs sm:text-sm text-ink-muted max-w-lg mx-auto">
           Masukkan parameter fisikmu. Sistem Caloria akan menghitung skor BMI dan estimasi kebutuhan energi harian (TDEE).
         </p>
       </div>
 
-      <div className="rounded-3xl border bg-card p-6 space-y-5 shadow-xs">
+      <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-5">
         {/* Gender Selection */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground">
+          <label className="text-xs font-semibold text-ink-muted">
             Jenis Kelamin Biologis (untuk rumus BMR Mifflin-St Jeor)
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -88,8 +88,8 @@ export default function OnboardingProfileCalculatorPage() {
               className={cn(
                 "py-2.5 px-4 rounded-2xl border text-xs font-bold transition-colors",
                 gender === "male"
-                  ? "bg-orange-500 text-white border-orange-500 shadow-sm"
-                  : "bg-muted/30 border-border text-muted-foreground hover:bg-muted"
+                  ? "bg-brand-orange text-ink border-brand-orange shadow-sm"
+                  : "bg-surface-raised border-warm-border text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
               )}
             >
               Laki-Laki
@@ -100,8 +100,8 @@ export default function OnboardingProfileCalculatorPage() {
               className={cn(
                 "py-2.5 px-4 rounded-2xl border text-xs font-bold transition-colors",
                 gender === "female"
-                  ? "bg-orange-500 text-white border-orange-500 shadow-sm"
-                  : "bg-muted/30 border-border text-muted-foreground hover:bg-muted"
+                  ? "bg-brand-orange text-ink border-brand-orange shadow-sm"
+                  : "bg-surface-raised border-warm-border text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
               )}
             >
               Perempuan
@@ -112,7 +112,7 @@ export default function OnboardingProfileCalculatorPage() {
         {/* Height, Weight, Age Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Usia (Tahun)
             </label>
             <input
@@ -121,12 +121,12 @@ export default function OnboardingProfileCalculatorPage() {
               max="100"
               value={age}
               onChange={(e) => setAge(parseInt(e.target.value) || 20)}
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30 font-semibold"
+              className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Tinggi Badan (cm)
             </label>
             <input
@@ -135,12 +135,12 @@ export default function OnboardingProfileCalculatorPage() {
               max="250"
               value={heightCm}
               onChange={(e) => setHeightCm(parseInt(e.target.value) || 160)}
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30 font-semibold"
+              className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Berat Saat Ini (kg)
             </label>
             <input
@@ -150,7 +150,7 @@ export default function OnboardingProfileCalculatorPage() {
               max="250"
               value={currentWeightKg}
               onChange={(e) => setCurrentWeightKg(parseFloat(e.target.value) || 60)}
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30 font-semibold"
+              className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
             />
           </div>
         </div>
@@ -158,10 +158,10 @@ export default function OnboardingProfileCalculatorPage() {
         {/* Target Weight */}
         <div>
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Berat Badan Target (kg)
             </label>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-[11px] text-ink-muted">
               Rentang BMI Normal: {bmiAnalysis.healthyWeightRange.min} - {bmiAnalysis.healthyWeightRange.max} kg
             </span>
           </div>
@@ -172,13 +172,13 @@ export default function OnboardingProfileCalculatorPage() {
             max="250"
             value={targetWeightKg}
             onChange={(e) => setTargetWeightKg(parseFloat(e.target.value) || 60)}
-            className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30 font-semibold"
+            className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
           />
         </div>
 
         {/* Activity Level Selector */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground">
+          <label className="text-xs font-semibold text-ink-muted">
             Tingkat Aktivitas Harian
           </label>
           <div className="space-y-1.5">
@@ -190,8 +190,8 @@ export default function OnboardingProfileCalculatorPage() {
                 className={cn(
                   "w-full text-left p-3 rounded-2xl border text-xs transition-colors flex items-center justify-between",
                   activityLevel === levelKey
-                    ? "bg-orange-500/10 border-orange-500 text-orange-950 dark:text-orange-100 font-bold"
-                    : "bg-muted/20 border-border hover:bg-muted text-muted-foreground"
+                    ? "border-brand-orange bg-highlight/60 text-ink font-bold"
+                    : "border-warm-border bg-surface-raised text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
                 )}
               >
                 <span>{ACTIVITY_MULTIPLIERS[levelKey].label}</span>
@@ -204,42 +204,42 @@ export default function OnboardingProfileCalculatorPage() {
         </div>
 
         {/* Live BMI & TDEE Result Card */}
-        <div className="rounded-2xl border border-orange-500/30 bg-orange-500/5 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-warm-border bg-highlight/50 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-brand-green-dark uppercase tracking-wider">
             <Calculator className="h-4 w-4" />
             <span>Hasil Analisis Profil Fisik:</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center pt-1">
-            <div className="p-2.5 rounded-xl bg-background border shadow-xs">
-              <span className="text-[10px] text-muted-foreground">Skor BMI</span>
-              <p className="text-base font-extrabold text-foreground">{bmiAnalysis.score}</p>
+            <div className="p-2.5 rounded-xl border border-warm-border bg-surface-raised shadow-xs">
+              <span className="text-[10px] text-ink-muted">Skor BMI</span>
+              <p className="text-base font-extrabold text-ink">{bmiAnalysis.score}</p>
               <span
                 className={cn(
-                  "text-[10px] font-bold px-1.5 py-0.2 rounded-full inline-block mt-0.5",
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-block mt-0.5",
                   bmiAnalysis.category === "Normal"
-                    ? "bg-emerald-500/10 text-emerald-600"
+                    ? "bg-brand-green/10 text-brand-green-dark"
                     : bmiAnalysis.category === "Underweight"
-                    ? "bg-blue-500/10 text-blue-600"
-                    : "bg-amber-500/10 text-amber-600"
+                    ? "bg-brown/10 text-brown"
+                    : "bg-highlight text-ink"
                 )}
               >
                 {bmiAnalysis.category}
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-background border shadow-xs">
-              <span className="text-[10px] text-muted-foreground">BMR Alami</span>
-              <p className="text-base font-extrabold text-foreground">{bmr}</p>
-              <span className="text-[10px] text-muted-foreground">kkal / hari</span>
+            <div className="p-2.5 rounded-xl border border-warm-border bg-surface-raised shadow-xs">
+              <span className="text-[10px] text-ink-muted">BMR Alami</span>
+              <p className="text-base font-extrabold text-ink">{bmr}</p>
+              <span className="text-[10px] text-ink-muted">kkal / hari</span>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-background border shadow-xs">
-              <span className="text-[10px] text-muted-foreground">TDEE Total</span>
-              <p className="text-base font-extrabold text-orange-600 dark:text-orange-400">
+            <div className="p-2.5 rounded-xl border border-warm-border bg-surface-raised shadow-xs">
+              <span className="text-[10px] text-ink-muted">TDEE Total</span>
+              <p className="text-base font-extrabold text-brand-green-dark">
                 {tdee}
               </p>
-              <span className="text-[10px] text-muted-foreground">kkal bakar/hari</span>
+              <span className="text-[10px] text-ink-muted">kkal bakar/hari</span>
             </div>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function OnboardingProfileCalculatorPage() {
       <div className="flex items-center justify-between pt-2">
         <Link
           href="/onboarding/goal"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border border-border text-xs font-semibold hover:bg-accent text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 btn-ghost min-h-0 px-4 py-2.5 text-xs transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Kembali</span>
@@ -256,7 +256,7 @@ export default function OnboardingProfileCalculatorPage() {
 
         <button
           onClick={handleNext}
-          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-95"
+          className="btn-cta text-sm"
         >
           <span>Lanjut: Proyeksi N Hari</span>
           <ArrowRight className="h-4 w-4" />

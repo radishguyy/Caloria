@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Flame, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Flame, ArrowRight } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
 
 export default function RegisterPage() {
@@ -40,16 +40,16 @@ export default function RegisterPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-12 sm:py-16 flex flex-col items-center justify-center">
-      <div className="w-full rounded-3xl border bg-card p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="w-full rounded-3xl border border-warm-border bg-card p-6 sm:p-8 shadow-card space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white shadow-md shadow-orange-500/20">
-            <Flame className="h-7 w-7 fill-white" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-green to-brand-green-light text-surface-raised shadow-lg shadow-brand-green/25">
+            <Flame className="h-7 w-7 fill-current" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">
             Daftar Akun Caloria
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-ink-muted">
             Mulai petualangan gizi dan adopsi virtual pet pertamamu.
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleRegister} className="space-y-3.5 text-left">
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Nama Lengkap
             </label>
             <input
@@ -71,12 +71,12 @@ export default function RegisterPage() {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="misal: Afza Pratama"
               required
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30"
+              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Username Unik
             </label>
             <input
@@ -85,12 +85,12 @@ export default function RegisterPage() {
               onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, "_"))}
               placeholder="misal: afza_fit"
               required
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30"
+              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Alamat Email
             </label>
             <input
@@ -99,12 +99,12 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nama@email.com"
               required
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30"
+              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">
+            <label className="text-xs font-semibold text-ink-muted">
               Kata Sandi
             </label>
             <input
@@ -113,7 +113,7 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimal 6 karakter"
               required
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30"
+              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
             />
           </div>
 
@@ -121,7 +121,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2"
+              className="btn-cta w-full py-3 text-sm flex items-center justify-center gap-2"
             >
               <span>{loading ? "Mendaftarkan..." : "Daftar & Mulai Onboarding"}</span>
               <ArrowRight className="h-4 w-4" />
@@ -129,11 +129,11 @@ export default function RegisterPage() {
           </div>
         </form>
 
-        <div className="pt-2 text-center text-xs text-muted-foreground">
+        <div className="pt-2 text-center text-xs text-ink-muted">
           Sudah punya akun?{" "}
           <Link
             href="/login"
-            className="font-bold text-orange-600 dark:text-orange-400 hover:underline"
+            className="font-bold text-brand-green-dark hover:underline"
           >
             Masuk di sini
           </Link>

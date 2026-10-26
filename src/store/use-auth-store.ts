@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthStoreState>()(
       activeOnboardingStep: 1,
 
       login: (email: string, username?: string) =>
-        set((state) => ({
+        set({
           isAuthenticated: true,
           user: {
             id: `user-${Date.now()}`,
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthStoreState>()(
             username: username || email.split("@")[0],
             fullName: username ? username.toUpperCase() : "Caloria User",
           },
-        })),
+        }),
 
       register: (email: string, username: string, fullName: string) =>
         set({

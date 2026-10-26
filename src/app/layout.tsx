@@ -45,7 +45,7 @@ export default function RootLayout({
       lang="id"
       className={`h-full antialiased ${openRunde.variable} ${secuela.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+      <body className="min-h-full flex flex-col bg-canvas text-ink font-sans">
         <Navbar />
         <main className="flex-1 pb-24 lg:pb-12">{children}</main>
         <BottomNav />

@@ -12,9 +12,7 @@ import {
   Award,
   Bell,
   Coins,
-  Calendar,
   X,
-  Plus,
 } from "lucide-react";
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { MacroBar } from "@/components/diary/macro-bar";
@@ -26,15 +24,14 @@ import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 
 export default function DashboardPage() {
-  const { goalPlan, getMealLogs, getConsumed, addLog } = useFoodStore();
-  const { name, level, stage, coins, feedPet } = usePetStore();
+  const { goalPlan, getMealLogs, addLog } = useFoodStore();
+  const { coins, feedPet } = usePetStore();
   const { coopStreakDays, partyName, friends } = useSocialStore();
   const { toggleDrawer, getUnreadCount } = useNotificationStore();
 
   const [quickLogModalOpen, setQuickLogModalOpen] = useState(false);
   const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>("breakfast");
 
-  const consumed = getConsumed();
   const unreadCount = getUnreadCount();
   const remainingDays = Math.max(0, goalPlan.totalProjectedDays - goalPlan.currentDayNumber);
   const progressPercent = Math.min(
@@ -66,42 +63,42 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
       {/* 1. Goal & N-Day Projection Banner */}
-      <section className="rounded-3xl border bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent p-5 sm:p-6 relative overflow-hidden">
+      <section className="rounded-3xl border border-warm-border bg-gradient-to-r from-highlight/70 via-surface to-surface p-5 sm:p-6 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500 text-white shadow-xs">
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-orange text-ink shadow-xs">
                 Program {goalPlan.goalType}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-background border text-foreground">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-raised border border-warm-border text-ink">
                 BMI: {goalPlan.bmiScore} ({goalPlan.bmiCategory})
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-background border text-muted-foreground flex items-center gap-1">
-                <Target className="h-3 w-3 text-orange-500" />
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-raised border border-warm-border text-ink-muted flex items-center gap-1">
+                <Target className="h-3 w-3 text-brand-green" />
                 Target: {goalPlan.currentWeightKg} kg &rarr; {goalPlan.targetWeightKg} kg
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground pt-1">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink pt-1">
               Hari ke-{goalPlan.currentDayNumber} dari {goalPlan.totalProjectedDays} Hari
             </h1>
 
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-ink-muted">
               Dengan margin harian {goalPlan.dailyMarginKcal > 0 ? `+${goalPlan.dailyMarginKcal}` : goalPlan.dailyMarginKcal} kkal/hari, kamu diproyeksikan mencapai misi utama dalam{" "}
-              <strong className="text-foreground">{remainingDays} hari lagi</strong>.
+              <strong className="text-ink">{remainingDays} hari lagi</strong>.
             </p>
           </div>
 
           <div className="flex items-center gap-3 self-start md:self-auto">
             <div className="text-right hidden sm:block">
-              <p className="text-xs text-muted-foreground font-medium">Sisa Waktu</p>
-              <p className="text-2xl font-black text-orange-600 dark:text-orange-400">
+              <p className="text-xs text-ink-muted font-medium">Sisa Waktu</p>
+              <p className="text-2xl font-black text-brand-green-dark">
                 {remainingDays} <span className="text-xs font-semibold">Hari</span>
               </p>
             </div>
             <Link
               href="/onboarding/goal"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-accent text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-ghost border-warm-border bg-surface-raised text-xs font-semibold transition-colors"
             >
               <span>Ubah Target</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -111,13 +108,13 @@ export default function DashboardPage() {
 
         {/* Progress Bar for N-Day Mission */}
         <div className="mt-4 space-y-1.5">
-          <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+          <div className="flex justify-between text-[11px] text-ink-muted font-medium">
             <span>Progres Program</span>
             <span>{progressPercent}% tercapai</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-surface-sunken overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-brand-green-dark to-brand-green-light transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -125,18 +122,18 @@ export default function DashboardPage() {
       </section>
 
       {/* 2. Co-op Streak Alert Banner (Social Accountability) */}
-      <section className="rounded-2xl border border-orange-500/30 bg-orange-500/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <section className="rounded-2xl border border-warm-border bg-highlight/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-white font-black shadow-sm">
-            <Flame className="h-6 w-6 fill-white" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green text-surface-raised font-black shadow-[0_3px_0_var(--brand-green-dark)]">
+            <Flame className="h-6 w-6 fill-current" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-foreground">
+              <h2 className="text-sm font-bold text-ink">
                 Co-op Streak: {coopStreakDays} Hari Bersama {partyName}
               </h2>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-ink-muted">
               {pendingFriends.length > 0
                 ? `${pendingFriends.length} teman belum mencatat makanan hari ini. Senggol mereka agar streak tidak putus!`
                 : "Semua teman di party sudah mencatat makanan hari ini! Streak kalian aman."}
@@ -147,15 +144,15 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
             onClick={toggleDrawer}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl btn-ghost border-warm-border bg-surface-raised text-xs font-semibold"
           >
-            <Bell className="h-3.5 w-3.5 text-orange-500" />
+            <Bell className="h-3.5 w-3.5 text-brand-green" />
             <span>Notifikasi {unreadCount > 0 && `(${unreadCount})`}</span>
           </button>
 
           <Link
             href="/social/coop"
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition-transform active:scale-95"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl btn-cta text-xs font-semibold transition-transform active:scale-95"
           >
             <Users className="h-3.5 w-3.5" />
             <span>Buka Co-op & Senggol</span>
@@ -167,19 +164,19 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Stage View (Ruang Interaktif Pet) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="rounded-3xl border bg-card p-5 sm:p-6 shadow-xs relative overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-border">
+          <div className="surface-card rounded-3xl p-5 sm:p-6 relative overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-warm-border">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-orange-500" />
-                <h2 className="text-sm font-bold tracking-tight text-foreground">
+                <Sparkles className="h-4 w-4 text-brand-green" />
+                <h2 className="text-sm font-bold tracking-tight text-ink">
                   Ruang Pet Virtual
                 </h2>
               </div>
               <Link
                 href="/pet-customization/shop"
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold hover:bg-amber-500/20 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full border border-warm-border bg-highlight px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-brand-green-light"
               >
-                <Coins className="h-3.5 w-3.5 text-amber-500" />
+                <Coins className="h-3.5 w-3.5 text-brown" />
                 <span>{coins} Koin</span>
               </Link>
             </div>
@@ -192,11 +189,11 @@ export default function DashboardPage() {
             />
 
             {/* Pet Wardrobe Link Shortcut */}
-            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Kustomisasi Outfit & Aksesoris</span>
+            <div className="mt-4 pt-4 border-t border-warm-border flex items-center justify-between text-xs">
+              <span className="text-ink-muted">Kustomisasi Outfit & Aksesoris</span>
               <Link
                 href="/pet-customization/wardrobe"
-                className="inline-flex items-center gap-1 font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+                className="inline-flex items-center gap-1 font-semibold text-brand-green-dark hover:underline"
               >
                 <span>Buka Wardrobe</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -205,9 +202,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Pet Gamification Rules Card */}
-          <div className="rounded-2xl border bg-muted/40 p-4 text-xs text-muted-foreground space-y-1.5">
-            <p className="font-semibold text-foreground flex items-center gap-1.5">
-              <Award className="h-4 w-4 text-amber-500" />
+          <div className="rounded-2xl border border-warm-border bg-surface-sunken/70 p-4 text-xs text-ink-muted space-y-1.5">
+            <p className="font-semibold text-ink flex items-center gap-1.5">
+              <Award className="h-4 w-4 text-brown" />
               Mekanisme Reward Gizi ke XP:
             </p>
             <ul className="list-disc list-inside space-y-1 pl-1">
@@ -227,7 +224,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setQuickLogModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-98"
+              className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl btn-cta text-sm transition-transform active:scale-[0.98]"
             >
               <PlusCircle className="h-5 w-5" />
               <span>+ Quick Catat Makanan</span>
@@ -235,22 +232,22 @@ export default function DashboardPage() {
 
             <Link
               href="/diary/add"
-              className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border border-border bg-card hover:bg-accent text-foreground font-semibold text-sm transition-colors"
+              className="flex items-center justify-center gap-2 px-5 py-3.5 btn-secondary text-sm transition-colors"
             >
-              <Sparkles className="h-4 w-4 text-orange-500" />
+              <Sparkles className="h-4 w-4 text-brand-green" />
               <span>Cari Katalog & Evaluasi Gizi</span>
             </Link>
           </div>
 
           {/* Today's Meal Breakdown Quick List */}
-          <div className="rounded-2xl border bg-card p-5 space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="text-sm font-bold text-foreground">
+          <div className="surface-card rounded-2xl p-5 space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-warm-border">
+              <h3 className="text-sm font-bold text-ink">
                 Catatan Waktu Makan Hari Ini
               </h3>
               <Link
                 href="/diary"
-                className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+                className="text-xs font-semibold text-brand-green-dark hover:underline"
               >
                 Buka Food Diary Lengkap &rarr;
               </Link>
@@ -265,18 +262,18 @@ export default function DashboardPage() {
                   <Link
                     key={meal.id}
                     href={`/diary?meal=${meal.id}`}
-                    className="p-3 rounded-xl border bg-muted/30 hover:bg-muted/60 transition-colors flex flex-col justify-between"
+                    className="p-3 rounded-xl border border-warm-border bg-surface-sunken/60 hover:bg-brand-green-light/60 transition-colors flex flex-col justify-between"
                   >
                     <div>
-                      <p className="text-xs font-semibold text-foreground">
+                      <p className="text-xs font-semibold text-ink">
                         {meal.label}
                       </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <p className="text-[11px] text-ink-muted mt-0.5">
                         {logs.length > 0 ? `${logs.length} item` : "Belum dicatat"}
                       </p>
                     </div>
-                    <p className="text-sm font-bold text-orange-600 dark:text-orange-400 mt-2">
-                      {mealCalories} <span className="text-[10px] text-muted-foreground font-normal">kcal</span>
+                    <p className="text-sm font-bold text-brand-green-dark mt-2">
+                      {mealCalories} <span className="text-[10px] text-ink-muted font-normal">kcal</span>
                     </p>
                   </Link>
                 );
@@ -288,16 +285,16 @@ export default function DashboardPage() {
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl border bg-card p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                <PlusCircle className="h-5 w-5 text-orange-500" />
+        <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md surface-card rounded-3xl p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-warm-border">
+              <h3 className="text-base font-bold text-ink flex items-center gap-2">
+                <PlusCircle className="h-5 w-5 text-brand-green" />
                 <span>Quick Catat Makanan</span>
               </h3>
               <button
                 onClick={() => setQuickLogModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground p-1"
+                className="text-ink-muted hover:text-ink p-1"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -305,7 +302,7 @@ export default function DashboardPage() {
 
             {/* Meal Type Radio Selection */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-semibold text-ink-muted">
                 Pilih Waktu Makan:
               </label>
               <div className="grid grid-cols-4 gap-1.5">
@@ -315,8 +312,8 @@ export default function DashboardPage() {
                     onClick={() => setSelectedQuickMeal(m.id)}
                     className={`py-1.5 px-1 rounded-xl text-xs font-medium border text-center transition-colors ${
                       selectedQuickMeal === m.id
-                        ? "bg-orange-500 text-white border-orange-500 font-bold"
-                        : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                        ? "bg-brand-orange text-ink border-brand-orange font-bold"
+                        : "bg-surface-raised text-ink-muted border-warm-border hover:bg-brand-green-light hover:text-brand-green-ink"
                     }`}
                   >
                     {m.label}
@@ -327,7 +324,7 @@ export default function DashboardPage() {
 
             {/* Quick Favorites List */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-semibold text-ink-muted">
                 Pilih Cepat Menu Populer:
               </label>
               <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
@@ -335,15 +332,15 @@ export default function DashboardPage() {
                   <div
                     key={food.id}
                     onClick={() => handleQuickAdd(food)}
-                    className="p-2.5 rounded-xl border bg-muted/20 hover:bg-orange-500/10 hover:border-orange-500/30 cursor-pointer transition-colors flex items-center justify-between"
+                    className="p-2.5 rounded-xl border border-warm-border bg-surface-raised hover:bg-brand-green-light/50 hover:border-brand-green-light cursor-pointer transition-colors flex items-center justify-between"
                   >
                     <div>
-                      <p className="text-xs font-semibold text-foreground">{food.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs font-semibold text-ink">{food.name}</p>
+                      <p className="text-[10px] text-ink-muted">
                         {food.defaultServingSize} {food.servingUnit} • P: {food.proteinG}g
                       </p>
                     </div>
-                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                    <span className="text-xs font-bold text-brand-green-dark">
                       +{food.calories} kcal
                     </span>
                   </div>
@@ -355,13 +352,13 @@ export default function DashboardPage() {
               <Link
                 href="/diary/add"
                 onClick={() => setQuickLogModalOpen(false)}
-                className="font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+                className="font-semibold text-brand-green-dark hover:underline"
               >
                 Cari di Katalog Lengkap &rarr;
               </Link>
               <button
                 onClick={() => setQuickLogModalOpen(false)}
-                className="px-3.5 py-1.5 rounded-xl border hover:bg-muted font-medium"
+                className="btn-ghost px-3.5 py-1.5 text-xs font-medium"
               >
                 Tutup
               </button>

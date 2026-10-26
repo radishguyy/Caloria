@@ -22,22 +22,22 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-16 flex flex-col items-center justify-center">
-      <div className="w-full rounded-3xl border bg-card p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="w-full rounded-3xl border border-warm-border bg-card p-6 sm:p-8 shadow-card space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white shadow-md shadow-orange-500/20">
-            <Flame className="h-7 w-7 fill-white" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-green to-brand-green-light text-surface-raised shadow-lg shadow-brand-green/25">
+            <Flame className="h-7 w-7 fill-current" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">
             Pemulihan Kata Sandi
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-ink-muted">
             Masukkan email terdaftar kamu untuk menerima tautan instruksi reset password.
           </p>
         </div>
 
         {submitted ? (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-950 dark:text-emerald-100 text-center space-y-2">
-            <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400 mx-auto" />
+          <div className="rounded-2xl border border-warm-border bg-brand-green-light p-4 text-center space-y-2 text-brand-green-ink">
+            <CheckCircle2 className="mx-auto h-6 w-6 text-brand-green-dark" />
             <h3 className="text-sm font-bold">Email Terkirim!</h3>
             <p className="text-xs opacity-90">
               Instruksi pemulihan kata sandi telah dikirim ke <strong>{email}</strong>. Periksa folder kotak masuk atau spam kamu.
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
             <div className="pt-2">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-green-dark hover:underline"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Kembali ke Halaman Masuk</span>
@@ -55,18 +55,18 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-semibold text-ink-muted">
                 Email Akun Caloria
               </label>
               <div className="relative mt-1">
-                <Mail className="absolute left-3.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3.5 top-2.5 h-4 w-4 text-ink-muted" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@email.com"
                   required
-                  className="w-full rounded-xl border border-input bg-background pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500/30"
+                  className="field w-full pl-10 pr-4 py-2 text-sm outline-none"
                 />
               </div>
             </div>
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-95"
+              className="btn-cta w-full py-3 text-sm"
             >
               {loading ? "Mengirim..." : "Kirim Tautan Pemulihan"}
             </button>
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center pt-2">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-brand-green-dark"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Kembali ke Halaman Masuk</span>

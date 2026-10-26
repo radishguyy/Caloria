@@ -5,7 +5,6 @@ import {
   Award,
   Coins,
   ShoppingBag,
-  Sparkles,
   Check,
   RotateCcw,
   ArrowRight,
@@ -46,17 +45,17 @@ export default function PetWardrobePage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
+            <span className="p-1.5 rounded-lg bg-highlight text-brand-green-dark">
               <Award className="h-5 w-5" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-ink">
               Pet Wardrobe (Ruang Ganti)
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-ink-muted mt-1">
             Ganti outfit, topi, kacamata, skin, dan dekorasi kamar virtual pet kamu.
           </p>
         </div>
@@ -64,25 +63,25 @@ export default function PetWardrobePage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/pet-customization/shop"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 font-bold text-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-warm-border bg-highlight text-brown hover:bg-brand-green-light hover:text-brand-green-ink font-bold text-xs transition-colors"
           >
-            <Coins className="h-4 w-4 text-amber-500" />
+            <Coins className="h-4 w-4 text-brown" />
             <span>{coins} Koin • Buka Pet Shop</span>
           </Link>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs: Wardrobe vs Shop */}
-      <div className="flex items-center gap-2 border-b border-border pb-1">
+      <div className="flex items-center gap-2 border-b border-warm-border pb-1">
         <Link
           href="/pet-customization/wardrobe"
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-foreground text-background"
+          className="rounded-full bg-brand-orange px-4 py-2 text-xs font-bold text-ink"
         >
           Wardrobe (Koleksi Milikmu)
         </Link>
         <Link
           href="/pet-customization/shop"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
         >
           Pet Shop (Beli dengan Koin)
         </Link>
@@ -90,10 +89,10 @@ export default function PetWardrobePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Interactive Live Pet Preview */}
-        <div className="lg:col-span-5 rounded-3xl border bg-card p-6 shadow-xs flex flex-col items-center justify-center space-y-4">
-          <div className="w-full flex items-center justify-between border-b border-border pb-2 text-xs">
-            <span className="font-bold text-foreground">Tampilan Langsung {name}</span>
-            <span className="text-muted-foreground text-[11px]">Kustomisasi Aktif</span>
+        <div className="lg:col-span-5 rounded-3xl border border-warm-border bg-card p-6 shadow-card flex flex-col items-center justify-center space-y-4">
+          <div className="w-full flex items-center justify-between border-b border-warm-border pb-2 text-xs">
+            <span className="font-bold text-ink">Tampilan Langsung {name}</span>
+            <span className="text-ink-muted text-[11px]">Kustomisasi Aktif</span>
           </div>
 
           <PetRenderer interactive={true} size="md" />
@@ -101,7 +100,7 @@ export default function PetWardrobePage() {
           {/* Quick Unequip All in category */}
           <button
             onClick={() => unequipItem(selectedCategory)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="btn-ghost min-h-0 px-3 py-1.5 text-xs transition-colors"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Reset {categories.find((c) => c.id === selectedCategory)?.label}</span>
@@ -119,8 +118,8 @@ export default function PetWardrobePage() {
                 className={cn(
                   "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border",
                   selectedCategory === cat.id
-                    ? "bg-orange-500 text-white border-orange-500 font-bold shadow-xs"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                    ? "bg-brand-orange text-ink border-brand-orange font-bold shadow-xs"
+                    : "bg-card text-ink-muted border-warm-border hover:bg-brand-green-light hover:text-brand-green-ink"
                 )}
               >
                 {cat.label}
@@ -129,23 +128,23 @@ export default function PetWardrobePage() {
           </div>
 
           {/* Owned Items Grid */}
-          <div className="rounded-3xl border bg-card p-5 space-y-4 shadow-xs">
+          <div className="rounded-3xl border border-warm-border bg-card p-5 shadow-card space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
                 Pilih Item untuk Dipasang:
               </h3>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-[11px] text-ink-muted">
                 {categoryOwnedItems.length} item dimiliki
               </span>
             </div>
 
             {categoryOwnedItems.length === 0 ? (
-              <div className="py-12 text-center text-xs text-muted-foreground space-y-2">
-                <ShoppingBag className="h-8 w-8 text-muted-foreground/40 mx-auto" />
+              <div className="py-12 text-center text-xs text-ink-muted space-y-2">
+                <ShoppingBag className="h-8 w-8 text-ink-muted/40 mx-auto" />
                 <p>Kamu belum memiliki item di kategori ini.</p>
                 <Link
                   href="/pet-customization/shop"
-                  className="inline-flex items-center gap-1 font-bold text-orange-600 dark:text-orange-400 hover:underline pt-1"
+                  className="inline-flex items-center gap-1 font-bold text-brand-green-dark hover:underline pt-1"
                 >
                   <span>Beli di Pet Shop</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -162,12 +161,12 @@ export default function PetWardrobePage() {
                       className={cn(
                         "p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 relative shadow-xs",
                         isEquipped
-                          ? "border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20"
-                          : "border-border bg-background hover:bg-muted/30"
+                          ? "border-brand-orange bg-highlight/60 ring-2 ring-brand-orange/20"
+                          : "border-warm-border bg-surface-raised hover:bg-brand-green-light"
                       )}
                     >
                       {isEquipped && (
-                        <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-white">
+                        <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-orange text-ink">
                           <Check className="h-3 w-3 stroke-[3]" />
                         </span>
                       )}
@@ -175,10 +174,10 @@ export default function PetWardrobePage() {
                       <div className="text-3xl pt-1">{item.previewEmoji}</div>
 
                       <div className="space-y-0.5">
-                        <p className="text-xs font-bold text-foreground line-clamp-1">
+                        <p className="text-xs font-bold text-ink line-clamp-1">
                           {item.name}
                         </p>
-                        <p className="text-[10px] text-muted-foreground line-clamp-2">
+                        <p className="text-[10px] text-ink-muted line-clamp-2">
                           {item.description}
                         </p>
                       </div>
@@ -187,8 +186,8 @@ export default function PetWardrobePage() {
                         className={cn(
                           "px-2 py-0.5 rounded-full text-[10px] font-bold mt-auto",
                           isEquipped
-                            ? "bg-orange-500 text-white"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-brand-orange text-ink"
+                            : "bg-surface-sunken text-ink-muted"
                         )}
                       >
                         {isEquipped ? "Terpasang" : "Pasang"}
@@ -201,16 +200,16 @@ export default function PetWardrobePage() {
           </div>
 
           {/* Shop Callout Banner */}
-          <div className="p-4 rounded-2xl border bg-muted/40 flex items-center justify-between text-xs">
+          <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-4 flex items-center justify-between text-xs">
             <div>
-              <p className="font-bold text-foreground">Ingin Koleksi Kostum Lainnya?</p>
-              <p className="text-muted-foreground text-[11px]">
+              <p className="font-bold text-ink">Ingin Koleksi Kostum Lainnya?</p>
+              <p className="text-ink-muted text-[11px]">
                 Gunakan Caloria Coins yang kamu kumpulkan dari konsistensi makan untuk berbelanja.
               </p>
             </div>
             <Link
               href="/pet-customization/shop"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shrink-0 ml-3"
+              className="btn-cta min-h-0 ml-3 shrink-0 px-3.5 py-2 text-xs"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               <span>Ke Pet Shop</span>

@@ -1,25 +1,49 @@
 {
   "name": "Caloria Design System",
-  "description": "Tokens derived from selected Caloria Figma frames. Color proportions are qualitative visual guidance, not pixel-count measurements.",
+  "description": "Warm cream Calorie app palette with near-white surfaces, green actions, and orange reserved for selection and limited emphasis. Color proportions are qualitative visual guidance, not pixel-count measurements.",
   "color": {
     "canvas": {
-      "value": "#FFFFFF",
+      "value": "#FFF6DB",
       "type": "color"
     },
     "surface": {
-      "value": "#FFFFFF",
+      "value": "#FFFCF2",
+      "type": "color"
+    },
+    "surface-raised": {
+      "value": "#FFFDF8",
       "type": "color"
     },
     "surface-subtle": {
-      "value": "#F8FAFC",
+      "value": "#FFF1CE",
+      "type": "color"
+    },
+    "surface-sunken": {
+      "value": "#FFF1CE",
+      "type": "color"
+    },
+    "highlight": {
+      "value": "#F6E58D",
       "type": "color"
     },
     "text-primary": {
-      "value": "#529028",
+      "value": "#4E3B2A",
+      "type": "color"
+    },
+    "ink": {
+      "value": "#4E3B2A",
+      "type": "color"
+    },
+    "ink-muted": {
+      "value": "#7A6448",
       "type": "color"
     },
     "text-inverse": {
-      "value": "#FFFFFF",
+      "value": "#FFFDF8",
+      "type": "color"
+    },
+    "brown": {
+      "value": "#B07B4B",
       "type": "color"
     },
     "accent-green": {
@@ -29,7 +53,16 @@
     "accent-green-light": {
       "value": "#BADC58",
       "type": "color",
-      "description": "Use for hover and secondary navigation states."
+      "description": "Use for hover, secondary actions, and secondary navigation states."
+    },
+    "brand-green-dark": {
+      "value": "#4F7A2A",
+      "type": "color"
+    },
+    "brand-green-ink": {
+      "value": "#3F6420",
+      "type": "color",
+      "description": "Text and icon color on light green surfaces."
     },
     "accent-yellow": {
       "value": "#F6E58D",
@@ -38,30 +71,34 @@
     "accent-orange": {
       "value": "#F0932B",
       "type": "color",
-      "description": "Reserve for selected/highlighted navigation."
+      "description": "Reserve for selected/active navigation and limited badges. Never use orange as a hover color."
     },
     "accent-orange-dark": {
-      "value": "#CD6731",
+      "value": "#C97A1E",
       "type": "color"
     },
     "border-default": {
-      "value": "#D9D9D9",
+      "value": "#F0DFB0",
       "type": "color"
     },
     "border-divider": {
-      "value": "#D1D9E2",
+      "value": "#F0DFB0",
+      "type": "color"
+    },
+    "border-strong": {
+      "value": "#D9B879",
       "type": "color"
     },
     "text-muted": {
-      "value": "#8CA2C0",
+      "value": "#7A6448",
       "type": "color"
     },
     "neutral-10": {
-      "value": "#486284",
+      "value": "#4E3B2A",
       "type": "color"
     },
     "neutral-7": {
-      "value": "#8CA2C0",
+      "value": "#7A6448",
       "type": "color"
     }
   },
@@ -122,7 +159,7 @@
   },
   "radius": {
     "navigation": {
-      "value": "14.022px",
+      "value": "999px",
       "type": "dimension"
     },
     "button": {
@@ -133,8 +170,12 @@
       "value": "33px",
       "type": "dimension"
     },
+    "nested-card": {
+      "value": "28px",
+      "type": "dimension"
+    },
     "input": {
-      "value": "12px",
+      "value": "16px",
       "type": "dimension"
     },
     "pill": {
@@ -190,46 +231,69 @@
   },
   "shadow": {
     "input": {
-      "value": "0 1px 2px rgba(16, 24, 40, 0.05)",
+      "value": "inset 0 0 0 1.5px #F0DFB0, 0 2px 0 rgba(176, 123, 75, 0.1)",
       "type": "shadow"
     },
     "button": {
-      "value": "0 9px 0 #529028",
+      "value": "0 9px 0 #4F7A2A",
+      "type": "shadow"
+    },
+    "secondary-button": {
+      "value": "0 5px 0 #D9B879",
+      "type": "shadow"
+    },
+    "card": {
+      "value": "0 12px 32px rgba(176, 123, 75, 0.12)",
+      "type": "shadow"
+    },
+    "soft": {
+      "value": "0 4px 16px rgba(176, 123, 75, 0.1)",
       "type": "shadow"
     }
+  },
+  "componentRules": {
+    "primaryAction": "Light green background, green-ink text, 0 9px 0 #4F7A2A shadow. Hover uses a white-to-light-green gradient. Active removes the shadow and translates 9px down.",
+    "secondaryAction": "Pale yellow background with 0 5px 0 #D9B879 shadow. Hover turns light green with green-ink text.",
+    "navigation": "Selected items use orange with ink text. Unselected hover uses light green with green-ink text. Never use orange hover.",
+    "cards": "Use surface #FFFCF2 with 1.5px #F0DFB0 borders and 33px outer radius. Nested panels use #FFF1CE with 28px radius.",
+    "inputs": "Use surface-raised #FFFDF8, 1.5px warm border, 16px radius, and green focus ring.",
+    "shape": "Apply squircle corner-shape only inside @supports (corner-shape: squircle)."
   },
   "colorUsage": {
     "estimatedVisualProportions": [
       {
-        "role": "neutral backgrounds and whitespace",
+        "role": "warm cream canvas, near-white surfaces, and whitespace",
         "target": "about 65-75%",
         "colors": [
-          "#FFFFFF",
-          "#F8FAFC"
+          "#FFF6DB",
+          "#FFFCF2",
+          "#FFFDF8"
         ]
       },
       {
-        "role": "soft yellow surfaces",
-        "target": "about 15-22%",
+        "role": "sunken and highlight surfaces",
+        "target": "about 12-20%",
         "colors": [
+          "#FFF1CE",
           "#F6E58D"
         ]
       },
       {
-        "role": "green accents and text",
-        "target": "about 7-12%",
+        "role": "green family for actions, progress, and accents",
+        "target": "about 8-12%",
         "colors": [
-          "#529028",
           "#6AB04C",
-          "#BADC58"
+          "#BADC58",
+          "#4F7A2A",
+          "#3F6420"
         ]
       },
       {
-        "role": "orange selection highlight",
+        "role": "orange selection and limited emphasis",
         "target": "about 2-5%",
         "colors": [
           "#F0932B",
-          "#CD6731"
+          "#C97A1E"
         ]
       }
     ]

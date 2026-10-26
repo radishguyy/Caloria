@@ -2,79 +2,31 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* ── Caloria fonts ── */
-@font-face {
-  font-family: "Open Runde";
-  src: url("/fonts/openrunde/OpenRunde-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Open Runde";
-  src: url("/fonts/openrunde/OpenRunde-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Open Runde";
-  src: url("/fonts/openrunde/OpenRunde-Semibold.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Open Runde";
-  src: url("/fonts/openrunde/OpenRunde-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Secuela";
-  src: url("/fonts/secuela/Secuela-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Secuela";
-  src: url("/fonts/secuela/Secuela-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Secuela";
-  src: url("/fonts/secuela/Secuela-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Secuela";
-  src: url("/fonts/secuela/Secuela-ExtraBold.woff2") format("woff2");
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-open-runde), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --font-heading: var(--font-secuela), ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-highlight: var(--highlight);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-brown: var(--brown);
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-light: var(--brand-green-light);
+  --color-brand-green-dark: var(--brand-green-dark);
+  --color-brand-green-ink: var(--brand-green-ink);
+  --color-brand-orange: var(--brand-orange);
+  --color-warm-border: var(--warm-border);
+  --color-warm-border-strong: var(--warm-border-strong);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -104,36 +56,61 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-3xl: 33px;
+  --radius-4xl: 40px;
+
+  --shadow-2xs: 0 1px 1px rgba(78, 59, 42, 0.04);
+  --shadow-xs: 0 2px 4px rgba(78, 59, 42, 0.05);
+  --shadow-sm: 0 4px 10px rgba(78, 59, 42, 0.06);
+  --shadow-md: 0 8px 20px rgba(78, 59, 42, 0.08);
+  --shadow-lg: 0 16px 40px rgba(78, 59, 42, 0.1);
+  --shadow-xl: 0 24px 60px rgba(78, 59, 42, 0.12);
 }
 
 :root {
-  /* ── Caloria design tokens (from caloria-design-system-agent-files) ── */
-  --color-canvas: #FFFFFF;
-  --color-surface: #FFFFFF;
-  --color-surface-subtle: #F8FAFC;
-  --color-text-primary: #529028;
-  --color-text-inverse: #FFFFFF;
-  --color-accent-green: #6AB04C;
-  --color-accent-green-light: #BADC58;
-  --color-accent-yellow: #F6E58D;
-  --color-accent-orange: #F0932B;
-  --color-accent-orange-dark: #CD6731;
-  --color-border-default: #D9D9D9;
-  --color-border-divider: #D1D9E2;
-  --color-text-muted: #8CA2C0;
-  --color-neutral-10: #486284;
-  --color-neutral-7: #8CA2C0;
+  /* Caloria surface hierarchy */
+  --canvas: #fff6db;
+  --surface: #fffcf2;
+  --surface-raised: #fffdf8;
+  --surface-sunken: #fff1ce;
+  --highlight: #f6e58d;
+  --ink: #4e3b2a;
+  --ink-muted: #7a6448;
+  --brown: #b07b4b;
+  --brand-green: #6ab04c;
+  --brand-green-light: #badc58;
+  --brand-green-dark: #4f7a2a;
+  --brand-green-ink: #3f6420;
+  --brand-orange: #f0932b;
+  --warm-border: #f0dfb0;
+  --warm-border-strong: #d9b879;
+
+  /* Caloria design tokens */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-sunken);
+  --color-text-primary: var(--ink);
+  --color-text-inverse: var(--surface-raised);
+  --color-accent-green: var(--brand-green);
+  --color-accent-green-light: var(--brand-green-light);
+  --color-accent-yellow: var(--highlight);
+  --color-accent-orange: var(--brand-orange);
+  --color-accent-orange-dark: #c97a1e;
+  --color-border-default: var(--warm-border);
+  --color-border-divider: var(--warm-border);
+  --color-text-muted: var(--ink-muted);
+  --color-neutral-10: var(--ink);
+  --color-neutral-7: var(--ink-muted);
 
   /* Typography */
-  --font-heading: "Secuela", sans-serif;
-  --font-body: "Open Runde", sans-serif;
+  --font-heading: var(--font-secuela), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-open-runde), ui-sans-serif, system-ui, sans-serif;
   --text-h1: 60px;
   --text-h2: 48px;
   --text-h3: 40px;
@@ -155,16 +132,18 @@
   --space-24: 96px;
   --space-32: 128px;
 
-  /* Radius */
-  --radius-navigation: 14.022px;
+  /* Shape */
+  --radius-navigation: 999px;
   --radius-button: 20px;
   --radius-card: 33px;
-  --radius-input: 12px;
+  --radius-input: 16px;
   --radius-pill: 999px;
 
-  /* Shadows */
-  --shadow-input: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-button: 0 9px 0 var(--color-text-primary);
+  /* Effects */
+  --shadow-input: inset 0 0 0 1.5px var(--warm-border), 0 2px 0 rgba(176, 123, 75, 0.1);
+  --shadow-button: 0 9px 0 var(--brand-green-dark);
+  --shadow-card: 0 12px 32px rgba(176, 123, 75, 0.12);
+  --shadow-soft: 0 4px 16px rgba(176, 123, 75, 0.1);
 
   /* Layout */
   --page-gutter: 64px;
@@ -172,135 +151,410 @@
   --card-padding: 32px;
   --card-gap: 24px;
 
-  /* ── shadcn semantic vars mapped to Caloria palette ── */
-  --background: oklch(1 0 0);
-  --foreground: #486284;
-  --card: oklch(1 0 0);
-  --card-foreground: #486284;
-  --popover: oklch(1 0 0);
-  --popover-foreground: #486284;
-  /* primary = Caloria green brand */
-  --primary: #529028;
-  --primary-foreground: #FFFFFF;
-  /* secondary = pale yellow surface */
-  --secondary: #F6E58D;
-  --secondary-foreground: #529028;
-  /* muted = near-white */
-  --muted: #F8FAFC;
-  --muted-foreground: #8CA2C0;
-  /* accent = light green hover */
-  --accent: #BADC58;
-  --accent-foreground: #529028;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #D9D9D9;
-  --input: #D9D9D9;
-  --ring: #6AB04C;
-  --chart-1: #6AB04C;
-  --chart-2: #BADC58;
-  --chart-3: #F6E58D;
-  --chart-4: #F0932B;
-  --chart-5: #CD6731;
-  --radius: 0.875rem;
-  --sidebar: #F8FAFC;
-  --sidebar-foreground: #486284;
-  --sidebar-primary: #529028;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #BADC58;
-  --sidebar-accent-foreground: #529028;
-  --sidebar-border: #D1D9E2;
-  --sidebar-ring: #6AB04C;
+  /* shadcn semantic vars */
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand-green);
+  --primary-foreground: var(--surface-raised);
+  --secondary: var(--highlight);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-sunken);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--brand-green-light);
+  --accent-foreground: var(--brand-green-ink);
+  --destructive: #c24a3a;
+  --border: var(--warm-border);
+  --input: var(--warm-border);
+  --ring: var(--brand-green);
+  --chart-1: var(--brand-green);
+  --chart-2: var(--brand-green-light);
+  --chart-3: var(--highlight);
+  --chart-4: var(--brand-orange);
+  --chart-5: var(--brown);
+  --radius: 20px;
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand-green);
+  --sidebar-primary-foreground: var(--surface-raised);
+  --sidebar-accent: var(--brand-green-light);
+  --sidebar-accent-foreground: var(--brand-green-ink);
+  --sidebar-border: var(--warm-border);
+  --sidebar-ring: var(--brand-green);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --canvas: #2a2118;
+  --surface: #352a1e;
+  --surface-raised: #3b2f22;
+  --surface-sunken: #2f251a;
+  --highlight: #6b5a2e;
+  --ink: #fff4da;
+  --ink-muted: #d8c6a4;
+  --brown: #d2a26f;
+  --warm-border: #5c4a32;
+  --warm-border-strong: #7a6244;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-sunken);
+  --color-text-primary: var(--ink);
+  --color-text-inverse: #2a2118;
+  --color-border-default: var(--warm-border);
+  --color-border-divider: var(--warm-border);
+  --color-text-muted: var(--ink-muted);
+  --color-neutral-10: var(--ink);
+  --color-neutral-7: var(--ink-muted);
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand-green-light);
+  --primary-foreground: #2a2118;
+  --secondary: var(--highlight);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-sunken);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--brand-green);
+  --accent-foreground: #f7ffe8;
+  --destructive: #e5735e;
+  --border: var(--warm-border);
+  --input: var(--warm-border);
+  --ring: var(--brand-green-light);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand-green-light);
+  --sidebar-primary-foreground: #2a2118;
+  --sidebar-accent: var(--brand-green);
+  --sidebar-accent-foreground: #f7ffe8;
+  --sidebar-border: var(--warm-border);
+  --sidebar-ring: var(--brand-green-light);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    line-height: var(--leading-body);
   }
-  html {
-    @apply font-sans;
-  }
-  h1, h2 {
+
+  h1,
+  h2 {
     font-family: var(--font-heading);
     line-height: var(--leading-heading);
+    letter-spacing: -0.015em;
   }
-  h3, h4, h5, h6 {
+
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-body);
     line-height: var(--leading-heading);
   }
+
+  ::selection {
+    background: var(--highlight);
+    color: var(--ink);
+  }
 }
 
-/* ── Caloria component rules (from design-tokens.css) ── */
-.nav-item[aria-current="page"],
-.nav-item.is-selected {
-  background: var(--color-accent-orange);
-  color: var(--color-text-inverse);
-  border-radius: var(--radius-navigation);
+@layer components {
+  .surface-card {
+    background: var(--surface);
+    border: 1.5px solid var(--warm-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .surface-sunken {
+    background: var(--surface-sunken);
+    border: 1.5px solid var(--warm-border);
+    border-radius: var(--radius-2xl);
+  }
+
+  .surface-raised {
+    background: var(--surface-raised);
+    border: 1.5px solid var(--warm-border);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .btn-cta {
+    display: inline-flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 0;
+    border-radius: var(--radius-button);
+    background: var(--brand-green-light);
+    color: var(--brand-green-ink);
+    box-shadow: var(--shadow-button);
+    padding: 0.8rem 1.5rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    line-height: 1.1;
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      box-shadow 120ms ease,
+      transform 120ms ease;
+    cursor: pointer;
+  }
+
+  .btn-cta:hover {
+    background: linear-gradient(180deg, #fffdf4 0%, var(--brand-green-light) 100%);
+    color: var(--brand-green-ink);
+  }
+
+  .btn-cta:active {
+    background: var(--brand-green-light);
+    box-shadow: none;
+    transform: translateY(9px);
+  }
+
+  .btn-cta:focus-visible {
+    outline: 3px solid var(--brand-green);
+    outline-offset: 3px;
+  }
+
+  .btn-cta:disabled,
+  .btn-cta[aria-disabled="true"] {
+    background: var(--warm-border);
+    box-shadow: none;
+    color: var(--ink-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 0;
+    border-radius: var(--radius-button);
+    background: var(--highlight);
+    color: var(--ink);
+    box-shadow: 0 5px 0 var(--warm-border-strong);
+    padding: 0.65rem 1.25rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    line-height: 1.1;
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      box-shadow 120ms ease,
+      transform 120ms ease;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background: var(--brand-green-light);
+    color: var(--brand-green-ink);
+    box-shadow: 0 5px 0 var(--brand-green-dark);
+  }
+
+  .btn-secondary:active {
+    box-shadow: none;
+    transform: translateY(5px);
+  }
+
+  .btn-secondary:focus-visible {
+    outline: 3px solid var(--brand-green);
+    outline-offset: 3px;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1.5px solid var(--warm-border);
+    border-radius: var(--radius-button);
+    background: var(--surface-raised);
+    color: var(--ink);
+    padding: 0.6rem 1.1rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    line-height: 1.1;
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease;
+    cursor: pointer;
+  }
+
+  .btn-ghost:hover {
+    background: var(--brand-green-light);
+    border-color: var(--brand-green-light);
+    color: var(--brand-green-ink);
+  }
+
+  .btn-ghost:active {
+    background: var(--brand-green);
+    border-color: var(--brand-green);
+    color: #f7ffe8;
+  }
+
+  .btn-ghost:focus-visible {
+    outline: 3px solid var(--brand-green);
+    outline-offset: 3px;
+  }
+
+  .btn-icon {
+    display: inline-flex;
+    height: 42px;
+    width: 42px;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--warm-border);
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--ink);
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease;
+    cursor: pointer;
+  }
+
+  .btn-icon:hover {
+    background: var(--brand-green-light);
+    border-color: var(--brand-green-light);
+    color: var(--brand-green-ink);
+  }
+
+  .btn-icon[aria-pressed="true"],
+  .btn-icon.is-selected {
+    background: var(--brand-orange);
+    border-color: var(--brand-orange);
+    color: var(--ink);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1.5px solid var(--warm-border);
+    border-radius: 999px;
+    background: var(--highlight);
+    color: var(--ink);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .chip-green {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brand-green-light);
+    color: var(--brand-green-ink);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .field {
+    border: 1.5px solid var(--warm-border);
+    border-radius: var(--radius-input);
+    background: var(--surface-raised);
+    color: var(--ink);
+    box-shadow: var(--shadow-input);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .field:focus,
+  .field:focus-within {
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-green) 22%, transparent);
+    outline: none;
+  }
+
+  .nav-item[aria-current="page"],
+  .nav-item.is-selected {
+    background: var(--color-accent-orange);
+    color: var(--ink);
+    border-radius: var(--radius-navigation);
+  }
+
+  .nav-item:hover:not([aria-current="page"]):not(.is-selected) {
+    background: var(--color-accent-green-light);
+    color: var(--brand-green-ink);
+    border-radius: var(--radius-navigation);
+  }
+
+  .button-primary {
+    background: var(--color-accent-green-light);
+    color: var(--brand-green-ink);
+    border: 0;
+    border-radius: var(--radius-button);
+    box-shadow: var(--shadow-button);
+    font-family: var(--font-body);
+    font-weight: 700;
+  }
+
+  .card,
+  .hero-card,
+  .review-card {
+    background: var(--surface);
+    border: 1.5px solid var(--warm-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .input-field {
+    border: 1.5px solid var(--color-border-default);
+    border-radius: var(--radius-input);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-input);
+    font-family: var(--font-body);
+  }
 }
 
-.nav-item:hover:not([aria-current="page"]):not(.is-selected) {
-  background: var(--color-accent-green-light);
-  color: var(--color-text-primary);
-  border-radius: var(--radius-navigation);
-}
-
-.button-primary {
-  background: var(--color-accent-green-light);
-  color: var(--color-text-primary);
-  border: 0;
-  border-radius: var(--radius-button);
-  box-shadow: var(--shadow-button);
-  font-family: var(--font-body);
-  font-weight: 700;
-}
-
-.card, .hero-card, .review-card {
-  background: var(--color-accent-yellow);
-  border-radius: var(--radius-card);
-}
-
-.input-field {
-  border: 4px solid var(--color-border-default);
-  border-radius: var(--radius-input);
-  background: var(--color-surface-subtle);
-  box-shadow: var(--shadow-input);
-  font-family: var(--font-body);
+@supports (corner-shape: squircle) {
+  .rounded-lg,
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-3xl,
+  .rounded-4xl,
+  .surface-card,
+  .surface-sunken,
+  .surface-raised,
+  .btn-cta,
+  .btn-secondary,
+  .btn-ghost,
+  .field,
+  .card,
+  .hero-card,
+  .review-card {
+    corner-shape: squircle;
+  }
 }
 
 @media (max-width: 768px) {

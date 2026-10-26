@@ -29,7 +29,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Mencatat makanan selama 3 hari berturut-turut tanpa jeda.",
     requirementText: "Streak minimal 3 hari",
     iconEmoji: "🌱",
-    colorBorder: "border-emerald-500",
+    colorBorder: "border-brand-green",
     rewardCoins: 30,
   },
   {
@@ -39,7 +39,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Menjaga komitmen pencatatan gizi selama 7 hari penuh.",
     requirementText: "Streak minimal 7 hari",
     iconEmoji: "🔥",
-    colorBorder: "border-orange-500",
+    colorBorder: "border-brand-orange",
     rewardCoins: 75,
   },
   {
@@ -49,7 +49,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Membangun kebiasaan hidup sehat tanpa henti selama 30 hari.",
     requirementText: "Streak minimal 30 hari",
     iconEmoji: "🛡️",
-    colorBorder: "border-blue-500",
+    colorBorder: "border-warm-border-strong",
     rewardCoins: 200,
   },
   {
@@ -59,7 +59,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Pencapaian monumental 100 hari berturut-turut menjaga nutrisi tubuh.",
     requirementText: "Streak minimal 100 hari",
     iconEmoji: "👑",
-    colorBorder: "border-amber-500",
+    colorBorder: "border-brown",
     rewardCoins: 500,
   },
 
@@ -71,7 +71,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Memenuhi target protein harian sebanyak 7 kali berturut-turut.",
     requirementText: "Penuhi target protein 7 hari berturut-turut",
     iconEmoji: "🥩",
-    colorBorder: "border-rose-500",
+    colorBorder: "border-brown",
     rewardCoins: 100,
   },
   {
@@ -81,7 +81,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Menjaga total kalori tepat di zona target (+/- 10%) selama satu minggu.",
     requirementText: "Total kalori harian ideal 7 hari beruntun",
     iconEmoji: "🎯",
-    colorBorder: "border-emerald-500",
+    colorBorder: "border-brand-green",
     rewardCoins: 120,
   },
   {
@@ -91,7 +91,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Berhasil menuntaskan proyeksi N hari dan mencapai target berat badan.",
     requirementText: "Mencapai berat badan target program",
     iconEmoji: "🏆",
-    colorBorder: "border-amber-500",
+    colorBorder: "border-brown",
     rewardCoins: 350,
   },
 
@@ -103,7 +103,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Bergabung atau membentuk party Co-op Streak pertama bersama teman.",
     requirementText: "Bergabung dalam Co-op Party",
     iconEmoji: "🤝",
-    colorBorder: "border-indigo-500",
+    colorBorder: "border-brand-green-dark",
     rewardCoins: 50,
   },
   {
@@ -113,7 +113,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Mencapai 14 hari Co-op Streak bersama seluruh anggota squad.",
     requirementText: "Co-op Streak 14 hari bersama squad",
     iconEmoji: "⚡",
-    colorBorder: "border-purple-500",
+    colorBorder: "border-warm-border",
     rewardCoins: 150,
   },
   {
@@ -123,7 +123,7 @@ export const ACHIEVEMENTS_DATA: AchievementBadge[] = [
     description: "Menyenggol teman untuk mengingatkan pencatatan makanan sebanyak 5 kali.",
     requirementText: "Senggol teman 5 kali sebelum waktu makan berakhir",
     iconEmoji: "👋",
-    colorBorder: "border-sky-500",
+    colorBorder: "border-brand-green-light",
     rewardCoins: 60,
   },
 ];

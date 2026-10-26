@@ -33,7 +33,6 @@ import {
   NewNotificationRecord,
 } from "@/db/schema";
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
-import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
 // Re-export Database Model Types
 export type {

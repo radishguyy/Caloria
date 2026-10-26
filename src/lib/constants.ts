@@ -12,10 +12,10 @@ export const DEFAULT_NUTRITION_TARGETS = {
 
 // Meal Types
 export const MEAL_TYPES = [
-  { id: "breakfast", label: "Sarapan", icon: "Coffee", color: "text-amber-500", targetPercent: 0.25 },
-  { id: "lunch", label: "Makan Siang", icon: "Utensils", color: "text-orange-500", targetPercent: 0.35 },
-  { id: "dinner", label: "Makan Malam", icon: "Moon", color: "text-indigo-500", targetPercent: 0.30 },
-  { id: "snack", label: "Camilan", icon: "Apple", color: "text-emerald-500", targetPercent: 0.10 },
+  { id: "breakfast", label: "Sarapan", icon: "Coffee", color: "text-brown", targetPercent: 0.25 },
+  { id: "lunch", label: "Makan Siang", icon: "Utensils", color: "text-brand-green-dark", targetPercent: 0.35 },
+  { id: "dinner", label: "Makan Malam", icon: "Moon", color: "text-brand-green", targetPercent: 0.30 },
+  { id: "snack", label: "Camilan", icon: "Apple", color: "text-brand-green", targetPercent: 0.10 },
 ] as const;
 
 export type MealTypeId = typeof MEAL_TYPES[number]["id"];
