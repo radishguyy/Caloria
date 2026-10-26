@@ -36,6 +36,7 @@ import {
 import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import { ReviewScanModal } from "@/components/diary/ReviewScanModal";
 import { CreateCustomFoodModal } from "@/components/diary/CreateCustomFoodModal";
+import { batchLogFoodsAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
 
 /**
@@ -398,6 +399,12 @@ function DiaryAddFoodContent() {
       servingUnit: `${item.servingMultiplier}x ${item.servingUnit}`,
       loggedDate: dateParam || selectedDate || new Date().toISOString().split("T")[0],
     }));
+
+    // Persist to Supabase PostgreSQL database via Server Action
+    batchLogFoodsAction(
+      logsToSave,
+      dateParam || selectedDate || new Date().toISOString().split("T")[0]
+    ).catch((err) => console.warn("Supabase batchLogFoodsAction warning:", err));
 
     addBatchLogs(logsToSave, {
       type: result.feedbackType,
