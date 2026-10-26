@@ -123,34 +123,53 @@ export async function POST(request: NextRequest) {
 
     if (geminiApiKey) {
       const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: SYSTEM_PROMPT },
+      const candidateModels = [
+        "gemini-3.5-flash",
+        "gemini-3.8-flash",
+        "gemini-3.1-flash-image",
+        "gemini-2.5-flash",
+      ];
+
+      let lastError: unknown = null;
+      for (const modelName of candidateModels) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: [
               {
-                inlineData: {
-                  mimeType,
-                  data: base64Image,
-                },
+                role: "user",
+                parts: [
+                  { text: SYSTEM_PROMPT },
+                  {
+                    inlineData: {
+                      mimeType,
+                      data: base64Image,
+                    },
+                  },
+                ],
               },
             ],
-          },
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: geminiResponseSchema,
-          temperature: 0.1,
-        },
-      });
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: geminiResponseSchema,
+              temperature: 0.1,
+            },
+          });
 
-      const responseText = response.text;
-      if (!responseText) {
-        throw new Error("Empty response from Gemini vision model.");
+          const responseText = response.text;
+          if (responseText) {
+            rawJsonResult = JSON.parse(responseText);
+            break;
+          }
+        } catch (err) {
+          lastError = err;
+          console.warn(`[Gemini] model ${modelName} failed, trying next...:`, err);
+        }
       }
-      rawJsonResult = JSON.parse(responseText);
+
+      if (!rawJsonResult && lastError) {
+        throw lastError;
+      }
     } else if (openAiApiKey) {
       const openAiRes = await fetch(
         "https://api.openai.com/v1/chat/completions",
