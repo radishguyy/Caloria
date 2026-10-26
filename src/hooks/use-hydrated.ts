@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
 
 /**
  * Returns true once the component has mounted on the client.
- * Use to prevent hydration mismatch when rendering data from
- * client-only sources like localStorage (Zustand persist).
+ * Uses useSyncExternalStore (idiomatic React 19 pattern) to avoid
+ * hydration mismatch warnings and effect-based cascading renders.
  */
 export function useHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  return hydrated;
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 }
-

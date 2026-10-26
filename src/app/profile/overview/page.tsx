@@ -6,15 +6,33 @@ import {
   TrendingDown,
   Scale,
   ArrowLeft,
+  ArrowRight,
+  Sparkles,
   X,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useWeightStore } from "@/store/use-weight-store";
+import { usePetStore } from "@/store/use-pet-store";
+import { useCosmeticsStore } from "@/store/use-cosmetics-store";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { calculateBmi } from "@/lib/nutrition-calculator";
 
 export default function ProfileOverviewPage() {
+  const isHydrated = useHydrated();
   const { goalPlan, setGoalPlan } = useFoodStore();
   const { weightLogs, addWeightLog, getLatestWeight } = useWeightStore();
+  const {
+    species,
+    name,
+    level,
+    stage,
+    customColors,
+    earsVariant,
+    tailVariant,
+    faceVariant,
+  } = usePetStore();
+  const { equipped } = useCosmeticsStore();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [newWeight, setNewWeight] = useState<number>(getLatestWeight());
@@ -104,6 +122,57 @@ export default function ProfileOverviewPage() {
           className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
         >
           Pengaturan Notifikasi
+        </Link>
+      </div>
+
+      {/* Companion Virtual Pet Avatar Card */}
+      <div className="p-4 sm:p-5 rounded-card border border-accent-green/25 bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center rounded-navigation bg-surface-subtle border border-border-divider p-1 shrink-0 overflow-hidden">
+            {isHydrated ? (
+              <AvatarRenderer
+                characterId={species}
+                colors={customColors}
+                earsVariant={earsVariant}
+                tailVariant={tailVariant}
+                faceVariant={faceVariant}
+                equipped={equipped}
+                showRoomBackdrop={false}
+                size={64}
+                className="w-full h-full drop-shadow-xs"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-surface-subtle animate-pulse" />
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2
+                className="text-base font-extrabold text-text-primary font-heading"
+                suppressHydrationWarning
+              >
+                {isHydrated ? name : "Pyro"}
+              </h2>
+              <span
+                className="px-2 py-0.5 rounded-pill text-[10px] font-bold bg-accent-orange text-text-inverse"
+                suppressHydrationWarning
+              >
+                Lv. {isHydrated ? level : 4} • Tahap {isHydrated ? stage : 2}
+              </span>
+            </div>
+            <p className="text-xs text-text-muted mt-0.5">
+              Virtual pet pendamping nutrisi harianmu. Semua kustomisasi pakaian, warna, dan aksesoris tersimpan sinkron.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/pet-customization/wardrobe"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-text-primary text-xs font-bold transition-colors shrink-0 self-start sm:self-auto"
+        >
+          <Sparkles className="h-3.5 w-3.5 text-accent-green" />
+          <span>Kustomisasi di Wardrobe</span>
+          <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
