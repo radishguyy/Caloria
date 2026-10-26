@@ -125,6 +125,34 @@ export interface FoodCatalogItem {
   defaultServingSize: number;
   servingUnit: string;
   gramsPerUnit: number;
+  brandOrSource?: string;
+}
+
+export type CustomFoodOrigin = "branded" | "home_cooked";
+export type CustomFoodVisibility = "public" | "private";
+
+export interface CustomFoodItem extends FoodCatalogItem {
+  origin: CustomFoodOrigin;
+  visibility: CustomFoodVisibility;
+  tags?: string[];
+  notes?: string;
+  createdAt: string;
+  createdByUserId?: string;
+}
+
+export interface StagedFoodItem {
+  id: string;
+  name: string;
+  category: string;
+  baseCalories: number;
+  baseProteinG: number;
+  baseCarbsG: number;
+  baseFatG: number;
+  baseFiberG: number;
+  baseSugarG: number;
+  servingMultiplier: number;
+  servingUnit: string;
+  gramsPerUnit: number;
 }
 
 export interface ExtendedFoodLog {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Flame,
   PlusCircle,
+  Plus,
   Users,
   Target,
   Sparkles,
@@ -24,13 +25,29 @@ import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 
 export default function DashboardPage() {
-  const { goalPlan, getMealLogs, addLog } = useFoodStore();
+  const {
+    goalPlan,
+    getMealLogs,
+    addLog,
+    addBatchLogs,
+    getRecentFoods,
+    getFrequentFoods,
+  } = useFoodStore();
   const { coins, feedPet } = usePetStore();
   const { coopStreakDays, partyName, friends } = useSocialStore();
   const { toggleDrawer, getUnreadCount } = useNotificationStore();
 
   const [quickLogModalOpen, setQuickLogModalOpen] = useState(false);
   const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>("breakfast");
+  const [quickFilter, setQuickFilter] = useState<"popular" | "recent" | "frequent">("popular");
+  const [selectedQuickItems, setSelectedQuickItems] = useState<(typeof FOOD_CATALOG)[0][]>([]);
+
+  useEffect(() => {
+    const hours = new Date().getHours();
+    if (hours >= 11 && hours < 15) setSelectedQuickMeal("lunch");
+    else if (hours >= 15 && hours < 18) setSelectedQuickMeal("snack");
+    else if (hours >= 18 || hours < 5) setSelectedQuickMeal("dinner");
+  }, []);
 
   const unreadCount = getUnreadCount();
   const remainingDays = Math.max(0, goalPlan.totalProjectedDays - goalPlan.currentDayNumber);
@@ -40,6 +57,43 @@ export default function DashboardPage() {
   );
 
   const pendingFriends = friends.filter((f) => !f.dailyGoalMet);
+
+  const toggleQuickItem = (foodItem: (typeof FOOD_CATALOG)[0]) => {
+    setSelectedQuickItems((prev) => {
+      const exists = prev.find((i) => i.id === foodItem.id);
+      if (exists) {
+        return prev.filter((i) => i.id !== foodItem.id);
+      }
+      return [...prev, foodItem];
+    });
+  };
+
+  const handleBatchQuickSave = () => {
+    if (selectedQuickItems.length === 0) return;
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const totalCal = selectedQuickItems.reduce((sum, item) => sum + item.calories, 0);
+
+    const logsToSave = selectedQuickItems.map((item) => ({
+      name: item.name,
+      mealType: selectedQuickMeal,
+      calories: item.calories,
+      proteinG: item.proteinG,
+      carbsG: item.carbsG,
+      fatG: item.fatG,
+      fiberG: item.fiberG,
+      sugarG: item.sugarG,
+      servingSize: item.defaultServingSize || 1,
+      servingUnit: item.servingUnit,
+      loggedDate: todayStr,
+    }));
+
+    const feedback = addBatchLogs(logsToSave);
+    feedPet(totalCal, feedback.xpEarned, feedback.coinsEarned);
+
+    setSelectedQuickItems([]);
+    setQuickLogModalOpen(false);
+  };
 
   const handleQuickAdd = (foodItem: (typeof FOOD_CATALOG)[0]) => {
     const feedback = addLog({
@@ -57,6 +111,7 @@ export default function DashboardPage() {
     });
 
     feedPet(foodItem.calories, feedback.xpEarned, feedback.coinsEarned);
+    setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
 
@@ -329,33 +384,112 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Quick Favorites List */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-muted">
-                Pilih Cepat Menu Populer:
-              </label>
-              <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
-                {FOOD_CATALOG.slice(0, 6).map((food) => (
-                  <div
-                    key={food.id}
-                    onClick={() => handleQuickAdd(food)}
-                    className="p-2.5 rounded-input border border-border-divider bg-surface-subtle hover:bg-accent-green-light/40 hover:border-accent-green cursor-pointer transition-colors flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-foreground">{food.name}</p>
-                      <p className="text-[10px] text-text-muted">
-                        {food.defaultServingSize} {food.servingUnit} • P: {food.proteinG}g
-                      </p>
-                    </div>
-                    <span className="text-xs font-extrabold text-text-primary">
-                      +{food.calories} kcal
-                    </span>
-                  </div>
-                ))}
-              </div>
+            {/* Quick Source Filter Tabs */}
+            <div className="flex items-center gap-1.5 border-b border-border-divider pb-2 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setQuickFilter("popular")}
+                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
+                  quickFilter === "popular"
+                    ? "bg-accent-green text-text-inverse border-accent-green"
+                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
+                }`}
+              >
+                Menu Populer
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuickFilter("recent")}
+                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
+                  quickFilter === "recent"
+                    ? "bg-accent-green text-text-inverse border-accent-green"
+                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
+                }`}
+              >
+                Baru Dimakan
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuickFilter("frequent")}
+                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
+                  quickFilter === "frequent"
+                    ? "bg-accent-green text-text-inverse border-accent-green"
+                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
+                }`}
+              >
+                Paling Sering
+              </button>
             </div>
 
-            <div className="pt-2 flex items-center justify-between text-xs">
+            {/* Quick Multi-Select List */}
+            <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+              {(quickFilter === "recent"
+                ? getRecentFoods()
+                : quickFilter === "frequent"
+                ? getFrequentFoods()
+                : FOOD_CATALOG.slice(0, 8)
+              ).map((food) => {
+                const isChecked = selectedQuickItems.some((i) => i.id === food.id);
+                return (
+                  <div
+                    key={food.id}
+                    onClick={() => toggleQuickItem(food)}
+                    className={`p-2.5 rounded-input border transition-colors flex items-center justify-between cursor-pointer ${
+                      isChecked
+                        ? "bg-accent-yellow/30 border-accent-orange font-bold"
+                        : "border-border-divider bg-surface-subtle hover:bg-accent-green-light/40"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {}}
+                        className="h-3.5 w-3.5 rounded accent-accent-green cursor-pointer"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-foreground">{food.name}</p>
+                        <p className="text-[10px] text-text-muted">
+                          {food.defaultServingSize} {food.servingUnit} • P: {food.proteinG}g
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-extrabold text-text-primary">
+                        +{food.calories} kcal
+                      </span>
+                      <button
+                        type="button"
+                        title="Catat langsung 1 item"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickAdd(food);
+                        }}
+                        className="px-2 py-0.5 rounded-pill bg-accent-green/15 text-text-primary text-[10px] font-bold hover:bg-accent-green hover:text-text-inverse transition-colors"
+                      >
+                        + 1-Klik
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom Actions */}
+            {selectedQuickItems.length > 0 && (
+              <button
+                type="button"
+                onClick={handleBatchQuickSave}
+                className="button-primary w-full py-2.5 text-xs flex items-center justify-center gap-1.5 font-black shadow-md"
+              >
+                <Plus className="h-4 w-4" />
+                <span>
+                  Tambahkan Dipilih ({selectedQuickItems.length} Menu) & Kasih Makan Pet
+                </span>
+              </button>
+            )}
+
+            <div className="pt-1 flex items-center justify-between text-xs">
               <Link
                 href="/diary/add"
                 onClick={() => setQuickLogModalOpen(false)}
@@ -364,7 +498,10 @@ export default function DashboardPage() {
                 Cari di Katalog Lengkap &rarr;
               </Link>
               <button
-                onClick={() => setQuickLogModalOpen(false)}
+                onClick={() => {
+                  setSelectedQuickItems([]);
+                  setQuickLogModalOpen(false);
+                }}
                 className="px-4 py-1.5 rounded-button border border-border-default hover:bg-accent-green-light text-text-primary font-bold"
               >
                 Tutup

@@ -20,6 +20,7 @@ import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import { logScannedNutritionAction } from "@/app/actions/nutrition-scan";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
+import { StagedFoodItem } from "@/types";
 import { cn } from "@/lib/utils";
 
 export interface ReviewScanModalProps {
@@ -29,6 +30,7 @@ export interface ReviewScanModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onAddToStaging?: (item: StagedFoodItem) => void;
 }
 
 export function ReviewScanModal({
@@ -38,6 +40,7 @@ export function ReviewScanModal({
   isOpen,
   onClose,
   onSuccess,
+  onAddToStaging,
 }: ReviewScanModalProps) {
   const { addLog } = useFoodStore();
   const { feedPet } = usePetStore();
@@ -516,7 +519,7 @@ export function ReviewScanModal({
           )}
 
           {/* Modal Footer Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-2">
             <button
               type="button"
               onClick={onClose}
@@ -526,11 +529,39 @@ export function ReviewScanModal({
               Batal
             </button>
 
+            {onAddToStaging && (
+              <button
+                type="button"
+                onClick={() => {
+                  const numericServingSize = parseFloat(servingSize) || 100;
+                  onAddToStaging({
+                    id: `scan-${Date.now()}`,
+                    name: foodName.trim() || "Scanned Food",
+                    category: "Label Scan",
+                    baseCalories: parsedPerServing.caloriesKcal,
+                    baseProteinG: parsedPerServing.proteinG,
+                    baseCarbsG: parsedPerServing.carbsG,
+                    baseFatG: parsedPerServing.fatG,
+                    baseFiberG: parsedPerServing.fiberG,
+                    baseSugarG: parsedPerServing.sugarG,
+                    servingMultiplier: servingsConsumed,
+                    servingUnit: `${servingSize || "100"}${servingUnit || "g"}`,
+                    gramsPerUnit: numericServingSize,
+                  });
+                  onClose();
+                }}
+                className="px-4 py-2.5 rounded-button border-2 border-accent-green bg-accent-green-light/70 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Plus className="h-4 w-4 text-accent-green" />
+                <span>Tambahkan ke Piring (Staging)</span>
+              </button>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}
               className={cn(
-                "button-primary px-5 py-2.5 text-xs flex items-center gap-2",
+                "button-primary px-5 py-2.5 text-xs flex items-center justify-center gap-2",
                 isSubmitting && "opacity-75 cursor-not-allowed"
               )}
             >
@@ -542,7 +573,7 @@ export function ReviewScanModal({
               ) : (
                 <>
                   <Check className="h-4 w-4" />
-                  <span>Confirm & Log (+10 XP)</span>
+                  <span>Catat Langsung (+10 XP)</span>
                 </>
               )}
             </button>
