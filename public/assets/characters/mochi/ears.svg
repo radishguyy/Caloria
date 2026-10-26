@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #F9A8D4; --char-secondary: #EC4899; --char-belly: #FFF1F2; --char-inner-ear: #F472B6; --char-blush: #FB7185; --char-eye: #0F172A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="mochi">
+  <!-- Symmetrical Pointed Kitten Ears (Ref 1 middle-third) -->
+  <path d="M 38 44 C 36 26, 44 10, 50 8 C 56 10, 61 24, 62 39 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 43 38 C 42 26, 47 16, 50 15 C 53 16, 56 26, 57 37 Z" fill="var(--char-inner-ear, #F472B6)" />
+  <path d="M 90 44 C 92 26, 84 10, 78 8 C 72 10, 67 24, 66 39 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 85 38 C 86 26, 81 16, 78 15 C 75 16, 72 26, 71 37 Z" fill="var(--char-inner-ear, #F472B6)" />
+</g>
+</svg>

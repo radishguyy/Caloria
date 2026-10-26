@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #22D3EE; --char-secondary: #0284C7; --char-belly: #ECFEFF; --char-inner-ear: #7DD3FC; --char-blush: #F472B6; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="droplet">
+  <!-- Pointed-Round Otter-Cat Ears -->
+  <path d="M 38 44 C 32 24, 42 12, 50 14 C 56 16, 60 28, 58 40 Z" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 42 38 C 39 26, 44 19, 49 20 C 53 21, 55 29, 54 37 Z" fill="var(--char-inner-ear, #7DD3FC)" />
+  <path d="M 90 44 C 96 24, 86 12, 78 14 C 72 16, 68 28, 70 40 Z" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 86 38 C 89 26, 84 19, 79 20 C 75 21, 73 29, 74 37 Z" fill="var(--char-inner-ear, #7DD3FC)" />
+</g>
+</svg>

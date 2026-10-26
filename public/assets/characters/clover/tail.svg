@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A5B4FC; --char-secondary: #6366F1; --char-belly: #EEF2FF; --char-inner-ear: #C7D2FE; --char-blush: #818CF8; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="clover">
+  <!-- Upturned Fluffy Tail -->
+  <path d="M 84 126 C 98 122, 110 112, 112 117 C 114 123, 102 132, 86 134 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

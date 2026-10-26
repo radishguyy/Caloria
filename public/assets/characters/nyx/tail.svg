@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #C084FC; --char-secondary: #7E22CE; --char-belly: #F3E8FF; --char-inner-ear: #E9D5FF; --char-blush: #E879F9; --char-eye: #581C87; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="nyx">
+  <!-- Perky Loaf Tail on Right -->
+  <path d="M 90 120 C 102 118, 111 114, 110 122 C 109 128, 100 130, 92 129 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

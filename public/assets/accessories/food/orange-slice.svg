@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-orange-slice">
+  <!-- Half Citrus Wheel Slice -->
+  <path d="M 72 42 A 15 15 0 1 1 98 27 Z" fill="#FB923C" stroke="#231F20" stroke-width="3.6" stroke-linejoin="round" />
+  <path d="M 75 40 A 11.5 11.5 0 1 1 95 29 Z" fill="#FDE68A" />
+  <path d="M 77 39 A 9.5 9.5 0 1 1 93 30 Z" fill="#F97316" />
+  <!-- Segment Lines -->
+  <path d="M 85 34 L 78 26 M 85 34 L 85 23 M 85 34 L 92 27" stroke="#FDE68A" stroke-width="2.2" stroke-linecap="round" />
+  <line x1="72" y1="42" x2="98" y2="27" stroke="#231F20" stroke-width="3.4" stroke-linecap="round" />
+</g>
+</svg>

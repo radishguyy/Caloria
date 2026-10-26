@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A3E635; --char-secondary: #4D7C0F; --char-belly: #ECFCCB; --char-inner-ear: #BEF264; --char-blush: #65A30D; --char-eye: #14532D; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="biscuit">
+  <!-- Triangle-Arch Green Eyes & Tall Shocked O Mouth (Ref 1 bottom-right) -->
+  <path d="M 34 68 C 36 54, 48 54, 53 68 Z" fill="#BBF7D0" stroke="var(--char-secondary, #4D7C0F)" stroke-width="3" stroke-linejoin="round" />
+  <circle cx="43" cy="63" r="4.5" fill="#22C55E" />
+  <path d="M 65 68 C 68 54, 80 54, 86 68 Z" fill="#BBF7D0" stroke="var(--char-secondary, #4D7C0F)" stroke-width="3" stroke-linejoin="round" />
+  <circle cx="74" cy="63" r="4.5" fill="#22C55E" />
+  <!-- Tall Surprised / Singing O Mouth -->
+  <path d="M 52 75 C 58 74, 64 81, 64 90 C 64 96, 56 97, 52 94 C 49 91, 49 76, 52 75 Z" fill="var(--char-secondary, #4D7C0F)" stroke="var(--char-outline, #231F20)" stroke-width="2.6" />
+</g>
+</svg>

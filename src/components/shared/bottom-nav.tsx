@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles, UtensilsCrossed, Award, Users, UserCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -23,7 +24,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden backdrop-blur-lg border-t px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" style={{ background: 'rgba(255,255,255,0.95)', borderColor: 'var(--color-border-divider)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-surface/95 backdrop-blur-lg border-t border-border-divider px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -33,16 +34,21 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className="nav-item flex flex-col items-center justify-center gap-1 py-1 px-2.5 transition-all"
-              aria-current={isActive ? 'page' : undefined}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "nav-item flex flex-col items-center justify-center gap-1 py-1.5 px-3 transition-all",
+                isActive ? "is-selected" : "text-text-muted"
+              )}
             >
-              <div
-                className="p-1 rounded-lg transition-transform"
-                style={isActive ? { background: 'color-mix(in srgb, var(--color-accent-orange) 10%, transparent)', transform: 'scale(1.1)' } : {}}
+              <Icon className="h-5 w-5" />
+              <span
+                className={cn(
+                  "text-[10px] tracking-tight",
+                  isActive ? "font-bold text-text-inverse" : "font-medium"
+                )}
               >
-                <Icon className="h-5 w-5" style={{ color: isActive ? 'var(--color-accent-orange)' : 'var(--color-text-muted)' }} />
-              </div>
-              <span className="text-[10px] tracking-tight" style={{ color: isActive ? 'var(--color-accent-orange)' : 'var(--color-text-muted)', fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
+                {item.label}
+              </span>
             </Link>
           );
         })}

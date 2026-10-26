@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #EAB308; --char-secondary: #A16207; --char-belly: #FEF9C3; --char-inner-ear: #FDE047; --char-blush: #F59E0B; --char-eye: #78350F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="ziggy">
+  <!-- Sleek Angular Fennec Tail -->
+  <path d="M 78 126 L 112 114 L 106 128 L 80 133 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 98 119 L 112 114 L 107 125 L 96 126 Z" fill="var(--char-secondary, #A16207)" />
+</g>
+</svg>

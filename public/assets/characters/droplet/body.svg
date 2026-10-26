@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #22D3EE; --char-secondary: #0284C7; --char-belly: #ECFEFF; --char-inner-ear: #7DD3FC; --char-blush: #F472B6; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="droplet">
+  <!-- Compact Joyful Torso & Arms -->
+  <path d="M 48 97 C 43 106, 42 122, 45 133 L 44 142 C 44 147, 57 147, 58 141 L 60 135 L 68 135 L 70 141 C 71 147, 84 147, 84 142 L 83 133 C 86 122, 85 106, 80 97 Z" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="64" cy="117" rx="12" ry="12" fill="var(--char-belly, #ECFEFF)" />
+  <!-- Left & Right Stubby Paws -->
+  <path d="M 46 105 C 34 108, 30 117, 36 122 C 41 125, 46 119, 48 113" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 82 105 C 94 108, 98 117, 92 122 C 87 125, 82 119, 80 113" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

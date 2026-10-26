@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FB923C; --char-secondary: #C2410C; --char-belly: #FFEDD5; --char-inner-ear: #FDBA74; --char-blush: #F87171; --char-eye: #271C19; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="kuma">
+  <!-- Cub Ears (Ref 1 middle-left) -->
+  <path d="M 38 42 C 34 24, 42 10, 50 10 C 56 10, 61 24, 61 38 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 43 36 C 41 25, 45 17, 50 17 C 53 17, 56 25, 56 35 Z" fill="var(--char-inner-ear, #FDBA74)" />
+  <path d="M 88 42 C 92 24, 84 10, 76 10 C 70 10, 65 24, 65 38 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 83 36 C 85 25, 81 17, 76 17 C 73 17, 70 25, 70 35 Z" fill="var(--char-inner-ear, #FDBA74)" />
+</g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #5EEAD4; --char-secondary: #0D9488; --char-belly: #CCFBF1; --char-inner-ear: #99F6E4; --char-blush: #2DD4BF; --char-eye: #134E4A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="pippin">
+  <!-- Relaxed Upright Chibi Body (Ref 1 middle-second) -->
+  <path d="M 49 97 C 45 106, 45 121, 47 133 L 44 142 C 43 146, 57 146, 59 141 L 61 135 L 67 135 L 69 141 C 71 146, 85 146, 84 142 L 81 133 C 83 121, 83 106, 79 97 Z" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="64" cy="117" rx="11" ry="11" fill="var(--char-belly, #CCFBF1)" />
+  <!-- Relaxed Hanging Stubby Arms -->
+  <path d="M 48 106 C 39 110, 36 119, 41 123 C 45 125, 48 120, 49 114" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 80 106 C 89 110, 92 119, 87 123 C 83 125, 80 120, 79 114" fill="var(--char-primary, #5EEAD4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

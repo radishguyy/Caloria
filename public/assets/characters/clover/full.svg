@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A5B4FC; --char-secondary: #6366F1; --char-belly: #EEF2FF; --char-inner-ear: #C7D2FE; --char-blush: #818CF8; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="clover">
+  <!-- Upturned Fluffy Tail -->
+  <path d="M 84 126 C 98 122, 110 112, 112 117 C 114 123, 102 132, 86 134 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="ears" data-character="clover">
+  <!-- Pointed Fluffy Kitten Ears (Ref 1 bottom-third) -->
+  <path d="M 46 38 C 48 22, 58 10, 64 10 C 68 10, 68 24, 66 38 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 65 38 C 68 24, 76 12, 82 12 C 86 12, 86 28, 82 42 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="body" data-character="clover">
+  <!-- Fluffy Four-Pawed Crouch Body (Ref 1 bottom-third) -->
+  <path d="M 48 96 C 42 108, 37 120, 35 129 C 33 137, 44 139, 46 132 C 47 141, 59 142, 61 134 C 63 142, 75 142, 77 134 C 79 142, 91 141, 91 131 C 91 120, 84 108, 78 96 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="63" cy="118" rx="13" ry="9" fill="var(--char-belly, #EEF2FF)" />
+</g>
+<g data-layer="head" data-character="clover">
+  <!-- Spiky Cloud-Fur Cheek Silhouette (Ref 1 bottom-third) -->
+  <path d="M 56 34 C 68 32, 78 35, 84 40 L 96 38 L 90 48 L 105 53 L 95 62 L 107 70 L 94 77 L 101 86 L 85 90 C 76 98, 52 98, 42 92 L 30 96 L 35 84 L 20 80 L 30 71 L 16 62 L 31 55 L 25 45 L 40 45 C 45 38, 50 35, 56 34 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="face" data-character="clover">
+  <!-- Diamond-Shaped Cat Eyes with Slit Pupils & Blep Mouth (Ref 1 bottom-third) -->
+  <path d="M 35 61 L 47 55 L 57 64 L 44 70 Z" fill="#93C5FD" stroke="var(--char-eye, #1E3A8A)" stroke-width="3" stroke-linejoin="round" />
+  <ellipse cx="46" cy="62.5" rx="2.3" ry="5" fill="var(--char-eye, #1E3A8A)" />
+  <path d="M 65 67 L 77 61 L 89 68 L 76 75 Z" fill="#93C5FD" stroke="var(--char-eye, #1E3A8A)" stroke-width="3" stroke-linejoin="round" />
+  <ellipse cx="77" cy="68" rx="2.3" ry="5" fill="var(--char-eye, #1E3A8A)" />
+  <!-- Cute Nose & Blep -->
+  <path d="M 52 74 L 64 76 M 55 75 C 55 81, 61 81, 61 75" fill="var(--char-eye, #1E3A8A)" stroke="var(--char-eye, #1E3A8A)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

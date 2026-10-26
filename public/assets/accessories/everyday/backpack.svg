@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-backpack-back">
+  <!-- Rounded Daypack Visible Behind Shoulders -->
+  <rect x="29" y="96" width="70" height="36" rx="12" fill="#0D9488" stroke="#231F20" stroke-width="3.8" />
+  <rect x="33" y="102" width="62" height="14" rx="6" fill="#14B8A6" stroke="#231F20" stroke-width="3" />
+  <!-- Top Grab Loop -->
+  <path d="M 56 96 C 56 88, 72 88, 72 96" fill="none" stroke="#231F20" stroke-width="3.6" stroke-linecap="round" />
+</g>
+<g data-accessory="acc-backpack-front">
+  <!-- Front Shoulder Straps & Chest Buckle -->
+  <path d="M 49 99 C 47 109, 47 121, 50 128" fill="none" stroke="#0F766E" stroke-width="6.5" stroke-linecap="round" />
+  <path d="M 49 99 C 47 109, 47 121, 50 128" fill="none" stroke="#231F20" stroke-width="3" stroke-linecap="round" />
+  <path d="M 79 99 C 81 109, 81 121, 78 128" fill="none" stroke="#0F766E" stroke-width="6.5" stroke-linecap="round" />
+  <path d="M 79 99 C 81 109, 81 121, 78 128" fill="none" stroke="#231F20" stroke-width="3" stroke-linecap="round" />
+  <line x1="49" y1="114" x2="79" y2="114" stroke="#231F20" stroke-width="3.4" stroke-linecap="round" />
+  <rect x="60" y="111" width="8" height="6" rx="1.5" fill="#FACC15" stroke="#231F20" stroke-width="2.4" />
+</g>
+</svg>

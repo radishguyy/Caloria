@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FBBF24; --char-secondary: #D97706; --char-belly: #FEF3C7; --char-inner-ear: #FDE68A; --char-blush: #FB923C; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="sunny">
+  <!-- Ultra-Compact Peanut Body (Ref 1 top-right) -->
+  <path d="M 49 98 C 45 106, 45 120, 48 130 L 47 139 C 47 145, 60 145, 61 139 L 63 134 L 65 134 L 67 139 C 68 145, 81 145, 81 139 L 80 130 C 83 120, 83 106, 79 98 Z" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="64" cy="117" rx="11" ry="10" fill="var(--char-belly, #FEF3C7)" />
+  <!-- Short Little Outstretched Nubbin Arms -->
+  <path d="M 48 108 C 37 108, 34 115, 40 119 C 44 121, 48 118, 50 114" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 80 108 C 91 108, 94 115, 88 119 C 84 121, 80 118, 78 114" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

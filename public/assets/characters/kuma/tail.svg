@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FB923C; --char-secondary: #C2410C; --char-belly: #FFEDD5; --char-inner-ear: #FDBA74; --char-blush: #F87171; --char-eye: #271C19; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="kuma">
+  <!-- Round Bear Pom-Pom Tail -->
+  <circle cx="80" cy="128" r="8" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" />
+</g>
+</svg>

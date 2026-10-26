@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #60A5FA; --char-secondary: #2563EB; --char-belly: #DBEAFE; --char-inner-ear: #93C5FD; --char-blush: #818CF8; --char-eye: #1E1B4B; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="bambi">
+  <!-- Short Wagging Pup Tail -->
+  <path d="M 78 124 C 90 122, 98 126, 94 132 C 90 136, 82 133, 76 130 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="ears" data-character="bambi">
+  <!-- Tall Close-Set Pointer Pup Ears (Ref 1 top-second) -->
+  <path d="M 46 40 C 48 22, 56 8, 63 8 C 67 8, 68 22, 66 39 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 66 40 C 70 22, 78 10, 84 10 C 89 10, 89 26, 85 42 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="body" data-character="bambi">
+  <!-- Tunic / Cloak Flared Compact Body with Tiny Feet (Ref 1 top-second) -->
+  <path d="M 52 96 L 34 131 C 38 135, 45 136, 50 136 L 50 142 C 50 146, 59 146, 60 141 L 61 136 L 66 136 L 67 141 C 68 146, 77 146, 77 142 L 77 136 C 83 136, 89 135, 92 131 L 74 96 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 48 106 C 54 122, 72 122, 78 106" fill="var(--char-belly, #DBEAFE)" opacity="0.65" />
+</g>
+<g data-layer="head" data-character="bambi">
+  <!-- Asymmetric Expressive Teardrop Head (Ref 1 top-second) -->
+  <path d="M 64 36 C 88 36, 102 52, 102 72 C 102 88, 84 99, 62 99 C 38 99, 20 88, 22 70 C 24 52, 42 36, 64 36 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 45 43 C 55 39, 67 39, 77 42" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.4" />
+</g>
+<g data-layer="face" data-character="bambi">
+  <!-- Hilarious Side-Eye & Boxy Clenched-Teeth Grin (Ref 1 top-second) -->
+  <!-- Flat Eyebrows -->
+  <path d="M 30 55 L 49 55" fill="none" stroke="var(--char-eye, #1E1B4B)" stroke-width="3.4" stroke-linecap="round" />
+  <path d="M 56 55 L 79 56" fill="none" stroke="var(--char-eye, #1E1B4B)" stroke-width="3.4" stroke-linecap="round" />
+  <!-- Side-Glancing Eyes -->
+  <ellipse cx="38" cy="62" rx="10" ry="4.2" fill="#FFFFFF" stroke="var(--char-eye, #1E1B4B)" stroke-width="2.8" />
+  <ellipse cx="33" cy="62" rx="5.5" ry="3.5" fill="var(--char-eye, #1E1B4B)" />
+  <ellipse cx="67" cy="62" rx="11" ry="4.2" fill="#FFFFFF" stroke="var(--char-eye, #1E1B4B)" stroke-width="2.8" />
+  <ellipse cx="61" cy="62" rx="6" ry="3.5" fill="var(--char-eye, #1E1B4B)" />
+  <!-- Boxy Toothy Grin -->
+  <rect x="36" y="71" width="28" height="9" rx="2.5" fill="#FFFFFF" stroke="var(--char-eye, #1E1B4B)" stroke-width="2.8" />
+  <path d="M 43 71 L 43 80 M 50 71 L 50 80 M 57 71 L 57 80" fill="none" stroke="var(--char-eye, #1E1B4B)" stroke-width="2.4" />
+</g>
+</svg>

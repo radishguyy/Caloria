@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-beret">
+  <!-- Stem Tip -->
+  <path d="M 62 17 L 65 11" stroke="#231F20" stroke-width="3.8" stroke-linecap="round" />
+  <!-- Tilted French Beret Cushion -->
+  <path d="M 27 36 C 22 24, 38 14, 64 16 C 90 17, 104 28, 96 39 C 89 44, 42 42, 27 36 Z" fill="#E11D48" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Snug Headband Rim -->
+  <path d="M 34 37 C 50 35, 76 36, 90 40 L 88 44 C 74 41, 50 40, 35 42 Z" fill="#881337" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <path d="M 42 22 C 54 19, 70 20, 82 24" fill="none" stroke="#FDA4AF" stroke-width="2.6" stroke-linecap="round" opacity="0.6" />
+</g>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-mini-burger">
+  <!-- Bottom Bun -->
+  <path d="M 82 115 L 110 115 C 110 121, 82 121, 82 115 Z" fill="#F59E0B" stroke="#231F20" stroke-width="3.2" stroke-linejoin="round" />
+  <!-- Burger Patty -->
+  <rect x="80" y="109" width="32" height="6" rx="3" fill="#78350F" stroke="#231F20" stroke-width="3.2" />
+  <!-- Melted Cheese Triangle -->
+  <polygon points="83,109 96,114 108,109" fill="#FACC15" stroke="#231F20" stroke-width="2.4" stroke-linejoin="round" />
+  <!-- Ruffled Lettuce -->
+  <path d="M 80 108 Q 85 104 90 108 Q 96 104 102 108 Q 107 104 112 108" fill="none" stroke="#22C55E" stroke-width="4" stroke-linecap="round" />
+  <!-- Sesame Top Bun -->
+  <path d="M 81 106 C 81 94, 111 94, 111 106 Z" fill="#F59E0B" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <circle cx="91" cy="99" r="1.2" fill="#FEF3C7" />
+  <circle cx="97" cy="98" r="1.2" fill="#FEF3C7" />
+  <circle cx="102" cy="100" r="1.2" fill="#FEF3C7" />
+</g>
+</svg>

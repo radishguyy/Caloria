@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A3E635; --char-secondary: #4D7C0F; --char-belly: #ECFCCB; --char-inner-ear: #BEF264; --char-blush: #65A30D; --char-eye: #14532D; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="biscuit">
+  <!-- Energetic Forward-Leaning 4-Pawed Body (Ref 1 bottom-right) -->
+  <path d="M 52 96 C 42 108, 34 118, 32 130 C 31 138, 42 140, 44 133 C 45 141, 56 141, 58 134 C 60 141, 70 141, 72 134 C 74 141, 84 140, 84 131 C 84 118, 80 106, 76 96 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="60" cy="118" rx="12" ry="8.5" fill="var(--char-belly, #ECFCCB)" />
+</g>
+</svg>

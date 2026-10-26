@@ -115,11 +115,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 caloria/
 ├── drizzle/                 # Generated SQL migrations
-├── public/                  # Static assets & custom typography (Secuela font)
+├── public/                  # Static assets & HTML wireframes
 ├── src/
 │   ├── app/                 # Next.js App Router (pages & layouts)
 │   │   ├── (auth)/          # Authentication routes (login, register)
 │   │   ├── diary/           # Food diary & meal log workflows
+│   │   ├── fonts/           # Self-hosted typography (Open Runde & Secuela)
 │   │   ├── onboarding/      # Goal, TDEE, and user onboarding steps
 │   │   ├── pet/             # Virtual pet hub, stats, and evolution
 │   │   ├── plaza/           # Wardrobe & cosmetic store
@@ -166,3 +167,26 @@ caloria/
 1. Always branch off `dev` for feature work (`git checkout -b feature/your-feature dev`).
 2. Test builds & types before committing (`npx tsc --noEmit && npm run build`).
 3. Merge back into `dev` after review.
+
+---
+
+## 🎨 Design System
+
+Design references live alongside the app:
+
+- `Grand Design - Caloria (Gamified Nutrition & Virtual Pet Web App).md` — main design document.
+- `caloria-design-system-agent-files/` — design tokens (`design-tokens.css`, `design-tokens.json`) and implementation rules for agents (`AGENTS.md`).
+- `public/wireframes/` — HTML wireframes for per-page layout reference.
+
+Caloria tokens are already wired into `src/app/globals.css` (colors, typography, spacing, radius, shadows) and mapped to shadcn semantic variables.
+
+## 🔤 Fonts
+
+Both brand fonts are self-hosted in `src/app/fonts/` and loaded automatically via `next/font/local` in `src/app/layout.tsx`:
+
+| Font | Role | Files | CSS variable | Tailwind |
+|---|---|---|---|---|
+| Open Runde | Body, UI, caption | `src/app/fonts/OpenRunde-{Regular,Medium,Semibold,Bold}.woff2` | `--font-open-runde` | `font-sans` |
+| Secuela | Heading (H1/H2) | `src/app/fonts/Secuela-{Regular,Medium,Bold,ExtraBold}.woff2` | `--font-secuela` | `font-heading` |
+
+Use `font-sans` for body text and `font-heading` for headings. Secuela is licensed under the SIL Open Font License 1.1; see `src/app/fonts/Secuela-FONTLOG.txt`.

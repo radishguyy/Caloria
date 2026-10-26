@@ -2,6 +2,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { PetAnimationState } from "@/types";
 import { PET_CONFIG, PetSpeciesId } from "@/lib/constants";
+import {
+  CharacterColorPalette,
+  CharacterId,
+} from "@/lib/character-assets/types";
+import {
+  CHARACTER_COLOR_PALETTES,
+  getCharacterDefinition,
+} from "@/lib/character-assets/catalog";
 
 interface PetStoreState {
   name: string;
@@ -15,6 +23,12 @@ interface PetStoreState {
   health: number;
   animationState: PetAnimationState;
 
+  // Modular Character Customization State
+  customColors: Partial<CharacterColorPalette>;
+  earsVariant?: CharacterId;
+  tailVariant?: CharacterId;
+  faceVariant?: CharacterId;
+
   // Actions
   feedPet: (caloriesFed?: number, xpReward?: number, coinReward?: number) => void;
   petInteract: () => void;
@@ -25,8 +39,18 @@ interface PetStoreState {
   setPetName: (name: string) => void;
   setSpecies: (species: PetSpeciesId) => void;
 
+  // Customization Actions
+  setCustomColors: (colors: Partial<CharacterColorPalette>) => void;
+  applyColorPalette: (paletteId: CharacterId) => void;
+  resetCustomColors: () => void;
+  setEarsVariant: (variant?: CharacterId) => void;
+  setTailVariant: (variant?: CharacterId) => void;
+  setFaceVariant: (variant?: CharacterId) => void;
+  resetCharacterCustomization: () => void;
+
   // Helpers
   getExpNeededForNextLevel: () => number;
+  getEffectiveColors: () => CharacterColorPalette;
 }
 
 export const usePetStore = create<PetStoreState>()(
@@ -42,12 +66,27 @@ export const usePetStore = create<PetStoreState>()(
       happiness: 85,
       health: 100,
       animationState: "idle",
+      customColors: {},
+      earsVariant: undefined,
+      tailVariant: undefined,
+      faceVariant: undefined,
 
       getExpNeededForNextLevel: () => {
         const { level } = get();
         return Math.round(
           PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, level - 1)
         );
+      },
+
+      getEffectiveColors: () => {
+        const { species, customColors } = get();
+        const charDef = getCharacterDefinition(species);
+        return {
+          ...charDef.defaultColors,
+          ...Object.fromEntries(
+            Object.entries(customColors || {}).filter(([, v]) => Boolean(v))
+          ),
+        };
       },
 
       feedPet: (caloriesFed = 300, xpReward = 25, coinReward = 10) => {
@@ -135,7 +174,50 @@ export const usePetStore = create<PetStoreState>()(
       setAnimationState: (animationState: PetAnimationState) =>
         set({ animationState }),
       setPetName: (name: string) => set({ name }),
-      setSpecies: (species: PetSpeciesId) => set({ species }),
+      setSpecies: (species: PetSpeciesId) =>
+        set({
+          species,
+          customColors: {},
+          earsVariant: undefined,
+          tailVariant: undefined,
+          faceVariant: undefined,
+        }),
+
+      setCustomColors: (colors: Partial<CharacterColorPalette>) =>
+        set((state) => ({
+          customColors: {
+            ...state.customColors,
+            ...colors,
+          },
+        })),
+
+      applyColorPalette: (paletteId: CharacterId) => {
+        const palette = CHARACTER_COLOR_PALETTES[paletteId];
+        if (!palette) return;
+        set({
+          customColors: {
+            primary: palette.primary,
+            secondary: palette.secondary,
+            belly: palette.belly,
+            innerEar: palette.innerEar,
+            blush: palette.blush,
+          },
+        });
+      },
+
+      resetCustomColors: () => set({ customColors: {} }),
+
+      setEarsVariant: (earsVariant?: CharacterId) => set({ earsVariant }),
+      setTailVariant: (tailVariant?: CharacterId) => set({ tailVariant }),
+      setFaceVariant: (faceVariant?: CharacterId) => set({ faceVariant }),
+
+      resetCharacterCustomization: () =>
+        set({
+          customColors: {},
+          earsVariant: undefined,
+          tailVariant: undefined,
+          faceVariant: undefined,
+        }),
     }),
     {
       name: "caloria-pet-storage",

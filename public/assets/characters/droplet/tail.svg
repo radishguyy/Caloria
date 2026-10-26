@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #22D3EE; --char-secondary: #0284C7; --char-belly: #ECFEFF; --char-inner-ear: #7DD3FC; --char-blush: #F472B6; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="droplet">
+  <!-- Curling Otter-Cat Tail (like Ref 1 bottom-second) -->
+  <path d="M 73 134 C 88 137, 106 135, 110 126 C 113 120, 106 117, 101 122 C 96 127, 84 128, 74 126 Z" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>
