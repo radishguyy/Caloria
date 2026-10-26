@@ -3,20 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Flame, ArrowRight, UserCheck } from "lucide-react";
+import { Flame, ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
+import { loginAction } from "@/app/actions/auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, onboardingCompleted, activeOnboardingStep } = useAuthStore();
+  const { login } = useAuthStore();
 
-  const [email, setEmail] = useState("iman@caloria.app");
-  const [password, setPassword] = useState("password123");
-  const [demoStatus, setDemoStatus] = useState<"onboarded" | "new_user">("onboarded");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setErrorMsg("Harap masukkan email dan password.");
@@ -26,22 +26,35 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg("");
 
-    setTimeout(() => {
-      login(email);
+    try {
+      const res = await loginAction({ email, password });
+      if (!res.success || !res.user) {
+        setErrorMsg(res.error || "Gagal masuk.");
+        setLoading(false);
+        return;
+      }
 
-      if (demoStatus === "new_user" || !onboardingCompleted) {
-        const stepRoutes = [
-          "/onboarding/goal",
-          "/onboarding/profile-calculator",
-          "/onboarding/projection",
-          "/onboarding/adopt-pet",
-        ];
-        const targetRoute = stepRoutes[activeOnboardingStep - 1] || "/onboarding/goal";
-        router.push(targetRoute);
+      // Sync Zustand local auth state with Supabase profile
+      login(res.user.email, res.user.username);
+      useAuthStore.setState({
+        user: {
+          id: res.user.id,
+          email: res.user.email,
+          username: res.user.username,
+          fullName: res.user.fullName,
+        },
+        onboardingCompleted: res.user.isOnboardingCompleted,
+      });
+
+      if (!res.user.isOnboardingCompleted) {
+        router.push("/onboarding/goal");
       } else {
         router.push("/dashboard");
       }
-    }, 400);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,45 +116,22 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Quick Demo State Selector */}
-          <div className="p-3.5 rounded-button bg-accent-yellow/40 border border-accent-green/25 space-y-2">
-            <span className="text-[11px] font-bold text-text-primary flex items-center gap-1">
-              <UserCheck className="h-3.5 w-3.5 text-accent-green" />
-              Simulasi Cek Status Profil Pengguna:
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => setDemoStatus("onboarded")}
-                className={`nav-item p-2 border text-center font-medium transition-colors ${
-                  demoStatus === "onboarded"
-                    ? "is-selected border-accent-orange font-bold"
-                    : "bg-surface text-neutral-10 border-border-default"
-                }`}
-              >
-                Pengguna Lama &rarr; /dashboard
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoStatus("new_user")}
-                className={`nav-item p-2 border text-center font-medium transition-colors ${
-                  demoStatus === "new_user"
-                    ? "is-selected border-accent-orange font-bold"
-                    : "bg-surface text-neutral-10 border-border-default"
-                }`}
-              >
-                Pengguna Baru &rarr; /onboarding
-              </button>
-            </div>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
             className="button-primary w-full py-3.5 text-sm flex items-center justify-center gap-2"
           >
-            <span>{loading ? "Memverifikasi..." : "Masuk ke Aplikasi"}</span>
-            <ArrowRight className="h-4 w-4" />
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Memverifikasi akun...</span>
+              </>
+            ) : (
+              <>
+                <span>Masuk ke Aplikasi</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </button>
         </form>
 

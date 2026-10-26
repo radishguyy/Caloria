@@ -3,36 +3,77 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Heart } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, Loader2 } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useFoodStore } from "@/store/use-food-store";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { CharacterSvg } from "@/components/pet/character-svg";
 import { PET_SPECIES, PetSpeciesId } from "@/lib/constants";
+import { saveOnboardingAction } from "@/app/actions/onboarding";
 import { cn } from "@/lib/utils";
 
 export default function OnboardingAdoptPetPage() {
   const router = useRouter();
   const { setSpecies, setPetName, name, species } = usePetStore();
   const { completeOnboarding } = useAuthStore();
+  const { goalPlan, targets } = useFoodStore();
 
   const [selectedSpecies, setSelectedSpecies] = useState<PetSpeciesId>(
     species || "flameling"
   );
   const [petNickname, setPetNickname] = useState(name || "Pyro");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!petNickname.trim()) return;
 
     setLoading(true);
+    setErrorMsg("");
+
+    // Map store activity level string to schema enum
+    const activityMap: Record<
+      string,
+      "sedentary" | "lightly_active" | "moderately_active" | "very_active" | "extra_active"
+    > = {
+      sedentary: "sedentary",
+      light: "lightly_active",
+      moderate: "moderately_active",
+      active: "very_active",
+      very_active: "extra_active",
+    };
+
+    const targetActivity = activityMap[goalPlan.activityLevel] || "moderately_active";
+
+    try {
+      // Persist onboarding & pet directly into Supabase database
+      await saveOnboardingAction({
+        goal: goalPlan.goalType,
+        gender: goalPlan.gender,
+        heightCm: goalPlan.heightCm,
+        initialWeightKg: goalPlan.currentWeightKg,
+        currentWeightKg: goalPlan.currentWeightKg,
+        targetWeightKg: goalPlan.targetWeightKg,
+        activityLevel: targetActivity,
+        bmiScore: goalPlan.bmiScore,
+        tdeeKcal: targets.calories,
+        targetCaloriesKcal: targets.calories,
+        targetProteinG: targets.protein,
+        targetCarbsG: targets.carbs,
+        targetFatG: targets.fat,
+        projectedDays: goalPlan.totalProjectedDays,
+        petSpecies: selectedSpecies,
+        petName: petNickname.trim(),
+      });
+    } catch (err) {
+      console.warn("DB saveOnboarding error:", err);
+    }
+
     setSpecies(selectedSpecies);
     setPetName(petNickname.trim());
     completeOnboarding();
-
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 400);
+    router.push("/dashboard");
   };
 
   return (

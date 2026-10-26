@@ -1,0 +1,201 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { db } from "@/db";
+import { profiles, pets } from "@/db/schema";
+import { eq } from "drizzle-orm";
+
+export interface AuthActionResult {
+  success: boolean;
+  error?: string;
+  user?: {
+    id: string;
+    email: string;
+    username: string;
+    fullName: string;
+    isOnboardingCompleted: boolean;
+  };
+}
+
+/**
+ * Register a new user with Supabase Auth and initialize `profiles` + `pets` rows
+ */
+export async function registerAction(formData: {
+  email: string;
+  password: string;
+  fullName: string;
+  username: string;
+}): Promise<AuthActionResult> {
+  const { email, password, fullName, username } = formData;
+
+  if (!email || !password || !fullName || !username) {
+    return { success: false, error: "Semua kolom harus diisi." };
+  }
+
+  const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  if (cleanUsername.length < 3) {
+    return { success: false, error: "Username minimal 3 karakter (huruf, angka, _)." };
+  }
+
+  try {
+    // Check if username already exists in `profiles`
+    const existing = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.username, cleanUsername))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { success: false, error: "Username sudah digunakan, silakan pilih yang lain." };
+    }
+
+    const supabase = await createClient();
+
+    // Sign up with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+          username: cleanUsername,
+        },
+      },
+    });
+
+    if (authError || !authData.user) {
+      return {
+        success: false,
+        error: authError?.message || "Gagal membuat akun dengan Supabase.",
+      };
+    }
+
+    const userId = authData.user.id;
+
+    // Create default profile in `profiles` table
+    await db
+      .insert(profiles)
+      .values({
+        id: userId,
+        username: cleanUsername,
+        fullName: fullName.trim(),
+        isOnboardingCompleted: false,
+      })
+      .onConflictDoNothing();
+
+    // Create starter egg pet in `pets` table
+    await db
+      .insert(pets)
+      .values({
+        userId,
+        name: "Egg Starter",
+        species: "egg_starter",
+        stage: 1,
+        level: 1,
+        currentXp: 0,
+        nextLevelXp: 100,
+      })
+      .onConflictDoNothing();
+
+    revalidatePath("/", "layout");
+
+    return {
+      success: true,
+      user: {
+        id: userId,
+        email,
+        username: cleanUsername,
+        fullName: fullName.trim(),
+        isOnboardingCompleted: false,
+      },
+    };
+  } catch (error) {
+    console.error("[registerAction Error]:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan pada server.",
+    };
+  }
+}
+
+/**
+ * Log in an existing user with Supabase Auth and fetch profile state
+ */
+export async function loginAction(formData: {
+  email: string;
+  password: string;
+}): Promise<AuthActionResult> {
+  const { email, password } = formData;
+
+  if (!email || !password) {
+    return { success: false, error: "Email dan password wajib diisi." };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
+      return {
+        success: false,
+        error:
+          error?.message === "Invalid login credentials"
+            ? "Email atau kata sandi tidak cocok."
+            : error?.message || "Gagal masuk.",
+      };
+    }
+
+    const userId = data.user.id;
+
+    // Query user profile
+    const [profile] = await db
+      .select({
+        username: profiles.username,
+        fullName: profiles.fullName,
+        isOnboardingCompleted: profiles.isOnboardingCompleted,
+      })
+      .from(profiles)
+      .where(eq(profiles.id, userId))
+      .limit(1);
+
+    revalidatePath("/", "layout");
+
+    return {
+      success: true,
+      user: {
+        id: userId,
+        email: data.user.email || email,
+        username: profile?.username || email.split("@")[0],
+        fullName: profile?.fullName || "Caloria User",
+        isOnboardingCompleted: profile?.isOnboardingCompleted ?? false,
+      },
+    };
+  } catch (error) {
+    console.error("[loginAction Error]:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat masuk.",
+    };
+  }
+}
+
+/**
+ * Log out user from Supabase session
+ */
+export async function logoutAction(): Promise<{ success: boolean }> {
+  try {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (err) {
+    console.error("[logoutAction Error]:", err);
+    return { success: false };
+  }
+}
+

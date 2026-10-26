@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Flame, ArrowRight } from "lucide-react";
+import { Flame, ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
+import { registerAction } from "@/app/actions/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !username || !email || !password) {
       setErrorMsg("Harap lengkapi semua kolom pendaftaran.");
@@ -31,10 +32,37 @@ export default function RegisterPage() {
     setLoading(true);
     setErrorMsg("");
 
-    setTimeout(() => {
-      register(email, username, fullName);
+    try {
+      const res = await registerAction({
+        email,
+        password,
+        fullName,
+        username,
+      });
+
+      if (!res.success || !res.user) {
+        setErrorMsg(res.error || "Gagal membuat akun.");
+        setLoading(false);
+        return;
+      }
+
+      // Sync Zustand local auth state with Supabase user
+      register(res.user.email, res.user.username, res.user.fullName);
+      useAuthStore.setState({
+        user: {
+          id: res.user.id,
+          email: res.user.email,
+          username: res.user.username,
+          fullName: res.user.fullName,
+        },
+        onboardingCompleted: false,
+      });
+
       router.push("/onboarding/goal");
-    }, 400);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -122,8 +150,17 @@ export default function RegisterPage() {
               disabled={loading}
               className="button-primary w-full py-3.5 text-sm flex items-center justify-center gap-2"
             >
-              <span>{loading ? "Mendaftarkan..." : "Daftar & Mulai Onboarding"}</span>
-              <ArrowRight className="h-4 w-4" />
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Mendaftarkan akun...</span>
+                </>
+              ) : (
+                <>
+                  <span>Daftar & Mulai Onboarding</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </div>
         </form>
