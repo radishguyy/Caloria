@@ -9,6 +9,7 @@ import { COSMETICS_CATALOG } from "@/lib/cosmetics-catalog";
 import { PET_CONFIG, PET_SPECIES } from "@/lib/constants";
 import { CharacterSvg } from "@/components/pet/character-svg";
 import { getCharacterDefinition } from "@/lib/character-assets/catalog";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 
 interface PetRendererProps {
@@ -22,6 +23,8 @@ export function PetRenderer({
   size = "md",
   dialogMessage = null,
 }: PetRendererProps) {
+  const isHydrated = useHydrated();
+
   const {
     name,
     species,
@@ -46,6 +49,43 @@ export function PetRenderer({
 
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
 
+  const getContainerSize = () => {
+    switch (size) {
+      case "sm":
+        return "h-44 w-44";
+      case "lg":
+        return "h-72 w-72";
+      case "md":
+      default:
+        return "h-56 w-56";
+    }
+  };
+
+  // SSR-safe skeleton: prevents hydration mismatch when Zustand's localStorage state differs from default SSR values
+  if (!isHydrated) {
+    return (
+      <div className="flex flex-col items-center justify-center p-3 relative">
+        <div
+          className={cn(
+            "relative flex items-center justify-center rounded-card p-2 bg-surface-subtle/70 border border-border-divider animate-pulse",
+            getContainerSize()
+          )}
+        >
+          <div className="w-24 h-24 rounded-full bg-accent-yellow/40 animate-pulse" />
+        </div>
+        <div className="mt-3 text-center space-y-1">
+          <div className="h-6 w-28 bg-surface-subtle rounded-pill animate-pulse mx-auto" />
+          <div className="h-3.5 w-36 bg-surface-subtle rounded-pill animate-pulse mx-auto" />
+        </div>
+        <div className="w-full max-w-xs space-y-2 mt-4">
+          <div className="h-2.5 w-full rounded-pill bg-surface-subtle animate-pulse" />
+          <div className="h-2.5 w-full rounded-pill bg-surface-subtle animate-pulse" />
+          <div className="h-2.5 w-full rounded-pill bg-surface-subtle animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   const expNeeded = getExpNeededForNextLevel();
   const expPercent = Math.min(100, Math.round((exp / expNeeded) * 100));
 
@@ -66,18 +106,6 @@ export function PetRenderer({
     }, 1200);
   };
 
-  const getContainerSize = () => {
-    switch (size) {
-      case "sm":
-        return "h-44 w-44";
-      case "lg":
-        return "h-72 w-72";
-      case "md":
-      default:
-        return "h-56 w-56";
-    }
-  };
-
   return (
     <div className="flex flex-col items-center justify-center p-3 relative">
       {/* Dialog Speech Bubble (if provided) */}
@@ -87,10 +115,10 @@ export function PetRenderer({
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-2 px-3.5 py-1.5 rounded-2xl bg-card border border-border/80 shadow-md text-xs font-medium text-foreground text-center max-w-xs relative"
+            className="mb-2 px-3.5 py-1.5 rounded-button bg-accent-yellow/60 border border-accent-green/25 shadow-xs text-xs font-medium text-text-primary text-center max-w-xs relative"
           >
             <span>{dialogMessage}</span>
-            <div className="w-2.5 h-2.5 bg-card border-b border-r border-border/80 rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+            <div className="w-2.5 h-2.5 bg-accent-yellow/60 border-b border-r border-accent-green/25 rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -106,9 +134,9 @@ export function PetRenderer({
               animate={{ opacity: 0, y: -60, scale: 1.2 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="absolute top-1/4 pointer-events-none z-30 text-rose-500"
+              className="absolute top-1/4 pointer-events-none z-30 text-macro-fat"
             >
-              <Heart className="h-6 w-6 fill-rose-500" />
+              <Heart className="h-6 w-6 fill-macro-fat" />
             </motion.div>
           ))}
         </AnimatePresence>
@@ -118,7 +146,7 @@ export function PetRenderer({
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full text-[11px] font-medium"
+            className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-accent-orange/20 text-accent-orange-dark border border-accent-orange/30 px-2 py-0.5 rounded-pill text-[11px] font-semibold"
           >
             <AlertCircle className="h-3 w-3" />
             <span>Lapar!</span>
@@ -129,7 +157,7 @@ export function PetRenderer({
         <motion.div
           onClick={handlePetClick}
           className={cn(
-            "relative flex items-center justify-center rounded-3xl cursor-pointer transition-all p-2",
+            "relative flex items-center justify-center rounded-card cursor-pointer transition-all p-2",
             getContainerSize(),
             interactive ? "hover:scale-105 active:scale-95" : ""
           )}
@@ -153,7 +181,7 @@ export function PetRenderer({
         >
           {/* Pet Glow Atmosphere */}
           <div
-            className="absolute inset-4 rounded-full blur-2xl opacity-25 pointer-events-none"
+            className="absolute inset-4 rounded-pill blur-2xl opacity-25 pointer-events-none"
             style={{ backgroundColor: effectiveColors.primary }}
           />
 
@@ -174,12 +202,12 @@ export function PetRenderer({
       {/* Pet Header Information */}
       <div className="mt-3 text-center">
         <div className="flex items-center justify-center gap-2">
-          <h3 className="text-lg font-bold tracking-tight text-foreground">{name}</h3>
-          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+          <h3 className="text-lg font-bold tracking-tight text-text-primary">{name}</h3>
+          <span className="px-2.5 py-0.5 rounded-pill text-xs font-bold bg-accent-orange text-text-inverse">
             Lv. {level}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-xs text-text-muted mt-0.5">
           {speciesInfo.name} ({charDef.speciesLabel}) • Tahap {stage}{" "}
           {roomItem && !roomItem.isDefaultFree && `(${roomItem.name})`}
         </p>
@@ -189,18 +217,18 @@ export function PetRenderer({
       <div className="w-full max-w-xs space-y-2.5 mt-4">
         {/* EXP Progress */}
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground font-medium">
-            <span className="flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-amber-500" />
+          <div className="flex justify-between text-xs text-text-muted font-medium">
+            <span className="flex items-center gap-1 text-text-primary font-semibold">
+              <Sparkles className="h-3 w-3 text-accent-green" />
               EXP
             </span>
             <span>
               {exp} / {expNeeded} ({expPercent}%)
             </span>
           </div>
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-500"
+              className="h-full bg-accent-green transition-all duration-500"
               style={{ width: `${expPercent}%` }}
             />
           </div>
@@ -208,22 +236,22 @@ export function PetRenderer({
 
         {/* Hunger Bar */}
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground font-medium">
-            <span className="flex items-center gap-1">
-              <Utensils className="h-3 w-3 text-orange-500" />
+          <div className="flex justify-between text-xs text-text-muted font-medium">
+            <span className="flex items-center gap-1 text-text-primary font-semibold">
+              <Utensils className="h-3 w-3 text-accent-green" />
               Kenyang
             </span>
             <span>{hunger}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
             <div
               className={cn(
                 "h-full transition-all duration-500",
                 hunger < 30
-                  ? "bg-red-500"
+                  ? "bg-macro-fat"
                   : hunger < 60
-                  ? "bg-amber-500"
-                  : "bg-emerald-500"
+                  ? "bg-accent-orange"
+                  : "bg-accent-green"
               )}
               style={{ width: `${hunger}%` }}
             />
@@ -232,16 +260,16 @@ export function PetRenderer({
 
         {/* Happiness Bar */}
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground font-medium">
-            <span className="flex items-center gap-1">
-              <Heart className="h-3 w-3 text-rose-500" />
+          <div className="flex justify-between text-xs text-text-muted font-medium">
+            <span className="flex items-center gap-1 text-text-primary font-semibold">
+              <Heart className="h-3 w-3 text-macro-fat" />
               Kebahagiaan
             </span>
             <span>{happiness}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-pink-400 to-rose-500 transition-all duration-500"
+              className="h-full bg-accent-green-light transition-all duration-500"
               style={{ width: `${happiness}%` }}
             />
           </div>
@@ -254,7 +282,7 @@ export function PetRenderer({
           <button
             onClick={() => feedPet(250)}
             disabled={animationState === "sleeping"}
-            className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-transform active:scale-95"
+            className="button-primary flex items-center gap-1.5 px-4 py-2 text-xs disabled:opacity-50"
           >
             <Utensils className="h-3.5 w-3.5" />
             <span>Beri Makan</span>
@@ -263,24 +291,24 @@ export function PetRenderer({
           <button
             onClick={handlePetClick}
             disabled={animationState === "sleeping"}
-            className="flex items-center gap-1.5 px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-transform active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 bg-surface border border-border-default hover:bg-accent-green-light text-text-primary disabled:opacity-50 rounded-button text-xs font-bold shadow-xs transition-transform active:scale-95"
           >
-            <Heart className="h-3.5 w-3.5" />
+            <Heart className="h-3.5 w-3.5 text-macro-fat" />
             <span>Elus (+EXP)</span>
           </button>
 
           <button
             onClick={toggleSleep}
-            className="flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-xl text-xs font-medium border border-border transition-transform active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-accent-yellow hover:bg-accent-green-light text-text-primary rounded-button text-xs font-bold border border-border-default transition-transform active:scale-95"
           >
             {animationState === "sleeping" ? (
               <>
-                <Sun className="h-3.5 w-3.5 text-amber-500" />
+                <Sun className="h-3.5 w-3.5 text-accent-orange" />
                 <span>Bangun</span>
               </>
             ) : (
               <>
-                <Moon className="h-3.5 w-3.5 text-indigo-400" />
+                <Moon className="h-3.5 w-3.5 text-text-primary" />
                 <span>Tidur</span>
               </>
             )}

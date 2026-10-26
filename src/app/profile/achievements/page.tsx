@@ -8,8 +8,6 @@ import {
   CheckCircle2,
   Coins,
   ArrowLeft,
-  Sparkles,
-  X,
 } from "lucide-react";
 import {
   ACHIEVEMENTS_DATA,
@@ -44,27 +42,27 @@ export default function ProfileAchievementsPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
         <div>
           <div className="flex items-center gap-2">
             <Link
               href="/profile/overview"
-              className="p-1.5 rounded-lg border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
               Galeri Badge & Prestasi
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 ml-8 sm:ml-0">
+          <p className="text-xs sm:text-sm text-text-muted mt-1 ml-8 sm:ml-0">
             Penghargaan otomatis atas rekam jejak konsistensi gizi, penyelesaian misi, dan kerja sama Co-op.
           </p>
         </div>
 
         {/* Unlocked Counter Pill */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs">
-          <Award className="h-4 w-4 text-amber-500" />
+        <div className="flex items-center gap-2 px-4 py-2 rounded-pill bg-accent-yellow border border-accent-green/30 text-text-primary font-bold text-xs">
+          <Award className="h-4 w-4 text-accent-green" />
           <span>
             {totalUnlocked} dari {ACHIEVEMENTS_DATA.length} Terbuka
           </span>
@@ -72,22 +70,23 @@ export default function ProfileAchievementsPage() {
       </div>
 
       {/* Sub-Tabs: Overview vs Achievements vs Settings */}
-      <div className="flex items-center gap-2 border-b border-border pb-1">
+      <div className="flex items-center gap-2 border-b border-border-divider pb-2">
         <Link
           href="/profile/overview"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
         >
           Overview & Berat Badan
         </Link>
         <Link
           href="/profile/achievements"
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-foreground text-background"
+          aria-current="page"
+          className="nav-item is-selected px-4 py-2 text-xs font-bold"
         >
           Galeri Achievement
         </Link>
         <Link
           href="/profile/settings"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
         >
           Pengaturan Notifikasi
         </Link>
@@ -100,10 +99,10 @@ export default function ProfileAchievementsPage() {
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
             className={cn(
-              "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border",
+              "nav-item px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors border",
               activeCategory === cat.id
-                ? "bg-orange-500 text-white border-orange-500 font-bold shadow-xs"
-                : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                ? "is-selected border-accent-orange font-bold shadow-2xs"
+                : "bg-surface text-neutral-10 border-border-default"
             )}
           >
             {cat.label}
@@ -121,18 +120,18 @@ export default function ProfileAchievementsPage() {
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
               className={cn(
-                "p-5 rounded-3xl border-2 cursor-pointer transition-all flex items-start gap-4 shadow-xs relative group",
+                "p-5 rounded-card border-2 cursor-pointer transition-all flex items-start gap-4 shadow-xs relative group",
                 isUnlocked
-                  ? "bg-card border-orange-500/30 hover:border-orange-500 hover:shadow-md"
-                  : "bg-muted/30 border-border opacity-70 hover:opacity-90"
+                  ? "bg-surface border-accent-green/40 hover:border-accent-green hover:shadow-md"
+                  : "bg-surface-subtle border-border-divider opacity-75 hover:opacity-95"
               )}
             >
               {isUnlocked ? (
-                <span className="absolute top-3 right-3 text-emerald-500">
+                <span className="absolute top-3 right-3 text-accent-green">
                   <CheckCircle2 className="h-4 w-4" />
                 </span>
               ) : (
-                <span className="absolute top-3 right-3 text-muted-foreground">
+                <span className="absolute top-3 right-3 text-text-muted">
                   <Lock className="h-3.5 w-3.5" />
                 </span>
               )}
@@ -140,34 +139,34 @@ export default function ProfileAchievementsPage() {
               {/* Badge Icon Bubble */}
               <div
                 className={cn(
-                  "h-14 w-14 shrink-0 rounded-2xl flex items-center justify-center text-3xl shadow-sm transition-transform group-hover:scale-105",
+                  "h-14 w-14 shrink-0 rounded-button flex items-center justify-center text-3xl shadow-2xs transition-transform group-hover:scale-105",
                   isUnlocked
-                    ? "bg-orange-500/10 border border-orange-500/20"
-                    : "bg-muted/80 grayscale"
+                    ? "bg-accent-yellow border border-accent-green/30"
+                    : "bg-surface border border-border-default grayscale"
                 )}
               >
                 {badge.iconEmoji}
               </div>
 
               <div className="space-y-1 flex-1 pr-4">
-                <h3 className="text-sm font-bold text-foreground line-clamp-1">
+                <h3 className="text-sm font-bold text-text-primary line-clamp-1">
                   {badge.name}
                 </h3>
-                <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                <p className="text-[11px] text-neutral-10 line-clamp-2 leading-relaxed">
                   {badge.description}
                 </p>
 
                 <div className="flex items-center gap-2 pt-1">
-                  <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
-                    <Coins className="h-3 w-3" />
+                  <span className="text-[10px] font-bold text-accent-orange-dark flex items-center gap-0.5">
+                    <Coins className="h-3 w-3 text-accent-orange" />
                     +{badge.rewardCoins} Koin
                   </span>
                   <span
                     className={cn(
-                      "text-[9px] font-bold px-2 py-0.2 rounded-full",
+                      "text-[9px] font-bold px-2 py-0.5 rounded-pill",
                       isUnlocked
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-accent-green/15 text-text-primary"
+                        : "bg-surface border border-border-default text-text-muted"
                     )}
                   >
                     {isUnlocked ? "Terbuka" : "Terkunci"}
@@ -182,39 +181,39 @@ export default function ProfileAchievementsPage() {
       {/* [Modal] Detail Pencapaian Badge Terbuka */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl border bg-card p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="h-20 w-20 rounded-3xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-4xl mx-auto shadow-sm">
+          <div className="w-full max-w-sm rounded-card border border-border-divider bg-surface p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="h-20 w-20 rounded-card bg-accent-yellow border border-accent-green/30 flex items-center justify-center text-4xl mx-auto shadow-xs">
               {selectedBadge.iconEmoji}
             </div>
 
             <div className="space-y-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-muted text-muted-foreground">
+              <span className="px-2.5 py-0.5 rounded-pill text-[10px] font-bold uppercase tracking-wider bg-surface-subtle border border-border-divider text-text-muted">
                 Kategori {selectedBadge.category}
               </span>
-              <h3 className="text-lg font-black text-foreground">
+              <h3 className="text-lg font-black text-text-primary font-heading">
                 {selectedBadge.name}
               </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-xs text-neutral-10 leading-relaxed">
                 {selectedBadge.description}
               </p>
             </div>
 
-            <div className="p-3 rounded-2xl bg-muted/40 border text-xs space-y-1 text-left">
-              <span className="text-muted-foreground font-semibold">Syarat Terbuka:</span>
-              <p className="font-bold text-foreground">{selectedBadge.requirementText}</p>
+            <div className="p-3 rounded-button bg-surface-subtle border border-border-divider text-xs space-y-1 text-left">
+              <span className="text-text-muted font-semibold">Syarat Terbuka:</span>
+              <p className="font-bold text-text-primary">{selectedBadge.requirementText}</p>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs">
-              <span className="font-semibold text-muted-foreground">Hadiah Bonus:</span>
-              <span className="font-black text-amber-500 flex items-center gap-1">
-                <Coins className="h-4 w-4" />
+            <div className="review-card flex items-center justify-between p-3.5 border border-accent-green/25 text-xs">
+              <span className="font-semibold text-neutral-10">Hadiah Bonus:</span>
+              <span className="font-black text-accent-orange-dark flex items-center gap-1">
+                <Coins className="h-4 w-4 text-accent-orange" />
                 +{selectedBadge.rewardCoins} Caloria Coins
               </span>
             </div>
 
             <button
               onClick={() => setSelectedBadge(null)}
-              className="w-full py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 font-bold text-xs"
+              className="button-primary w-full py-2.5 text-xs"
             >
               Tutup
             </button>
@@ -224,4 +223,3 @@ export default function ProfileAchievementsPage() {
     </div>
   );
 }
-

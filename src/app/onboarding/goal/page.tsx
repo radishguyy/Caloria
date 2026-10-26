@@ -14,7 +14,9 @@ export default function OnboardingGoalPage() {
   const { goalPlan, setGoalPlan } = useFoodStore();
   const { setOnboardingStep } = useAuthStore();
 
-  const [selectedGoal, setSelectedGoal] = useState<GoalProgramType>(goalPlan.goalType || "diet");
+  const [selectedGoal, setSelectedGoal] = useState<GoalProgramType>(
+    goalPlan.goalType || "diet"
+  );
 
   const goals = [
     {
@@ -23,25 +25,24 @@ export default function OnboardingGoalPage() {
       subtitle: "Menurunkan berat badan secara sehat, bertahap, dan terukur.",
       marginText: "-500 kkal / hari (~0.5 kg lemak per minggu)",
       icon: TrendingDown,
-      color: "border-orange-500 bg-orange-500/5",
       badgeText: "Populer untuk Fat Loss",
     },
     {
       id: "bulking" as GoalProgramType,
       title: "Bulking (Weight / Muscle Gain / Surplus)",
-      subtitle: "Menambah massa otot dan berat badan dengan asupan tinggi protein & energi.",
+      subtitle:
+        "Menambah massa otot dan berat badan dengan asupan tinggi protein & energi.",
       marginText: "+400 kkal / hari (Surplus bersih untuk hipertrofi)",
       icon: Dumbbell,
-      color: "border-amber-500 bg-amber-500/5",
       badgeText: "Optimal untuk Pembentukan Otot",
     },
     {
       id: "maintenance" as GoalProgramType,
       title: "Maintenance (Stabilkan Berat Badan)",
-      subtitle: "Menjaga berat badan ideal dan memperbaiki komposisi gizi harian seimbang.",
+      subtitle:
+        "Menjaga berat badan ideal dan memperbaiki komposisi gizi harian seimbang.",
       marginText: "Keseimbangan energi (TDEE seimbang)",
       icon: ShieldCheck,
-      color: "border-blue-500 bg-blue-500/5",
       badgeText: "Gaya Hidup & Pola Makan Sehat",
     },
   ];
@@ -64,15 +65,15 @@ export default function OnboardingGoalPage() {
       <OnboardingStepper currentStep={1} />
 
       <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary font-heading">
           Langkah 1: Penentuan Tujuan Utama
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto">
+        <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
           Pilih fokus utama perjalanan nutrisimu menggunakan Caloria. Parameter misi dan kebutuhan kalorimu akan disesuaikan secara otomatis.
         </p>
       </div>
 
-      <div className="space-y-3 pt-2">
+      <div className="space-y-3.5 pt-2">
         {goals.map((goal) => {
           const Icon = goal.icon;
           const isSelected = selectedGoal === goal.id;
@@ -82,18 +83,18 @@ export default function OnboardingGoalPage() {
               key={goal.id}
               onClick={() => setSelectedGoal(goal.id)}
               className={cn(
-                "p-5 rounded-3xl border-2 cursor-pointer transition-all flex items-start gap-4 shadow-xs",
+                "p-6 rounded-card border-2 cursor-pointer transition-all flex items-start gap-4 shadow-xs",
                 isSelected
-                  ? `${goal.color} ring-2 ring-orange-500/20`
-                  : "border-border bg-card hover:bg-muted/30"
+                  ? "border-accent-orange bg-accent-yellow/45 ring-2 ring-accent-orange/20"
+                  : "border-border-divider bg-surface hover:bg-surface-subtle"
               )}
             >
               <div
                 className={cn(
-                  "p-3 rounded-2xl shrink-0 mt-0.5",
+                  "p-3 rounded-button shrink-0 mt-0.5",
                   isSelected
-                    ? "bg-orange-500 text-white shadow-sm"
-                    : "bg-muted text-muted-foreground"
+                    ? "bg-accent-orange text-text-inverse shadow-xs"
+                    : "bg-surface-subtle border border-border-default text-text-primary"
                 )}
               >
                 <Icon className="h-6 w-6" />
@@ -101,17 +102,17 @@ export default function OnboardingGoalPage() {
 
               <div className="space-y-1 flex-1">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <h3 className="text-sm sm:text-base font-bold text-foreground">
+                  <h3 className="text-sm sm:text-base font-bold text-text-primary">
                     {goal.title}
                   </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-background border text-muted-foreground">
+                  <span className="px-2.5 py-0.5 rounded-pill text-[10px] font-semibold bg-surface border border-border-default text-neutral-10">
                     {goal.badgeText}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-neutral-10 leading-relaxed">
                   {goal.subtitle}
                 </p>
-                <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 pt-1">
+                <p className="text-xs font-bold text-text-primary pt-1">
                   Margin: {goal.marginText}
                 </p>
               </div>
@@ -123,7 +124,7 @@ export default function OnboardingGoalPage() {
       <div className="pt-4 flex justify-end">
         <button
           onClick={handleNext}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-95"
+          className="button-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-sm"
         >
           <span>Lanjut: Profil Fisik & BMI</span>
           <ArrowRight className="h-4 w-4" />
@@ -132,4 +133,3 @@ export default function OnboardingGoalPage() {
     </div>
   );
 }
-

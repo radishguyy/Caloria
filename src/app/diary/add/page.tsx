@@ -7,15 +7,10 @@ import {
   Search,
   ArrowLeft,
   Plus,
-  Flame,
-  Beef,
-  Wheat,
-  Droplets,
   Sparkles,
   AlertTriangle,
   CheckCircle2,
   Coins,
-  Award,
   X,
   Camera,
   Loader2,
@@ -84,7 +79,7 @@ async function compressImageFile(
   });
 }
 
-export default function DiaryAddFoodPage() {
+function DiaryAddFoodContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMeal = (searchParams.get("meal") as MealTypeId) || "breakfast";
@@ -114,7 +109,6 @@ export default function DiaryAddFoodPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset input value so the same file can be re-selected if needed
     e.target.value = "";
     setIsScanningLabel(true);
     setScanError(null);
@@ -220,7 +214,6 @@ export default function DiaryAddFoodPage() {
   const handleSaveAndEvaluate = () => {
     if (!selectedFood || !calculated) return;
 
-    // 1. Evaluate reward using pure calculation engine
     const result = evaluateFoodReward({
       foodName: selectedFood.name,
       foodCalories: calculated.calories,
@@ -234,7 +227,6 @@ export default function DiaryAddFoodPage() {
       currentStage: stage,
     });
 
-    // 2. Persist log
     addLog({
       name: selectedFood.name,
       mealType: activeMeal,
@@ -249,10 +241,8 @@ export default function DiaryAddFoodPage() {
       loggedDate: new Date().toISOString().split("T")[0],
     });
 
-    // 3. Feed the pet
     feedPet(calculated.calories, result.totalXp, result.coinsEarned);
 
-    // 4. Trigger popups
     setRewardResult(result);
     if (result.leveledUp) {
       setShowLevelUpOverlay(true);
@@ -268,19 +258,19 @@ export default function DiaryAddFoodPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-border">
+      <div className="flex items-center justify-between pb-4 border-b border-border-divider">
         <div className="flex items-center gap-2">
           <Link
             href="/diary"
-            className="p-1.5 rounded-lg border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary font-heading">
               Pencarian Makanan & Input Porsi
             </h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-text-muted">
               Pilih waktu makan, cari katalog makanan, dan amati panel evaluasi gizi real-time.
             </p>
           </div>
@@ -289,7 +279,7 @@ export default function DiaryAddFoodPage() {
 
       {/* Meal Selection Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="text-xs font-semibold text-muted-foreground shrink-0 mr-1">
+        <span className="text-xs font-semibold text-text-muted shrink-0 mr-1">
           Waktu Makan:
         </span>
         {MEAL_TYPES.map((m) => (
@@ -297,10 +287,10 @@ export default function DiaryAddFoodPage() {
             key={m.id}
             onClick={() => setActiveMeal(m.id)}
             className={cn(
-              "px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border",
+              "nav-item px-4 py-2 text-xs font-semibold whitespace-nowrap transition-colors border",
               activeMeal === m.id
-                ? "bg-orange-500 text-white border-orange-500 font-bold shadow-xs"
-                : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                ? "is-selected border-accent-orange font-bold shadow-2xs"
+                : "bg-surface text-neutral-10 border-border-default"
             )}
           >
             {m.label}
@@ -311,17 +301,17 @@ export default function DiaryAddFoodPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Catalog Search */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-3xl border bg-card p-5 space-y-3 shadow-xs">
+          <div className="rounded-card border border-border-divider bg-surface p-6 space-y-3.5 shadow-xs">
             {/* Search Input & Scan Label Trigger */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
                 <input
                   type="text"
                   placeholder="Cari makanan (misal: Nasi, Dada Ayam, Tempe, Gado-Gado)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-2xl border border-input bg-background pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-orange-500/30 font-medium"
+                  className="input-field w-full pl-10 pr-4 py-2.5 text-xs font-medium"
                 />
               </div>
 
@@ -341,7 +331,7 @@ export default function DiaryAddFoodPage() {
                 disabled={isScanningLabel}
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "px-3.5 py-2.5 rounded-2xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition-colors",
+                  "px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition-colors",
                   isScanningLabel && "opacity-60 cursor-wait"
                 )}
               >
@@ -361,7 +351,7 @@ export default function DiaryAddFoodPage() {
 
             {/* Scanning Status Banner */}
             {isScanningLabel && (
-              <div className="p-3 rounded-2xl border border-orange-500/30 bg-orange-500/10 flex items-center gap-2.5 text-xs text-orange-700 dark:text-orange-300 font-semibold animate-pulse">
+              <div className="review-card p-3 border border-accent-green/30 flex items-center gap-2.5 text-xs text-text-primary font-semibold animate-pulse">
                 <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                 <span>
                   Scanning nutrition label... Mengekstrak kalori & makronutrisi dengan AI Vision.
@@ -371,12 +361,12 @@ export default function DiaryAddFoodPage() {
 
             {/* Scan Error Banner */}
             {scanError && (
-              <div className="p-3 rounded-2xl border border-destructive/30 bg-destructive/10 flex items-center justify-between gap-2 text-xs text-destructive font-medium">
+              <div className="p-3 rounded-input border border-destructive/30 bg-destructive/10 flex items-center justify-between gap-2 text-xs text-destructive font-medium">
                 <span>{scanError}</span>
                 <button
                   type="button"
                   onClick={() => setScanError(null)}
-                  className="p-1 hover:bg-destructive/20 rounded-lg"
+                  className="p-1 hover:bg-destructive/20 rounded-input"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -390,10 +380,10 @@ export default function DiaryAddFoodPage() {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={cn(
-                    "px-3 py-1 rounded-xl border whitespace-nowrap transition-colors",
+                    "nav-item px-3 py-1 border whitespace-nowrap transition-colors",
                     selectedCategory === cat
-                      ? "bg-foreground text-background border-foreground font-bold"
-                      : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                      ? "is-selected border-accent-orange font-bold"
+                      : "bg-surface-subtle text-neutral-10 border-border-default"
                   )}
                 >
                   {cat}
@@ -402,9 +392,9 @@ export default function DiaryAddFoodPage() {
             </div>
 
             {/* Item List */}
-            <div className="divide-y divide-border/60 max-h-[380px] overflow-y-auto pr-1">
+            <div className="divide-y divide-border-divider/60 max-h-[380px] overflow-y-auto pr-1">
               {filteredItems.length === 0 ? (
-                <div className="py-12 text-center text-xs text-muted-foreground">
+                <div className="py-12 text-center text-xs text-text-muted">
                   Makanan tidak ditemukan. Coba kata kunci lainnya.
                 </div>
               ) : (
@@ -418,29 +408,29 @@ export default function DiaryAddFoodPage() {
                         setPortionMultiplier(food.defaultServingSize);
                       }}
                       className={cn(
-                        "py-3 px-3 rounded-2xl cursor-pointer transition-colors flex items-center justify-between",
+                        "py-3 px-3 rounded-button cursor-pointer transition-colors flex items-center justify-between",
                         isSelected
-                          ? "bg-orange-500/10 border border-orange-500/30"
-                          : "hover:bg-muted/40"
+                          ? "bg-accent-yellow/55 border border-accent-orange"
+                          : "hover:bg-surface-subtle"
                       )}
                     >
                       <div>
                         <p className="text-xs font-bold text-foreground">{food.name}</p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-[11px] text-text-muted">
                           {food.defaultServingSize} {food.servingUnit} • P: {food.proteinG}g | K: {food.carbsG}g | L: {food.fatG}g
                         </p>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-extrabold text-orange-600 dark:text-orange-400">
+                        <span className="text-xs font-extrabold text-text-primary">
                           {food.calories} kcal
                         </span>
                         <div
                           className={cn(
-                            "h-7 w-7 rounded-xl flex items-center justify-center text-xs",
+                            "h-7 w-7 rounded-navigation flex items-center justify-center text-xs",
                             isSelected
-                              ? "bg-orange-500 text-white font-bold"
-                              : "bg-muted text-muted-foreground"
+                              ? "bg-accent-orange text-text-inverse font-bold"
+                              : "bg-surface-subtle border border-border-default text-text-muted"
                           )}
                         >
                           <Plus className="h-4 w-4" />
@@ -457,12 +447,12 @@ export default function DiaryAddFoodPage() {
         {/* Right Column: Portion Adjuster & Real-Time Evaluator */}
         <div className="lg:col-span-5 space-y-4">
           {selectedFood && calculated ? (
-            <div className="rounded-3xl border bg-card p-5 space-y-4 shadow-sm animate-in fade-in duration-200">
+            <div className="rounded-card border border-border-divider bg-surface p-6 space-y-4 shadow-xs animate-in fade-in duration-200">
               <div>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                <span className="text-[10px] font-bold text-text-muted uppercase">
                   Menu Terpilih
                 </span>
-                <h3 className="text-base font-extrabold text-foreground">
+                <h3 className="text-base font-extrabold text-text-primary">
                   {selectedFood.name}
                 </h3>
               </div>
@@ -470,8 +460,8 @@ export default function DiaryAddFoodPage() {
               {/* Portion Controls */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-muted-foreground">Ukuran Porsi:</span>
-                  <span className="font-bold text-foreground">
+                  <span className="font-semibold text-text-muted">Ukuran Porsi:</span>
+                  <span className="font-bold text-text-primary">
                     {portionMultiplier}x ({calculated.grams} gram)
                   </span>
                 </div>
@@ -483,10 +473,10 @@ export default function DiaryAddFoodPage() {
                       type="button"
                       onClick={() => setPortionMultiplier(v)}
                       className={cn(
-                        "py-2 rounded-xl text-xs font-bold border transition-colors",
+                        "nav-item py-2 text-xs font-bold border transition-colors",
                         portionMultiplier === v
-                          ? "bg-orange-500 text-white border-orange-500"
-                          : "bg-muted/30 border-border text-muted-foreground hover:bg-muted"
+                          ? "is-selected border-accent-orange"
+                          : "bg-surface-subtle border-border-default text-neutral-10"
                       )}
                     >
                       {v}x
@@ -501,35 +491,35 @@ export default function DiaryAddFoodPage() {
                   step="0.25"
                   value={portionMultiplier}
                   onChange={(e) => setPortionMultiplier(parseFloat(e.target.value))}
-                  className="w-full accent-orange-500 cursor-pointer pt-1"
+                  className="w-full accent-accent-green cursor-pointer pt-1"
                 />
               </div>
 
-              {/* Live Nutrition Values Preview */}
-              <div className="rounded-2xl bg-muted/40 p-4 border space-y-2">
-                <div className="flex justify-between items-baseline border-b border-border/60 pb-2">
-                  <span className="text-xs font-semibold text-muted-foreground">Total Kalori</span>
-                  <span className="text-xl font-black text-orange-600 dark:text-orange-400">
+              {/* Live Nutrition Values Preview (Review Card Surface) */}
+              <div className="review-card p-4 border border-accent-green/25 space-y-2">
+                <div className="flex justify-between items-baseline border-b border-text-primary/15 pb-2">
+                  <span className="text-xs font-bold text-text-primary">Total Kalori</span>
+                  <span className="text-xl font-black text-text-primary font-heading">
                     {calculated.calories} kcal
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 pt-1 text-center text-xs">
                   <div>
-                    <span className="text-[10px] text-muted-foreground">Protein</span>
-                    <p className="font-bold text-blue-600 dark:text-blue-400">
+                    <span className="text-[10px] text-neutral-10">Protein</span>
+                    <p className="font-bold text-macro-protein">
                       {calculated.proteinG}g
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground">Karbo</span>
-                    <p className="font-bold text-amber-600 dark:text-amber-400">
+                    <span className="text-[10px] text-neutral-10">Karbo</span>
+                    <p className="font-bold text-accent-orange-dark">
                       {calculated.carbsG}g
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground">Lemak</span>
-                    <p className="font-bold text-rose-600 dark:text-rose-400">
+                    <span className="text-[10px] text-neutral-10">Lemak</span>
+                    <p className="font-bold text-macro-fat">
                       {calculated.fatG}g
                     </p>
                   </div>
@@ -540,21 +530,21 @@ export default function DiaryAddFoodPage() {
               {liveEvaluation && (
                 <div
                   className={cn(
-                    "p-3.5 rounded-2xl border text-xs space-y-1",
+                    "p-3.5 rounded-button border text-xs space-y-1",
                     liveEvaluation.type === "ideal"
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
+                      ? "bg-accent-green/15 border-accent-green/35 text-text-primary"
                       : liveEvaluation.type === "warning"
-                      ? "bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-100"
-                      : "bg-blue-500/10 border-blue-500/30 text-blue-950 dark:text-blue-100"
+                      ? "bg-accent-orange/15 border-accent-orange/35 text-accent-orange-dark"
+                      : "bg-surface-subtle border-border-divider text-neutral-10"
                   )}
                 >
                   <div className="flex items-center gap-1.5 font-bold">
                     {liveEvaluation.type === "ideal" ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <CheckCircle2 className="h-4 w-4 text-accent-green" />
                     ) : liveEvaluation.type === "warning" ? (
-                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertTriangle className="h-4 w-4 text-accent-orange" />
                     ) : (
-                      <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <Sparkles className="h-4 w-4 text-text-primary" />
                     )}
                     <span>{liveEvaluation.title}</span>
                   </div>
@@ -567,16 +557,16 @@ export default function DiaryAddFoodPage() {
               {/* Action: Save & Trigger Reward Pop-up */}
               <button
                 onClick={handleSaveAndEvaluate}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2"
+                className="button-primary w-full py-3.5 text-sm flex items-center justify-center gap-2"
               >
                 <Plus className="h-4 w-4" />
                 <span>Simpan ke Diary & Dapatkan XP</span>
               </button>
             </div>
           ) : (
-            <div className="rounded-3xl border border-dashed border-border bg-card p-10 text-center text-xs text-muted-foreground space-y-2">
-              <Sparkles className="h-8 w-8 text-muted-foreground/40 mx-auto" />
-              <p className="font-semibold text-foreground">Pilih Makanan Terlebih Dahulu</p>
+            <div className="rounded-card border border-dashed border-border-default bg-surface p-10 text-center text-xs text-text-muted space-y-2">
+              <Sparkles className="h-8 w-8 text-accent-green/50 mx-auto" />
+              <p className="font-bold text-text-primary">Pilih Makanan Terlebih Dahulu</p>
               <p>Klik salah satu makanan di katalog sebelah kiri untuk mengatur porsi gramasi dan melihat kalkulasi evaluasi gizi.</p>
             </div>
           )}
@@ -586,50 +576,50 @@ export default function DiaryAddFoodPage() {
       {/* [Modal] Reward Engine Pop-up (+Base XP, Bonus Multiplier XP, Jackpot & Coins) */}
       {rewardResult && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl border bg-card p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30 text-3xl">
+          <div className="w-full max-w-md rounded-card border border-border-divider bg-surface p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="h-16 w-16 rounded-pill bg-accent-yellow border-2 border-accent-green text-text-primary flex items-center justify-center mx-auto shadow-xs text-3xl">
               {rewardResult.isDailyJackpot ? "🎰" : "⭐"}
             </div>
 
             <div className="space-y-1">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400">
+              <span className="px-3 py-1 rounded-pill text-xs font-bold uppercase tracking-wider bg-accent-green/15 text-text-primary">
                 Reward Gizi Diterima
               </span>
-              <h3 className="text-xl font-black text-foreground">
+              <h3 className="text-xl font-black text-text-primary font-heading">
                 {rewardResult.title}
               </h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              <p className="text-xs text-text-muted max-w-sm mx-auto">
                 {rewardResult.message}
               </p>
             </div>
 
             {/* XP & Coin Breakdown */}
-            <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-muted/40 border text-xs">
+            <div className="review-card grid grid-cols-2 gap-3 p-4 border border-accent-green/25 text-xs">
               <div className="space-y-0.5">
-                <span className="text-[10px] text-muted-foreground">Total XP Didapat</span>
-                <p className="text-xl font-black text-orange-600 dark:text-orange-400">
+                <span className="text-[10px] text-neutral-10">Total XP Didapat</span>
+                <p className="text-xl font-black text-text-primary font-heading">
                   +{rewardResult.totalXp} XP
                 </p>
                 {rewardResult.bonusMultiplier > 1 && (
-                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[9px] font-bold text-text-primary">
                     (x{rewardResult.bonusMultiplier} Bonus Multiplier)
                   </span>
                 )}
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-[10px] text-muted-foreground">Caloria Coins</span>
-                <p className="text-xl font-black text-amber-500 flex items-center justify-center gap-1">
-                  <Coins className="h-4 w-4" />
+                <span className="text-[10px] text-neutral-10">Caloria Coins</span>
+                <p className="text-xl font-black text-accent-orange-dark font-heading flex items-center justify-center gap-1">
+                  <Coins className="h-4 w-4 text-accent-orange" />
                   +{rewardResult.coinsEarned}
                 </p>
-                <span className="text-[9px] text-muted-foreground">Saldo Baru: {coins} Koin</span>
+                <span className="text-[9px] text-neutral-10">Saldo Baru: {coins} Koin</span>
               </div>
             </div>
 
             <button
               onClick={handleFinishReward}
-              className="w-full py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow-md transition-transform active:scale-95"
+              className="button-primary w-full py-3 text-xs"
             >
               Lanjut ke Food Diary
             </button>
@@ -640,29 +630,29 @@ export default function DiaryAddFoodPage() {
       {/* [Overlay] Pet Level Up & Evolusi Fisik Trigger */}
       {showLevelUpOverlay && rewardResult?.leveledUp && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-gradient-to-b from-orange-500/20 via-card to-card border border-orange-500/40 p-6 text-center space-y-4 shadow-2xl animate-in zoom-in-90 duration-300">
+          <div className="w-full max-w-sm rounded-card bg-surface border-2 border-accent-green p-6 text-center space-y-4 shadow-2xl animate-in zoom-in-90 duration-300">
             <div className="text-4xl animate-bounce">🎉</div>
             <div className="space-y-1">
-              <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-orange-500 text-white">
+              <span className="px-3 py-1 rounded-pill text-xs font-black uppercase tracking-wider bg-accent-orange text-text-inverse">
                 LEVEL UP!
               </span>
-              <h2 className="text-2xl font-black text-foreground">
+              <h2 className="text-2xl font-black text-text-primary font-heading">
                 Pet Naik ke Level {rewardResult.newLevel}!
               </h2>
               {rewardResult.evolvedStage && (
-                <p className="text-xs font-bold text-amber-500">
+                <p className="text-xs font-bold text-accent-orange-dark">
                   ✨ Evolusi Fisik: Pet kini telah bertransformasi ke Tahap {rewardResult.newStage}!
                 </p>
               )}
             </div>
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-text-muted">
               Konsistensi gizimu membuat Pet semakin kuat dan ceria. Terus pertahankan asupan nutrisimu!
             </p>
 
             <button
               onClick={handleFinishReward}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-md"
+              className="button-primary w-full py-3 text-xs"
             >
               Hore! Lanjutkan
             </button>
@@ -684,5 +674,24 @@ export default function DiaryAddFoodPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function DiaryAddFoodPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container max-w-4xl mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-accent-green" />
+            <p className="text-sm font-medium text-text-muted">
+              Memuat pencatatan makanan...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <DiaryAddFoodContent />
+    </Suspense>
   );
 }

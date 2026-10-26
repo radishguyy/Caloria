@@ -3,16 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  Users,
-  Target,
-  Sparkles,
   BookOpen,
   ArrowLeft,
-  CheckCircle2,
   Utensils,
   Lightbulb,
 } from "lucide-react";
-import { COMMUNITIES_DATA, CommunityGroup } from "@/lib/communities-data";
+import { COMMUNITIES_DATA } from "@/lib/communities-data";
 import { useFoodStore } from "@/store/use-food-store";
 import { cn } from "@/lib/utils";
 
@@ -48,43 +44,44 @@ export default function SocialCommunitiesPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
         <div>
           <div className="flex items-center gap-2">
             <Link
               href="/social/coop"
-              className="p-1.5 rounded-lg border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
               Komunitas Misi Gizi Seimbang
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 ml-8 sm:ml-0">
+          <p className="text-xs sm:text-sm text-text-muted mt-1 ml-8 sm:ml-0">
             Temukan grup yang memiliki fokus nutrisi yang sama, pelajari tips ahli gizi, dan lihat rekomendasi menu harian.
           </p>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs: Co-op Streak vs Communities */}
-      <div className="flex items-center gap-2 border-b border-border pb-1">
+      <div className="flex items-center gap-2 border-b border-border-divider pb-2">
         <Link
           href="/social/coop"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
         >
           Co-op Streak & Teman
         </Link>
         <Link
           href="/social/communities"
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-foreground text-background"
+          aria-current="page"
+          className="nav-item is-selected px-4 py-2 text-xs font-bold"
         >
           Komunitas Misi Gizi
         </Link>
       </div>
 
       {/* Community Selector Tabs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         {COMMUNITIES_DATA.map((comm) => {
           const isSelected = selectedCommunityId === comm.id;
           const userJoined = joinedCommunities.includes(comm.id);
@@ -94,29 +91,37 @@ export default function SocialCommunitiesPage() {
               key={comm.id}
               onClick={() => setSelectedCommunityId(comm.id)}
               className={cn(
-                "p-4 rounded-3xl border-2 cursor-pointer transition-all space-y-2 relative shadow-xs",
+                "p-5 rounded-card border-2 cursor-pointer transition-all space-y-2 relative shadow-xs",
                 isSelected
-                  ? "border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20"
-                  : "border-border bg-card hover:bg-muted/30"
+                  ? "border-accent-orange bg-accent-yellow/50 ring-2 ring-accent-orange/20"
+                  : "border-border-divider bg-surface hover:bg-surface-subtle"
               )}
             >
               {userJoined && (
-                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-pill text-[9px] font-bold bg-accent-green/15 text-text-primary border border-accent-green/30">
                   Tergabung
                 </span>
               )}
 
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-orange-500 text-white font-bold text-xs">
-                  {comm.focusGoal === "diet" ? "🔥" : comm.focusGoal === "bulking" ? "💪" : "⚖️"}
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-navigation bg-accent-green text-text-inverse font-bold text-xs">
+                  {comm.focusGoal === "diet"
+                    ? "🔥"
+                    : comm.focusGoal === "bulking"
+                    ? "💪"
+                    : "⚖️"}
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground line-clamp-1">{comm.name}</h3>
-                  <span className="text-[10px] text-muted-foreground">{comm.memberCount} Anggota</span>
+                  <h3 className="text-sm font-bold text-text-primary line-clamp-1">
+                    {comm.name}
+                  </h3>
+                  <span className="text-[10px] text-text-muted">
+                    {comm.memberCount} Anggota
+                  </span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-muted-foreground line-clamp-2">
+              <p className="text-[11px] text-neutral-10 line-clamp-2">
                 {comm.tagline}
               </p>
             </div>
@@ -125,16 +130,16 @@ export default function SocialCommunitiesPage() {
       </div>
 
       {/* Active Community Detail Panel */}
-      <div className="rounded-3xl border bg-card p-6 sm:p-8 space-y-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <div className="rounded-card border border-border-divider bg-surface p-6 sm:p-8 space-y-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
           <div className="space-y-1">
-            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400">
+            <span className="px-3 py-1 rounded-pill text-[10px] font-bold uppercase tracking-wider bg-accent-green/15 text-text-primary">
               Fokus Misi: {activeCommunity.focusGoal.toUpperCase()}
             </span>
-            <h2 className="text-xl sm:text-2xl font-black text-foreground">
+            <h2 className="text-xl sm:text-2xl font-black text-text-primary font-heading pt-1">
               {activeCommunity.name}
             </h2>
-            <p className="text-xs text-muted-foreground max-w-xl">
+            <p className="text-xs text-neutral-10 max-w-xl">
               {activeCommunity.description}
             </p>
           </div>
@@ -142,10 +147,10 @@ export default function SocialCommunitiesPage() {
           <button
             onClick={() => toggleJoin(activeCommunity.id)}
             className={cn(
-              "px-5 py-2.5 rounded-2xl font-bold text-xs transition-transform active:scale-95 shrink-0 self-start sm:self-auto",
+              "px-5 py-2.5 rounded-button font-bold text-xs transition-transform active:scale-95 shrink-0 self-start sm:self-auto",
               isJoined
-                ? "bg-secondary hover:bg-secondary/80 text-foreground border border-border"
-                : "bg-orange-500 hover:bg-orange-600 text-white shadow-xs"
+                ? "bg-accent-yellow hover:bg-accent-green-light text-text-primary border border-border-default"
+                : "button-primary"
             )}
           >
             {isJoined ? "Tergabung (Keluar)" : "+ Gabung Komunitas Ini"}
@@ -154,13 +159,16 @@ export default function SocialCommunitiesPage() {
 
         {/* Guidelines / Rules */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-            <BookOpen className="h-4 w-4 text-orange-500" />
+          <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+            <BookOpen className="h-4 w-4 text-accent-green" />
             <span>Pedoman Grup & Kebiasaan Sehat:</span>
           </h4>
-          <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-muted-foreground">
+          <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-neutral-10">
             {activeCommunity.rules.map((rule, idx) => (
-              <li key={idx} className="p-3 rounded-2xl bg-muted/40 border">
+              <li
+                key={idx}
+                className="p-3.5 rounded-button bg-surface-subtle border border-border-divider"
+              >
                 {rule}
               </li>
             ))}
@@ -169,20 +177,22 @@ export default function SocialCommunitiesPage() {
 
         {/* Recommended Menus */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-            <Utensils className="h-4 w-4 text-amber-500" />
+          <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+            <Utensils className="h-4 w-4 text-accent-green" />
             <span>Rekomendasi Menu Favorit Anggota:</span>
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {activeCommunity.recommendedMenus.map((menu, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-2xl border bg-background flex flex-col justify-between space-y-2"
+                className="p-4 rounded-button border border-border-divider bg-surface-subtle flex flex-col justify-between space-y-2"
               >
-                <p className="text-xs font-bold text-foreground leading-snug">{menu}</p>
+                <p className="text-xs font-bold text-text-primary leading-snug">
+                  {menu}
+                </p>
                 <Link
                   href="/diary/add"
-                  className="text-[11px] font-semibold text-orange-600 dark:text-orange-400 hover:underline inline-flex items-center gap-1"
+                  className="text-[11px] font-bold text-text-primary hover:underline inline-flex items-center gap-1"
                 >
                   <span>Catat Menu Ini &rarr;</span>
                 </Link>
@@ -192,19 +202,24 @@ export default function SocialCommunitiesPage() {
         </div>
 
         {/* Pinned Nutritionist Tips */}
-        <div className="space-y-2 pt-2 border-t border-border">
-          <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-            <Lightbulb className="h-4 w-4 text-yellow-500" />
+        <div className="space-y-2 pt-2 border-t border-border-divider">
+          <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+            <Lightbulb className="h-4 w-4 text-accent-orange" />
             <span>Tips dari Nutrition Advisor & Senior Member:</span>
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {activeCommunity.pinnedTips.map((tip, idx) => (
-              <div key={idx} className="p-4 rounded-2xl bg-muted/30 border space-y-1.5 text-xs">
+              <div
+                key={idx}
+                className="review-card p-4 border border-accent-green/25 space-y-1.5 text-xs"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-foreground">{tip.author}</span>
-                  <span className="text-[10px] text-muted-foreground">{tip.role}</span>
+                  <span className="font-bold text-text-primary">{tip.author}</span>
+                  <span className="text-[10px] text-neutral-10 font-medium">
+                    {tip.role}
+                  </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground italic leading-relaxed">
+                <p className="text-[11px] text-neutral-10 italic leading-relaxed">
                   &ldquo;{tip.tip}&rdquo;
                 </p>
               </div>
@@ -215,4 +230,3 @@ export default function SocialCommunitiesPage() {
     </div>
   );
 }
-

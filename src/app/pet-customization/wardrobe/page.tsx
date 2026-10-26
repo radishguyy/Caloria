@@ -84,7 +84,6 @@ export default function PetWardrobePage() {
     { id: "room", label: "Dekorasi Ruangan" },
   ];
 
-  // Owned items in currently selected category + theme filter
   const categoryOwnedItems = COSMETICS_CATALOG.filter((item) => {
     if (item.category !== selectedCategory) return false;
     if (!ownedItemIds.includes(item.id)) return false;
@@ -112,17 +111,17 @@ export default function PetWardrobePage() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
+            <span className="p-1.5 rounded-navigation bg-accent-green/15 text-text-primary">
               <Award className="h-5 w-5" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
               Pet Wardrobe (Ruang Ganti & Studio Karakter)
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-text-muted mt-1">
             Pilih dari 12 karakter chibi antropomorfik, kustomisasi warna tubuh & ekspresi, serta pasang 24+ aksesoris SVG modular.
           </p>
         </div>
@@ -130,26 +129,27 @@ export default function PetWardrobePage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/pet-customization/shop"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 font-bold text-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-pill bg-accent-yellow border border-accent-green/30 hover:bg-accent-green-light text-text-primary font-bold text-xs transition-colors"
           >
-            <Coins className="h-4 w-4 text-amber-500" />
-            <span>{coins} Koin • Buka Pet Shop</span>
+            <Coins className="h-4 w-4 text-accent-orange" />
+            <span suppressHydrationWarning>{coins} Koin • Buka Pet Shop</span>
           </Link>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs: Wardrobe vs Shop */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-divider pb-2">
         <div className="flex items-center gap-2">
           <Link
             href="/pet-customization/wardrobe"
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-foreground text-background"
+            aria-current="page"
+            className="nav-item is-selected px-4 py-2 text-xs font-bold"
           >
             Wardrobe (Koleksi Milikmu)
           </Link>
           <Link
             href="/pet-customization/shop"
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
           >
             Pet Shop (Beli dengan Koin)
           </Link>
@@ -160,10 +160,10 @@ export default function PetWardrobePage() {
           <button
             onClick={() => setActiveTab("accessories")}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors",
+              "nav-item inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border transition-colors",
               activeTab === "accessories"
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-card text-muted-foreground border-border hover:text-foreground"
+                ? "is-selected border-accent-orange font-bold"
+                : "bg-surface text-neutral-10 border-border-default"
             )}
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -172,10 +172,10 @@ export default function PetWardrobePage() {
           <button
             onClick={() => setActiveTab("characters")}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors",
+              "nav-item inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border transition-colors",
               activeTab === "characters"
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-card text-muted-foreground border-border hover:text-foreground"
+                ? "is-selected border-accent-orange font-bold"
+                : "bg-surface text-neutral-10 border-border-default"
             )}
           >
             <Smile className="h-3.5 w-3.5" />
@@ -184,10 +184,10 @@ export default function PetWardrobePage() {
           <button
             onClick={() => setActiveTab("colors")}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors",
+              "nav-item inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border transition-colors",
               activeTab === "colors"
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-card text-muted-foreground border-border hover:text-foreground"
+                ? "is-selected border-accent-orange font-bold"
+                : "bg-surface text-neutral-10 border-border-default"
             )}
           >
             <Palette className="h-3.5 w-3.5" />
@@ -196,10 +196,10 @@ export default function PetWardrobePage() {
           <button
             onClick={() => setActiveTab("gallery")}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors",
+              "nav-item inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border transition-colors",
               activeTab === "gallery"
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-card text-muted-foreground border-border hover:text-foreground"
+                ? "is-selected border-accent-orange font-bold"
+                : "bg-surface text-neutral-10 border-border-default"
             )}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
@@ -210,12 +210,12 @@ export default function PetWardrobePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Interactive Live Pet Preview */}
-        <div className="lg:col-span-5 rounded-3xl border bg-card p-6 shadow-xs flex flex-col items-center justify-center space-y-4">
-          <div className="w-full flex items-center justify-between border-b border-border pb-2 text-xs">
-            <span className="font-bold text-foreground">
+        <div className="lg:col-span-5 rounded-card border border-border-divider bg-surface p-6 shadow-xs flex flex-col items-center justify-center space-y-4">
+          <div className="w-full flex items-center justify-between border-b border-border-divider pb-2 text-xs">
+            <span className="font-bold text-text-primary" suppressHydrationWarning>
               Tampilan Langsung {name}
             </span>
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-text-muted text-[11px]" suppressHydrationWarning>
               {currentCharDef.name} • {currentCharDef.speciesLabel}
             </span>
           </div>
@@ -223,7 +223,7 @@ export default function PetWardrobePage() {
           <PetRenderer interactive={true} size="md" />
 
           {/* Equipped Slots Summary Pills */}
-          <div className="w-full grid grid-cols-2 gap-2 pt-2 border-t border-border text-[11px]">
+          <div className="w-full grid grid-cols-2 gap-2 pt-2 border-t border-border-divider text-[11px]">
             {categories.slice(0, 4).map((cat) => {
               const eqItem = COSMETICS_CATALOG.find(
                 (i) => i.id === equipped[cat.id]
@@ -235,10 +235,10 @@ export default function PetWardrobePage() {
                     setSelectedCategory(cat.id);
                     setActiveTab("accessories");
                   }}
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded-xl border bg-muted/30 hover:bg-muted/60 text-left transition-colors"
+                  className="flex items-center justify-between px-2.5 py-1.5 rounded-input border border-border-divider bg-surface-subtle hover:bg-accent-green-light/40 text-left transition-colors"
                 >
-                  <span className="text-muted-foreground">{cat.label}:</span>
-                  <span className="font-bold text-foreground truncate max-w-[95px]">
+                  <span className="text-text-muted">{cat.label}:</span>
+                  <span className="font-bold text-text-primary truncate max-w-[95px]" suppressHydrationWarning>
                     {eqItem && !eqItem.isDefaultFree ? eqItem.name : "Kosong"}
                   </span>
                 </button>
@@ -250,7 +250,7 @@ export default function PetWardrobePage() {
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
             <button
               onClick={() => unequipItem(selectedCategory)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-navigation border border-border-default text-xs text-neutral-10 hover:text-text-primary hover:bg-accent-green-light transition-colors"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>
@@ -259,7 +259,7 @@ export default function PetWardrobePage() {
             </button>
             <button
               onClick={() => resetCharacterCustomization()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-navigation border border-border-default text-xs text-neutral-10 hover:text-text-primary hover:bg-accent-green-light transition-colors"
             >
               <Palette className="h-3.5 w-3.5" />
               <span>Reset Warna & Anatomi</span>
@@ -278,10 +278,10 @@ export default function PetWardrobePage() {
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     className={cn(
-                      "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border",
+                      "nav-item px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors border",
                       selectedCategory === cat.id
-                        ? "bg-orange-500 text-white border-orange-500 font-bold shadow-xs"
-                        : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                        ? "is-selected border-accent-orange font-bold shadow-2xs"
+                        : "bg-surface text-neutral-10 border-border-default"
                     )}
                   >
                     {cat.label}
@@ -295,7 +295,7 @@ export default function PetWardrobePage() {
                 selectedCategory === "body" ||
                 selectedCategory === "held") && (
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-muted-foreground font-medium">
+                  <span className="text-text-muted font-medium">
                     Filter Tema:
                   </span>
                   {(
@@ -310,10 +310,10 @@ export default function PetWardrobePage() {
                       key={tf.id}
                       onClick={() => setThemeFilter(tf.id)}
                       className={cn(
-                        "px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors",
+                        "nav-item px-2.5 py-1 text-[11px] font-semibold border transition-colors",
                         themeFilter === tf.id
-                          ? "bg-foreground text-background border-foreground"
-                          : "bg-background text-muted-foreground border-border hover:text-foreground"
+                          ? "is-selected border-accent-orange"
+                          : "bg-surface text-neutral-10 border-border-default"
                       )}
                     >
                       {tf.label}
@@ -323,23 +323,23 @@ export default function PetWardrobePage() {
               )}
 
               {/* Owned Items Grid */}
-              <div className="rounded-3xl border bg-card p-5 space-y-4 shadow-xs">
+              <div className="rounded-card border border-border-divider bg-surface p-6 space-y-4 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider">
                     Pilih Aksesoris SVG untuk Dipasang:
                   </h3>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[11px] text-text-muted">
                     {categoryOwnedItems.length} item tersedia
                   </span>
                 </div>
 
                 {categoryOwnedItems.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-muted-foreground space-y-2">
-                    <ShoppingBag className="h-8 w-8 text-muted-foreground/40 mx-auto" />
+                  <div className="py-12 text-center text-xs text-text-muted space-y-2">
+                    <ShoppingBag className="h-8 w-8 text-text-muted/40 mx-auto" />
                     <p>Tidak ada item di filter kategori ini.</p>
                     <Link
                       href="/pet-customization/shop"
-                      className="inline-flex items-center gap-1 font-bold text-orange-600 dark:text-orange-400 hover:underline pt-1"
+                      className="inline-flex items-center gap-1 font-bold text-text-primary hover:underline pt-1"
                     >
                       <span>Beli di Pet Shop</span>
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -354,20 +354,20 @@ export default function PetWardrobePage() {
                           key={item.id}
                           onClick={() => equipItem(selectedCategory, item.id)}
                           className={cn(
-                            "p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 relative shadow-xs",
+                            "p-3.5 rounded-button border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 relative shadow-2xs",
                             isEquipped
-                              ? "border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20"
-                              : "border-border bg-background hover:bg-muted/30"
+                              ? "border-accent-orange bg-accent-yellow/50 ring-2 ring-accent-orange/20"
+                              : "border-border-divider bg-surface hover:bg-surface-subtle"
                           )}
                         >
                           {isEquipped && (
-                            <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-white">
+                            <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-pill bg-accent-orange text-text-inverse">
                               <Check className="h-3 w-3 stroke-[3]" />
                             </span>
                           )}
 
                           {item.theme && (
-                            <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-muted text-muted-foreground">
+                            <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-input text-[9px] font-bold uppercase bg-surface-subtle border border-border-divider text-text-muted">
                               {item.theme}
                             </span>
                           )}
@@ -377,20 +377,20 @@ export default function PetWardrobePage() {
                           </div>
 
                           <div className="space-y-0.5">
-                            <p className="text-xs font-bold text-foreground line-clamp-1">
+                            <p className="text-xs font-bold text-text-primary line-clamp-1">
                               {item.name}
                             </p>
-                            <p className="text-[10px] text-muted-foreground line-clamp-2">
+                            <p className="text-[10px] text-neutral-10 line-clamp-2">
                               {item.description}
                             </p>
                           </div>
 
                           <span
                             className={cn(
-                              "px-2 py-0.5 rounded-full text-[10px] font-bold mt-auto",
+                              "px-2.5 py-0.5 rounded-pill text-[10px] font-bold mt-auto",
                               isEquipped
-                                ? "bg-orange-500 text-white"
-                                : "bg-muted text-muted-foreground"
+                                ? "bg-accent-orange text-text-inverse"
+                                : "bg-surface-subtle border border-border-default text-text-primary"
                             )}
                           >
                             {isEquipped ? "Terpasang" : "Pasang"}
@@ -405,17 +405,17 @@ export default function PetWardrobePage() {
           )}
 
           {activeTab === "characters" && (
-            <div className="rounded-3xl border bg-card p-5 space-y-5 shadow-xs">
+            <div className="rounded-card border border-border-divider bg-surface p-6 space-y-5 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">
+                  <h3 className="text-sm font-bold text-text-primary">
                     Koleksi 12 Karakter Chibi Antropomorfik
                   </h3>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-text-muted">
                     Setiap karakter memiliki siluet kepala, telinga, tubuh, ekor, dan ekspresi khas.
                   </p>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-500/10 text-orange-600">
+                <span className="px-2.5 py-1 rounded-pill text-[11px] font-bold bg-accent-green/15 text-text-primary">
                   12 Karakter Original
                 </span>
               </div>
@@ -428,14 +428,14 @@ export default function PetWardrobePage() {
                       key={char.id}
                       onClick={() => setSpecies(char.id)}
                       className={cn(
-                        "p-3 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-1.5 relative",
+                        "p-3 rounded-button border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-1.5 relative",
                         isSelected
-                          ? "border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20"
-                          : "border-border bg-background hover:bg-muted/30"
+                          ? "border-accent-orange bg-accent-yellow/50 ring-2 ring-accent-orange/20"
+                          : "border-border-divider bg-surface hover:bg-surface-subtle"
                       )}
                     >
                       {isSelected && (
-                        <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-white">
+                        <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-pill bg-accent-orange text-text-inverse">
                           <Check className="h-3 w-3 stroke-[3]" />
                         </span>
                       )}
@@ -448,10 +448,10 @@ export default function PetWardrobePage() {
                       </div>
 
                       <div>
-                        <p className="text-xs font-bold text-foreground">
+                        <p className="text-xs font-bold text-text-primary">
                           {char.name}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[10px] text-text-muted">
                           {char.speciesLabel}
                         </p>
                       </div>
@@ -462,7 +462,7 @@ export default function PetWardrobePage() {
                           e.stopPropagation();
                           handleApplyDefaultComposition(char.id);
                         }}
-                        className="w-full py-1 rounded-lg bg-muted hover:bg-orange-500 hover:text-white text-[10px] font-semibold transition-colors"
+                        className="w-full py-1 rounded-input bg-surface-subtle border border-border-default hover:bg-accent-green-light text-text-primary text-[10px] font-bold transition-colors"
                       >
                         Pakai Setelan Bawaan
                       </button>
@@ -472,17 +472,17 @@ export default function PetWardrobePage() {
               </div>
 
               {/* Modular Layer Mix-and-Match Controls */}
-              <div className="pt-4 border-t border-border space-y-4">
+              <div className="pt-4 border-t border-border-divider space-y-4">
                 <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-orange-500" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  <Layers className="h-4 w-4 text-accent-green" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">
                     Kustomisasi Layer Anatomi & Ekspresi Wajah
                   </h4>
                 </div>
 
                 {/* Face Variant Selector */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground">
+                  <label className="text-xs font-semibold text-text-muted">
                     Varian Ekspresi Wajah (Mata, Alis & Mulut):
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -495,10 +495,10 @@ export default function PetWardrobePage() {
                             setFaceVariant(vid === species ? undefined : vid)
                           }
                           className={cn(
-                            "px-2.5 py-1 rounded-lg text-[11px] font-semibold border capitalize transition-colors",
+                            "nav-item px-2.5 py-1 text-[11px] font-semibold border capitalize transition-colors",
                             active
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "bg-background text-muted-foreground border-border hover:text-foreground"
+                              ? "is-selected border-accent-orange"
+                              : "bg-surface text-neutral-10 border-border-default"
                           )}
                         >
                           {vid}
@@ -510,7 +510,7 @@ export default function PetWardrobePage() {
 
                 {/* Ears Variant Selector */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground">
+                  <label className="text-xs font-semibold text-text-muted">
                     Varian Telinga:
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -523,10 +523,10 @@ export default function PetWardrobePage() {
                             setEarsVariant(vid === species ? undefined : vid)
                           }
                           className={cn(
-                            "px-2.5 py-1 rounded-lg text-[11px] font-semibold border capitalize transition-colors",
+                            "nav-item px-2.5 py-1 text-[11px] font-semibold border capitalize transition-colors",
                             active
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "bg-background text-muted-foreground border-border hover:text-foreground"
+                              ? "is-selected border-accent-orange"
+                              : "bg-surface text-neutral-10 border-border-default"
                           )}
                         >
                           {vid}
@@ -538,7 +538,7 @@ export default function PetWardrobePage() {
 
                 {/* Tail Variant Selector */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground">
+                  <label className="text-xs font-semibold text-text-muted">
                     Varian Ekor:
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -551,10 +551,10 @@ export default function PetWardrobePage() {
                             setTailVariant(vid === species ? undefined : vid)
                           }
                           className={cn(
-                            "px-2.5 py-1 rounded-lg text-[11px] font-semibold border capitalize transition-colors",
+                            "nav-item px-2.5 py-1 text-[11px] font-semibold border capitalize transition-colors",
                             active
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "bg-background text-muted-foreground border-border hover:text-foreground"
+                              ? "is-selected border-accent-orange"
+                              : "bg-surface text-neutral-10 border-border-default"
                           )}
                         >
                           {vid}
@@ -568,19 +568,19 @@ export default function PetWardrobePage() {
           )}
 
           {activeTab === "colors" && (
-            <div className="rounded-3xl border bg-card p-5 space-y-5 shadow-xs">
+            <div className="rounded-card border border-border-divider bg-surface p-6 space-y-5 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">
+                  <h3 className="text-sm font-bold text-text-primary">
                     Kustomisasi Warna & Token CSS Karakter
                   </h3>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-text-muted">
                     Mengubah warna hanya memengaruhi bagian tubuh/aksen yang dituju tanpa merusak mata atau aksesoris.
                   </p>
                 </div>
                 <button
                   onClick={resetCustomColors}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-semibold hover:bg-muted"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-navigation border border-border-default text-xs font-bold text-text-primary hover:bg-accent-green-light"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Warna Bawaan</span>
@@ -589,7 +589,7 @@ export default function PetWardrobePage() {
 
               {/* 12 Collectible Color Palette Presets */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-bold uppercase tracking-wider text-text-muted">
                   12 Palet Warna Koleksi:
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -603,23 +603,23 @@ export default function PetWardrobePage() {
                         key={pal.id}
                         onClick={() => applyColorPalette(pid)}
                         className={cn(
-                          "flex items-center gap-2.5 p-2.5 rounded-2xl border text-left transition-all",
+                          "flex items-center gap-2.5 p-2.5 rounded-button border text-left transition-all",
                           isCurrent
-                            ? "border-orange-500 bg-orange-500/10 font-bold"
-                            : "border-border bg-background hover:bg-muted/40"
+                            ? "border-accent-orange bg-accent-yellow/50 font-bold"
+                            : "border-border-default bg-surface hover:bg-surface-subtle"
                         )}
                       >
                         <span className="flex items-center -space-x-1.5 shrink-0">
                           <span
-                            className="h-5 w-5 rounded-full border border-black/20"
+                            className="h-5 w-5 rounded-pill border border-black/20"
                             style={{ backgroundColor: pal.primary }}
                           />
                           <span
-                            className="h-4 w-4 rounded-full border border-black/20"
+                            className="h-4 w-4 rounded-pill border border-black/20"
                             style={{ backgroundColor: pal.secondary }}
                           />
                           <span
-                            className="h-4 w-4 rounded-full border border-black/20"
+                            className="h-4 w-4 rounded-pill border border-black/20"
                             style={{ backgroundColor: pal.belly }}
                           />
                         </span>
@@ -633,13 +633,13 @@ export default function PetWardrobePage() {
               </div>
 
               {/* Fine-Grained Color Token Controls */}
-              <div className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center justify-between p-3 rounded-2xl border bg-background">
+              <div className="pt-4 border-t border-border-divider grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="flex items-center justify-between p-3 rounded-button border border-border-default bg-surface-subtle">
                   <div>
-                    <p className="text-xs font-bold text-foreground">
+                    <p className="text-xs font-bold text-text-primary">
                       Warna Tubuh Utama
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-text-muted">
                       Token: --char-primary
                     </p>
                   </div>
@@ -650,16 +650,16 @@ export default function PetWardrobePage() {
                     onChange={(e) =>
                       setCustomColors({ primary: e.target.value })
                     }
-                    className="h-9 w-12 rounded-lg cursor-pointer border border-border bg-transparent"
+                    className="h-9 w-12 rounded-input cursor-pointer border border-border-default bg-transparent"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-2xl border bg-background">
+                <label className="flex items-center justify-between p-3 rounded-button border border-border-default bg-surface-subtle">
                   <div>
-                    <p className="text-xs font-bold text-foreground">
+                    <p className="text-xs font-bold text-text-primary">
                       Warna Aksen & Detail
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-text-muted">
                       Token: --char-secondary
                     </p>
                   </div>
@@ -670,16 +670,16 @@ export default function PetWardrobePage() {
                     onChange={(e) =>
                       setCustomColors({ secondary: e.target.value })
                     }
-                    className="h-9 w-12 rounded-lg cursor-pointer border border-border bg-transparent"
+                    className="h-9 w-12 rounded-input cursor-pointer border border-border-default bg-transparent"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-2xl border bg-background">
+                <label className="flex items-center justify-between p-3 rounded-button border border-border-default bg-surface-subtle">
                   <div>
-                    <p className="text-xs font-bold text-foreground">
+                    <p className="text-xs font-bold text-text-primary">
                       Warna Perut & Moncong
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-text-muted">
                       Token: --char-belly
                     </p>
                   </div>
@@ -688,16 +688,16 @@ export default function PetWardrobePage() {
                     aria-label="Warna Perut & Moncong"
                     value={effectiveColors.belly}
                     onChange={(e) => setCustomColors({ belly: e.target.value })}
-                    className="h-9 w-12 rounded-lg cursor-pointer border border-border bg-transparent"
+                    className="h-9 w-12 rounded-input cursor-pointer border border-border-default bg-transparent"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-2xl border bg-background">
+                <label className="flex items-center justify-between p-3 rounded-button border border-border-default bg-surface-subtle">
                   <div>
-                    <p className="text-xs font-bold text-foreground">
+                    <p className="text-xs font-bold text-text-primary">
                       Warna Telinga Dalam & Rona Pipi
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-text-muted">
                       Token: --char-inner-ear / --char-blush
                     </p>
                   </div>
@@ -711,7 +711,7 @@ export default function PetWardrobePage() {
                         blush: e.target.value,
                       })
                     }
-                    className="h-9 w-12 rounded-lg cursor-pointer border border-border bg-transparent"
+                    className="h-9 w-12 rounded-input cursor-pointer border border-border-default bg-transparent"
                   />
                 </label>
               </div>
@@ -719,19 +719,19 @@ export default function PetWardrobePage() {
           )}
 
           {activeTab === "gallery" && (
-            <div className="rounded-3xl border bg-card p-5 space-y-6 shadow-xs">
+            <div className="rounded-card border border-border-divider bg-surface p-6 space-y-6 shadow-xs">
               <div>
-                <h3 className="text-sm font-bold text-foreground">
+                <h3 className="text-sm font-bold text-text-primary">
                   Visual Contact Sheet: 12 Karakter & 24+ Aksesoris SVG
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-text-muted">
                   Pratinjau komposisi default ke-12 karakter beserta seluruh koleksi aksesoris Everyday & Food-Themed.
                 </p>
               </div>
 
               {/* 12 Characters Default Compositions Contact Sheet */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
                   12 Karakter dengan Komposisi Aksesoris Bawaan
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -741,7 +741,7 @@ export default function PetWardrobePage() {
                       <div
                         key={`sheet-${char.id}`}
                         onClick={() => handleApplyDefaultComposition(char.id)}
-                        className="p-3 rounded-2xl border bg-background hover:border-orange-500 cursor-pointer transition-all flex flex-col items-center text-center space-y-1"
+                        className="p-3 rounded-button border border-border-default bg-surface hover:border-accent-green cursor-pointer transition-all flex flex-col items-center text-center space-y-1"
                       >
                         <div className="h-28 w-24">
                           <CharacterSvg
@@ -750,10 +750,10 @@ export default function PetWardrobePage() {
                             showRoomBackdrop={false}
                           />
                         </div>
-                        <p className="text-xs font-bold text-foreground">
+                        <p className="text-xs font-bold text-text-primary">
                           {char.name}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[10px] text-text-muted">
                           {char.speciesLabel}
                         </p>
                       </div>
@@ -763,8 +763,8 @@ export default function PetWardrobePage() {
               </div>
 
               {/* 24+ Accessories Contact Sheet */}
-              <div className="space-y-2 pt-3 border-t border-border">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="space-y-2 pt-3 border-t border-border-divider">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
                   Katalog Lengkap Aksesoris SVG ({ACCESSORY_CATALOG.length} Aset)
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
@@ -774,15 +774,15 @@ export default function PetWardrobePage() {
                       onClick={() =>
                         equipItem(acc.category as CosmeticCategory, acc.id)
                       }
-                      className="p-2.5 rounded-xl border bg-background hover:border-orange-500 cursor-pointer flex flex-col items-center text-center space-y-1"
+                      className="p-2.5 rounded-input border border-border-default bg-surface hover:border-accent-green cursor-pointer flex flex-col items-center text-center space-y-1"
                     >
                       <div className="h-12 w-12 flex items-center justify-center">
                         <AccessorySvgPreview itemId={acc.id} />
                       </div>
-                      <p className="text-[10px] font-bold text-foreground line-clamp-1">
+                      <p className="text-[10px] font-bold text-text-primary line-clamp-1">
                         {acc.nameEn}
                       </p>
-                      <span className="text-[9px] text-muted-foreground uppercase">
+                      <span className="text-[9px] text-text-muted uppercase">
                         {acc.theme}
                       </span>
                     </div>
@@ -792,19 +792,19 @@ export default function PetWardrobePage() {
             </div>
           )}
 
-          {/* Shop Callout Banner */}
-          <div className="p-4 rounded-2xl border bg-muted/40 flex items-center justify-between text-xs">
+          {/* Shop Callout Banner (Review Card Surface) */}
+          <div className="review-card p-5 border border-accent-green/25 flex items-center justify-between text-xs">
             <div>
-              <p className="font-bold text-foreground">
+              <p className="font-bold text-text-primary">
                 Ingin Koleksi Kostum Lainnya?
               </p>
-              <p className="text-muted-foreground text-[11px]">
+              <p className="text-neutral-10 text-[11px]">
                 Gunakan Caloria Coins yang kamu kumpulkan dari konsistensi makan untuk berbelanja.
               </p>
             </div>
             <Link
               href="/pet-customization/shop"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shrink-0 ml-3"
+              className="button-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs shrink-0 ml-3"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               <span>Ke Pet Shop</span>
