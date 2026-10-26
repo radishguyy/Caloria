@@ -7,9 +7,12 @@ import {
   UserGoalPlan,
   CustomFoodItem,
   FoodCatalogItem,
+  DailyNutritionSummary,
+  DailyComplianceStatus,
 } from "@/types";
 import { DEFAULT_NUTRITION_TARGETS, MealTypeId } from "@/lib/constants";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
+import { formatDateKey, subDays } from "@/lib/date-utils";
 
 export interface NutritionFeedback {
   type: "success" | "warning" | "info";
@@ -45,76 +48,424 @@ interface FoodStoreState {
   clearFeedback: () => void;
 
   // Computed Helpers
-  getConsumed: () => MacroCurrent;
-  getMealLogs: (mealType: MealTypeId) => ExtendedFoodLog[];
-  getCaloriesRemaining: () => number;
+  getConsumed: (date?: string) => MacroCurrent;
+  getMealLogs: (mealType: MealTypeId, date?: string) => ExtendedFoodLog[];
+  getCaloriesRemaining: (date?: string) => number;
   getRecentFoods: () => FoodCatalogItem[];
   getFrequentFoods: () => FoodCatalogItem[];
   getHistoricalMealLogs: (mealType: MealTypeId, daysAgo: number) => ExtendedFoodLog[];
+  getLogsByDate: (dateString: string) => ExtendedFoodLog[];
+  getDailySummary: (dateString: string) => DailyNutritionSummary;
+  getDailySummariesForDates: (dateStrings: string[]) => Record<string, DailyNutritionSummary>;
 }
 
 const getTodayFormatted = () => {
+  return formatDateKey(new Date());
+};
+
+const createInitialLogs = (): ExtendedFoodLog[] => {
   const now = new Date();
-  return now.toISOString().split("T")[0];
+  const todayStr = formatDateKey(now);
+  const dayMinus1 = formatDateKey(subDays(now, 1));
+  const dayMinus2 = formatDateKey(subDays(now, 2));
+  const dayMinus3 = formatDateKey(subDays(now, 3));
+  const dayMinus4 = formatDateKey(subDays(now, 4));
+  const dayMinus5 = formatDateKey(subDays(now, 5));
+
+  return [
+    // Today
+    {
+      id: "sample-1",
+      userId: "local-user",
+      name: "Oatmeal dengan Susu & Pisang",
+      mealType: "breakfast",
+      calories: 320,
+      proteinG: 12.5,
+      carbsG: 54,
+      fatG: 6.2,
+      fiberG: 6.5,
+      sugarG: 14,
+      servingSize: 1,
+      servingUnit: "mangkuk (240g)",
+      loggedDate: todayStr,
+      loggedAt: new Date(),
+      createdAt: new Date(),
+    },
+    {
+      id: "sample-2",
+      userId: "local-user",
+      name: "Dada Ayam Panggang (Tanpa Kulit)",
+      mealType: "lunch",
+      calories: 248,
+      proteinG: 46.5,
+      carbsG: 0,
+      fatG: 5.4,
+      fiberG: 0,
+      sugarG: 0,
+      servingSize: 1,
+      servingUnit: "potong (150g)",
+      loggedDate: todayStr,
+      loggedAt: new Date(),
+      createdAt: new Date(),
+    },
+    {
+      id: "sample-3",
+      userId: "local-user",
+      name: "Nasi Merah",
+      mealType: "lunch",
+      calories: 165,
+      proteinG: 3.8,
+      carbsG: 34.5,
+      fatG: 1.3,
+      fiberG: 2.8,
+      sugarG: 0.5,
+      servingSize: 1,
+      servingUnit: "centong (150g)",
+      loggedDate: todayStr,
+      loggedAt: new Date(),
+      createdAt: new Date(),
+    },
+
+    // Yesterday: Target Hit (Goal Met) ~2,030 kcal
+    {
+      id: "sample-y-1",
+      userId: "local-user",
+      name: "Telur Rebus & Roti Gandum",
+      mealType: "breakfast",
+      calories: 310,
+      proteinG: 18.2,
+      carbsG: 32,
+      fatG: 11,
+      fiberG: 4.5,
+      sugarG: 3,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus1,
+      loggedAt: subDays(now, 1),
+      createdAt: subDays(now, 1),
+    },
+    {
+      id: "sample-y-2",
+      userId: "local-user",
+      name: "Nasi Merah & Ayam Bakar Madu",
+      mealType: "lunch",
+      calories: 620,
+      proteinG: 44,
+      carbsG: 68,
+      fatG: 14.5,
+      fiberG: 5.2,
+      sugarG: 8,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus1,
+      loggedAt: subDays(now, 1),
+      createdAt: subDays(now, 1),
+    },
+    {
+      id: "sample-y-3",
+      userId: "local-user",
+      name: "Salmon Panggang & Salad Sayur",
+      mealType: "dinner",
+      calories: 580,
+      proteinG: 42,
+      carbsG: 22,
+      fatG: 24,
+      fiberG: 6.8,
+      sugarG: 4,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus1,
+      loggedAt: subDays(now, 1),
+      createdAt: subDays(now, 1),
+    },
+    {
+      id: "sample-y-4",
+      userId: "local-user",
+      name: "Greek Yogurt & Campuran Berry",
+      mealType: "snack",
+      calories: 220,
+      proteinG: 17,
+      carbsG: 24,
+      fatG: 3.5,
+      fiberG: 4,
+      sugarG: 16,
+      servingSize: 1,
+      servingUnit: "cup (200g)",
+      loggedDate: dayMinus1,
+      loggedAt: subDays(now, 1),
+      createdAt: subDays(now, 1),
+    },
+    {
+      id: "sample-y-5",
+      userId: "local-user",
+      name: "Kacang Almond Panggang",
+      mealType: "snack",
+      calories: 160,
+      proteinG: 6,
+      carbsG: 6,
+      fatG: 14,
+      fiberG: 3.5,
+      sugarG: 1.2,
+      servingSize: 1,
+      servingUnit: "genggam (28g)",
+      loggedDate: dayMinus1,
+      loggedAt: subDays(now, 1),
+      createdAt: subDays(now, 1),
+    },
+
+    // 2 Days Ago: Under Target ~1,240 kcal
+    {
+      id: "sample-2d-1",
+      userId: "local-user",
+      name: "Bubur Ayam Praktis",
+      mealType: "breakfast",
+      calories: 340,
+      proteinG: 14,
+      carbsG: 46,
+      fatG: 8,
+      fiberG: 1.5,
+      sugarG: 2,
+      servingSize: 1,
+      servingUnit: "mangkuk",
+      loggedDate: dayMinus2,
+      loggedAt: subDays(now, 2),
+      createdAt: subDays(now, 2),
+    },
+    {
+      id: "sample-2d-2",
+      userId: "local-user",
+      name: "Gado-Gado Lontong",
+      mealType: "lunch",
+      calories: 520,
+      proteinG: 19,
+      carbsG: 62,
+      fatG: 21,
+      fiberG: 8.5,
+      sugarG: 12,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus2,
+      loggedAt: subDays(now, 2),
+      createdAt: subDays(now, 2),
+    },
+    {
+      id: "sample-2d-3",
+      userId: "local-user",
+      name: "Sup Jagung Telur & Tahu Rebus",
+      mealType: "dinner",
+      calories: 380,
+      proteinG: 22,
+      carbsG: 35,
+      fatG: 9,
+      fiberG: 4,
+      sugarG: 6,
+      servingSize: 1,
+      servingUnit: "mangkuk",
+      loggedDate: dayMinus2,
+      loggedAt: subDays(now, 2),
+      createdAt: subDays(now, 2),
+    },
+
+    // 3 Days Ago: Target Hit ~2,070 kcal
+    {
+      id: "sample-3d-1",
+      userId: "local-user",
+      name: "Smoothie Pisang Protein & Chia",
+      mealType: "breakfast",
+      calories: 380,
+      proteinG: 28,
+      carbsG: 48,
+      fatG: 6,
+      fiberG: 7,
+      sugarG: 18,
+      servingSize: 1,
+      servingUnit: "gelas besar",
+      loggedDate: dayMinus3,
+      loggedAt: subDays(now, 3),
+      createdAt: subDays(now, 3),
+    },
+    {
+      id: "sample-3d-2",
+      userId: "local-user",
+      name: "Nasi Liwet & Pepes Ikan Mas",
+      mealType: "lunch",
+      calories: 640,
+      proteinG: 45,
+      carbsG: 72,
+      fatG: 14,
+      fiberG: 4.5,
+      sugarG: 3,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus3,
+      loggedAt: subDays(now, 3),
+      createdAt: subDays(now, 3),
+    },
+    {
+      id: "sample-3d-3",
+      userId: "local-user",
+      name: "Steak Tempe Saus Lada Hitam & Buncis",
+      mealType: "dinner",
+      calories: 510,
+      proteinG: 32,
+      carbsG: 46,
+      fatG: 18,
+      fiberG: 11,
+      sugarG: 6,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus3,
+      loggedAt: subDays(now, 3),
+      createdAt: subDays(now, 3),
+    },
+    {
+      id: "sample-3d-4",
+      userId: "local-user",
+      name: "Edamame Rebus",
+      mealType: "snack",
+      calories: 140,
+      proteinG: 12,
+      carbsG: 10,
+      fatG: 5,
+      fiberG: 5.5,
+      sugarG: 2,
+      servingSize: 1,
+      servingUnit: "mangkuk kecil",
+      loggedDate: dayMinus3,
+      loggedAt: subDays(now, 3),
+      createdAt: subDays(now, 3),
+    },
+
+    // 4 Days Ago: Target Hit ~1,990 kcal
+    {
+      id: "sample-4d-1",
+      userId: "local-user",
+      name: "Roti Panggang Alpukat & Telur Mata Sapi",
+      mealType: "breakfast",
+      calories: 420,
+      proteinG: 16,
+      carbsG: 38,
+      fatG: 22,
+      fiberG: 8,
+      sugarG: 3,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus4,
+      loggedAt: subDays(now, 4),
+      createdAt: subDays(now, 4),
+    },
+    {
+      id: "sample-4d-2",
+      userId: "local-user",
+      name: "Soto Ayam Lamongan & Nasi Putih",
+      mealType: "lunch",
+      calories: 590,
+      proteinG: 38,
+      carbsG: 66,
+      fatG: 16,
+      fiberG: 3,
+      sugarG: 4,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus4,
+      loggedAt: subDays(now, 4),
+      createdAt: subDays(now, 4),
+    },
+    {
+      id: "sample-4d-3",
+      userId: "local-user",
+      name: "Capcay Seafood Kuah Kental",
+      mealType: "dinner",
+      calories: 460,
+      proteinG: 36,
+      carbsG: 34,
+      fatG: 12,
+      fiberG: 6.5,
+      sugarG: 7,
+      servingSize: 1,
+      servingUnit: "porsi besar",
+      loggedDate: dayMinus4,
+      loggedAt: subDays(now, 4),
+      createdAt: subDays(now, 4),
+    },
+
+    // 5 Days Ago: Over Target ~2,420 kcal
+    {
+      id: "sample-5d-1",
+      userId: "local-user",
+      name: "Lontong Sayur Betawi Komplit",
+      mealType: "breakfast",
+      calories: 550,
+      proteinG: 20,
+      carbsG: 68,
+      fatG: 23,
+      fiberG: 4,
+      sugarG: 5,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus5,
+      loggedAt: subDays(now, 5),
+      createdAt: subDays(now, 5),
+    },
+    {
+      id: "sample-5d-2",
+      userId: "local-user",
+      name: "Nasi Padang Rendang Daging & Gulai Daun Singkong",
+      mealType: "lunch",
+      calories: 880,
+      proteinG: 45,
+      carbsG: 82,
+      fatG: 39,
+      fiberG: 5,
+      sugarG: 6,
+      servingSize: 1,
+      servingUnit: "porsi",
+      loggedDate: dayMinus5,
+      loggedAt: subDays(now, 5),
+      createdAt: subDays(now, 5),
+    },
+    {
+      id: "sample-5d-3",
+      userId: "local-user",
+      name: "Sate Ayam Madura & Lontong",
+      mealType: "dinner",
+      calories: 670,
+      proteinG: 42,
+      carbsG: 52,
+      fatG: 28,
+      fiberG: 3,
+      sugarG: 14,
+      servingSize: 1,
+      servingUnit: "10 tusuk",
+      loggedDate: dayMinus5,
+      loggedAt: subDays(now, 5),
+      createdAt: subDays(now, 5),
+    },
+    {
+      id: "sample-5d-4",
+      userId: "local-user",
+      name: "Martabak Manis Coklat Keju",
+      mealType: "snack",
+      calories: 320,
+      proteinG: 7,
+      carbsG: 46,
+      fatG: 15,
+      fiberG: 2,
+      sugarG: 28,
+      servingSize: 1,
+      servingUnit: "1 potong",
+      loggedDate: dayMinus5,
+      loggedAt: subDays(now, 5),
+      createdAt: subDays(now, 5),
+    },
+  ];
 };
 
 export const useFoodStore = create<FoodStoreState>()(
   persist(
     (set, get) => ({
       selectedDate: getTodayFormatted(),
-      logs: [
-        {
-          id: "sample-1",
-          userId: "local-user",
-          name: "Oatmeal dengan Susu & Pisang",
-          mealType: "breakfast",
-          calories: 320,
-          proteinG: 12.5,
-          carbsG: 54,
-          fatG: 6.2,
-          fiberG: 6.5,
-          sugarG: 14,
-          servingSize: 1,
-          servingUnit: "mangkuk (240g)",
-          loggedDate: getTodayFormatted(),
-          loggedAt: new Date(),
-          createdAt: new Date(),
-        },
-        {
-          id: "sample-2",
-          userId: "local-user",
-          name: "Dada Ayam Panggang (Tanpa Kulit)",
-          mealType: "lunch",
-          calories: 248,
-          proteinG: 46.5,
-          carbsG: 0,
-          fatG: 5.4,
-          fiberG: 0,
-          sugarG: 0,
-          servingSize: 1,
-          servingUnit: "potong (150g)",
-          loggedDate: getTodayFormatted(),
-          loggedAt: new Date(),
-          createdAt: new Date(),
-        },
-        {
-          id: "sample-3",
-          userId: "local-user",
-          name: "Nasi Merah",
-          mealType: "lunch",
-          calories: 165,
-          proteinG: 3.8,
-          carbsG: 34.5,
-          fatG: 1.3,
-          fiberG: 2.8,
-          sugarG: 0.5,
-          servingSize: 1,
-          servingUnit: "centong (150g)",
-          loggedDate: getTodayFormatted(),
-          loggedAt: new Date(),
-          createdAt: new Date(),
-        },
-      ],
+      logs: createInitialLogs(),
       customFoods: [
         {
           id: "custom-sample-1",
@@ -290,9 +641,10 @@ export const useFoodStore = create<FoodStoreState>()(
 
       clearFeedback: () => set({ latestFeedback: null }),
 
-      getConsumed: () => {
+      getConsumed: (targetDate?: string) => {
         const { logs, selectedDate } = get();
-        const dayLogs = logs.filter((log) => log.loggedDate === selectedDate);
+        const dateToUse = targetDate || selectedDate;
+        const dayLogs = logs.filter((log) => log.loggedDate === dateToUse);
 
         return dayLogs.reduce<MacroCurrent>(
           (acc, log) => ({
@@ -307,17 +659,93 @@ export const useFoodStore = create<FoodStoreState>()(
         );
       },
 
-      getMealLogs: (mealType: MealTypeId) => {
+      getMealLogs: (mealType: MealTypeId, targetDate?: string) => {
         const { logs, selectedDate } = get();
+        const dateToUse = targetDate || selectedDate;
         return logs.filter(
-          (log) => log.loggedDate === selectedDate && log.mealType === mealType
+          (log) => log.loggedDate === dateToUse && log.mealType === mealType
         );
       },
 
-      getCaloriesRemaining: () => {
+      getCaloriesRemaining: (targetDate?: string) => {
         const { targets } = get();
-        const consumed = get().getConsumed();
+        const consumed = get().getConsumed(targetDate);
         return Math.max(0, targets.calories - consumed.calories);
+      },
+
+      getLogsByDate: (dateString: string) => {
+        const { logs } = get();
+        return logs.filter((log) => log.loggedDate === dateString);
+      },
+
+      getDailySummary: (dateString: string): DailyNutritionSummary => {
+        const { logs, targets } = get();
+        const dayLogs = logs.filter((log) => log.loggedDate === dateString);
+
+        const consumed = dayLogs.reduce<MacroCurrent>(
+          (acc, log) => ({
+            calories: acc.calories + log.calories,
+            protein: Math.round((acc.protein + log.proteinG) * 10) / 10,
+            carbs: Math.round((acc.carbs + log.carbsG) * 10) / 10,
+            fat: Math.round((acc.fat + log.fatG) * 10) / 10,
+            fiber: Math.round((acc.fiber + (log.fiberG ?? 0)) * 10) / 10,
+            sugar: Math.round((acc.sugar + (log.sugarG ?? 0)) * 10) / 10,
+          }),
+          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 }
+        );
+
+        const calTarget = targets.calories || 2100;
+        const percentage = Math.round((consumed.calories / calTarget) * 100);
+
+        let status: DailyComplianceStatus = "empty";
+        if (dayLogs.length > 0) {
+          if (percentage >= 85 && percentage <= 110) {
+            status = "hit";
+          } else if (percentage < 85) {
+            status = "under";
+          } else {
+            status = "over";
+          }
+        }
+
+        const proteinPct = Math.round((consumed.protein / (targets.protein || 130)) * 100);
+        const carbsPct = Math.round((consumed.carbs / (targets.carbs || 230)) * 100);
+        const fatPct = Math.round((consumed.fat / (targets.fat || 55)) * 100);
+
+        const macroStatus = {
+          protein: (proteinPct >= 80 ? "hit" : "under") as "hit" | "under" | "over",
+          carbs: (carbsPct >= 75 && carbsPct <= 115 ? "hit" : carbsPct < 75 ? "under" : "over") as "hit" | "under" | "over",
+          fat: (fatPct <= 105 ? "hit" : "over") as "hit" | "under" | "over",
+        };
+
+        const baseXp = dayLogs.length * 25;
+        const bonusXp = status === "hit" ? 50 : 0;
+        const xpEarned = dayLogs.length > 0 ? baseXp + bonusXp : 0;
+
+        const baseCoins = dayLogs.length * 10;
+        const bonusCoins = status === "hit" ? 25 : 0;
+        const coinsEarned = dayLogs.length > 0 ? baseCoins + bonusCoins : 0;
+
+        return {
+          date: dateString,
+          consumed,
+          target: targets,
+          percentage,
+          status,
+          macroStatus,
+          xpEarned,
+          coinsEarned,
+          hasLogs: dayLogs.length > 0,
+          logs: dayLogs,
+        };
+      },
+
+      getDailySummariesForDates: (dateStrings: string[]) => {
+        const result: Record<string, DailyNutritionSummary> = {};
+        for (const dateStr of dateStrings) {
+          result[dateStr] = get().getDailySummary(dateStr);
+        }
+        return result;
       },
 
       getRecentFoods: () => {

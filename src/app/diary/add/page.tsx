@@ -95,9 +95,11 @@ function DiaryAddFoodContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mealParam = searchParams.get("meal") as MealTypeId | null;
-  const initialMeal = mealParam || "breakfast";
+  const dateParam = searchParams.get("date") as string | null;
 
   const {
+    selectedDate,
+    setSelectedDate,
     addBatchLogs,
     getConsumed,
     targets,
@@ -108,19 +110,23 @@ function DiaryAddFoodContent() {
     getHistoricalMealLogs,
   } = useFoodStore();
 
+  useEffect(() => {
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      setSelectedDate(dateParam);
+    }
+  }, [dateParam, setSelectedDate]);
+
   const { feedPet, level, exp, stage, coins } = usePetStore();
 
-  const [activeMeal, setActiveMeal] = useState<MealTypeId>(initialMeal);
-
-  // Set time-of-day default on client mount if no query param
-  useEffect(() => {
-    if (!mealParam) {
-      const hours = new Date().getHours();
-      if (hours >= 11 && hours < 15) setActiveMeal("lunch");
-      else if (hours >= 15 && hours < 18) setActiveMeal("snack");
-      else if (hours >= 18 || hours < 5) setActiveMeal("dinner");
-    }
-  }, [mealParam]);
+  const [activeMeal, setActiveMeal] = useState<MealTypeId>(() => {
+    if (mealParam) return mealParam;
+    if (typeof window === "undefined") return "breakfast";
+    const hours = new Date().getHours();
+    if (hours >= 11 && hours < 15) return "lunch";
+    if (hours >= 15 && hours < 18) return "snack";
+    if (hours >= 18 || hours < 5) return "dinner";
+    return "breakfast";
+  });
   const [sourceTab, setSourceTab] = useState<
     "all" | "recent" | "frequent" | "saved" | "branded"
   >("all");
@@ -390,7 +396,7 @@ function DiaryAddFoodContent() {
       sugarG: Math.round(item.baseSugarG * item.servingMultiplier * 10) / 10,
       servingSize: item.servingMultiplier,
       servingUnit: `${item.servingMultiplier}x ${item.servingUnit}`,
-      loggedDate: new Date().toISOString().split("T")[0],
+      loggedDate: dateParam || selectedDate || new Date().toISOString().split("T")[0],
     }));
 
     addBatchLogs(logsToSave, {
