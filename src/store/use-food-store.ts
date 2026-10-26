@@ -1,7 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ExtendedFoodLog, MacroTargets, MacroCurrent, UserGoalPlan } from "@/types";
+import {
+  ExtendedFoodLog,
+  MacroTargets,
+  MacroCurrent,
+  UserGoalPlan,
+  CustomFoodItem,
+  FoodCatalogItem,
+} from "@/types";
 import { DEFAULT_NUTRITION_TARGETS, MealTypeId } from "@/lib/constants";
+import { FOOD_CATALOG } from "@/lib/food-catalog";
 
 export interface NutritionFeedback {
   type: "success" | "warning" | "info";
@@ -14,6 +22,7 @@ export interface NutritionFeedback {
 interface FoodStoreState {
   selectedDate: string;
   logs: ExtendedFoodLog[];
+  customFoods: CustomFoodItem[];
   targets: MacroTargets;
   goalPlan: UserGoalPlan;
   isLoading: boolean;
@@ -25,6 +34,11 @@ interface FoodStoreState {
   setTargets: (targets: Partial<MacroTargets>) => void;
   setGoalPlan: (plan: Partial<UserGoalPlan>) => void;
   addLog: (log: Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">) => NutritionFeedback;
+  addBatchLogs: (
+    logs: Array<Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">>,
+    customFeedback?: NutritionFeedback
+  ) => NutritionFeedback;
+  addCustomFood: (food: Omit<CustomFoodItem, "id" | "createdAt">) => CustomFoodItem;
   removeLog: (id: string) => void;
   setLogs: (logs: ExtendedFoodLog[]) => void;
   setSearchQuery: (query: string) => void;
@@ -34,6 +48,9 @@ interface FoodStoreState {
   getConsumed: () => MacroCurrent;
   getMealLogs: (mealType: MealTypeId) => ExtendedFoodLog[];
   getCaloriesRemaining: () => number;
+  getRecentFoods: () => FoodCatalogItem[];
+  getFrequentFoods: () => FoodCatalogItem[];
+  getHistoricalMealLogs: (mealType: MealTypeId, daysAgo: number) => ExtendedFoodLog[];
 }
 
 const getTodayFormatted = () => {
@@ -96,6 +113,26 @@ export const useFoodStore = create<FoodStoreState>()(
           loggedDate: getTodayFormatted(),
           loggedAt: new Date(),
           createdAt: new Date(),
+        },
+      ],
+      customFoods: [
+        {
+          id: "custom-sample-1",
+          name: "Smoothie Protein Pisang & Berry",
+          category: "Minuman & Camilan",
+          calories: 210,
+          proteinG: 24,
+          carbsG: 22,
+          fatG: 2.5,
+          fiberG: 4,
+          sugarG: 12,
+          defaultServingSize: 1,
+          servingUnit: "gelas (300ml)",
+          gramsPerUnit: 300,
+          origin: "home_cooked",
+          visibility: "private",
+          tags: ["smoothie", "protein", "pisang"],
+          createdAt: "2026-10-20T08:00:00Z",
         },
       ],
       targets: {
@@ -203,6 +240,45 @@ export const useFoodStore = create<FoodStoreState>()(
         return feedback;
       },
 
+      addBatchLogs: (logInputs, customFeedback) => {
+        const newLogs: ExtendedFoodLog[] = logInputs.map((input, idx) => ({
+          ...input,
+          fiberG: input.fiberG ?? 0,
+          sugarG: input.sugarG ?? 0,
+          id: `food-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+          userId: "local-user",
+          loggedAt: new Date(),
+          createdAt: new Date(),
+        }));
+
+        set((state) => ({
+          logs: [...newLogs, ...state.logs],
+        }));
+
+        const feedback: NutritionFeedback = customFeedback ?? {
+          type: "success",
+          title: `${logInputs.length} Menu Berhasil Dicatat!`,
+          message: `${logInputs.length} item berhasil ditambahkan ke diary.`,
+          xpEarned: 25 + Math.max(0, logInputs.length - 1) * 15,
+          coinsEarned: 10 + Math.max(0, logInputs.length - 1) * 4,
+        };
+
+        set({ latestFeedback: feedback });
+        return feedback;
+      },
+
+      addCustomFood: (foodInput) => {
+        const newFood: CustomFoodItem = {
+          ...foodInput,
+          id: `custom-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({
+          customFoods: [newFood, ...state.customFoods],
+        }));
+        return newFood;
+      },
+
       removeLog: (id: string) =>
         set((state) => ({
           logs: state.logs.filter((item) => item.id !== id),
@@ -242,6 +318,84 @@ export const useFoodStore = create<FoodStoreState>()(
         const { targets } = get();
         const consumed = get().getConsumed();
         return Math.max(0, targets.calories - consumed.calories);
+      },
+
+      getRecentFoods: () => {
+        const { logs, customFoods } = get();
+        const catalogPool: FoodCatalogItem[] = [...customFoods, ...FOOD_CATALOG];
+        const seenNames = new Set<string>();
+        const results: FoodCatalogItem[] = [];
+
+        // Traverse logs newest first
+        for (const log of logs) {
+          const normName = log.name.trim().toLowerCase();
+          if (seenNames.has(normName)) continue;
+          seenNames.add(normName);
+
+          const matched = catalogPool.find(
+            (c) => c.name.toLowerCase() === normName
+          );
+          if (matched) {
+            results.push(matched);
+          } else {
+            results.push({
+              id: `log-ref-${log.id}`,
+              name: log.name,
+              category: "Baru Dimakan",
+              calories: Math.round(log.calories / (log.servingSize || 1)),
+              proteinG: Math.round((log.proteinG / (log.servingSize || 1)) * 10) / 10,
+              carbsG: Math.round((log.carbsG / (log.servingSize || 1)) * 10) / 10,
+              fatG: Math.round((log.fatG / (log.servingSize || 1)) * 10) / 10,
+              fiberG: Math.round(((log.fiberG ?? 0) / (log.servingSize || 1)) * 10) / 10,
+              sugarG: Math.round(((log.sugarG ?? 0) / (log.servingSize || 1)) * 10) / 10,
+              defaultServingSize: 1,
+              servingUnit: log.servingUnit || "porsi",
+              gramsPerUnit: 100,
+            });
+          }
+
+          if (results.length >= 10) break;
+        }
+
+        return results;
+      },
+
+      getFrequentFoods: () => {
+        const { logs, customFoods } = get();
+        const catalogPool: FoodCatalogItem[] = [...customFoods, ...FOOD_CATALOG];
+        const counts: Record<string, number> = {};
+
+        logs.forEach((log) => {
+          const normName = log.name.trim().toLowerCase();
+          counts[normName] = (counts[normName] || 0) + 1;
+        });
+
+        const sortedNames = Object.entries(counts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([name]) => name);
+
+        const results: FoodCatalogItem[] = [];
+        for (const name of sortedNames) {
+          const matched = catalogPool.find(
+            (c) => c.name.toLowerCase() === name
+          );
+          if (matched) {
+            results.push(matched);
+          }
+        }
+
+        return results.length > 0 ? results : FOOD_CATALOG.slice(0, 8);
+      },
+
+      getHistoricalMealLogs: (mealType: MealTypeId, daysAgo: number) => {
+        const { logs, selectedDate } = get();
+        const baseDate = new Date(selectedDate);
+        baseDate.setDate(baseDate.getDate() - daysAgo);
+        const targetDateStr = baseDate.toISOString().split("T")[0];
+        return logs.filter(
+          (log) => log.loggedDate === targetDateStr && log.mealType === mealType
+        );
       },
     }),
     {
