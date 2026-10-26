@@ -35,6 +35,8 @@ import {
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
 import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
+export type { CosmeticCategory };
+
 // Re-export Database Model Types
 export type {
   Profile,
@@ -173,11 +175,22 @@ export interface ExtendedFoodLog {
   createdAt: Date;
 }
 
+export type DailyComplianceStatus = "hit" | "under" | "over" | "empty";
+
 export interface DailyNutritionSummary {
   date: string;
   consumed: MacroCurrent;
   target: MacroTargets;
   percentage: number;
+  status: DailyComplianceStatus;
+  macroStatus: {
+    protein: "hit" | "under" | "over";
+    carbs: "hit" | "under" | "over";
+    fat: "hit" | "under" | "over";
+  };
+  xpEarned: number;
+  coinsEarned: number;
+  hasLogs: boolean;
   logs: ExtendedFoodLog[];
 }
 

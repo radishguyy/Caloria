@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   Flame,
@@ -17,16 +17,22 @@ import {
 } from "lucide-react";
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { MacroBar } from "@/components/diary/macro-bar";
+import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { useSocialStore } from "@/store/use-social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
+import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 export default function DashboardPage() {
+  const isHydrated = useHydrated();
   const {
     goalPlan,
+    selectedDate,
+    setSelectedDate,
     getMealLogs,
     addLog,
     addBatchLogs,
@@ -37,17 +43,19 @@ export default function DashboardPage() {
   const { coopStreakDays, partyName, friends } = useSocialStore();
   const { toggleDrawer, getUnreadCount } = useNotificationStore();
 
+  const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
+
   const [quickLogModalOpen, setQuickLogModalOpen] = useState(false);
-  const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>("breakfast");
+  const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>(() => {
+    if (typeof window === "undefined") return "breakfast";
+    const hours = new Date().getHours();
+    if (hours >= 11 && hours < 15) return "lunch";
+    if (hours >= 15 && hours < 18) return "snack";
+    if (hours >= 18 || hours < 5) return "dinner";
+    return "breakfast";
+  });
   const [quickFilter, setQuickFilter] = useState<"popular" | "recent" | "frequent">("popular");
   const [selectedQuickItems, setSelectedQuickItems] = useState<(typeof FOOD_CATALOG)[0][]>([]);
-
-  useEffect(() => {
-    const hours = new Date().getHours();
-    if (hours >= 11 && hours < 15) setSelectedQuickMeal("lunch");
-    else if (hours >= 15 && hours < 18) setSelectedQuickMeal("snack");
-    else if (hours >= 18 || hours < 5) setSelectedQuickMeal("dinner");
-  }, []);
 
   const unreadCount = getUnreadCount();
   const remainingDays = Math.max(0, goalPlan.totalProjectedDays - goalPlan.currentDayNumber);
@@ -276,6 +284,9 @@ export default function DashboardPage() {
 
         {/* Right Column: Card View (Ringkasan Gizi Harian & Quick Actions) */}
         <div className="lg:col-span-7 space-y-5">
+          {/* Dashboard Mini-Calendar Strip */}
+          <DashboardCalendarStrip />
+
           {/* Circular Calorie Tracker & Macros */}
           <MacroBar />
 
@@ -298,12 +309,24 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Today's Meal Breakdown Quick List */}
+          {/* Meal Breakdown Quick List */}
           <div className="rounded-card border border-border-divider bg-surface p-6 space-y-3.5 shadow-xs">
             <div className="flex items-center justify-between pb-2 border-b border-border-divider">
-              <h3 className="text-sm font-bold text-text-primary">
-                Catatan Waktu Makan Hari Ini
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-text-primary">
+                  {isSelectedToday
+                    ? "Catatan Waktu Makan Hari Ini"
+                    : `Catatan Waktu Makan (${formatDateDisplay(selectedDate, "short")})`}
+                </h3>
+                {!isSelectedToday && (
+                  <button
+                    onClick={() => setSelectedDate(getTodayKey())}
+                    className="text-[11px] font-bold text-accent-orange-dark hover:underline bg-accent-yellow/50 px-2 py-0.5 rounded-pill"
+                  >
+                    Kembali ke Hari Ini
+                  </button>
+                )}
+              </div>
               <Link
                 href="/diary"
                 className="text-xs font-bold text-text-primary hover:underline"

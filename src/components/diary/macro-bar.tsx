@@ -1,14 +1,18 @@
 "use client";
 
 import { useFoodStore } from "@/store/use-food-store";
-import { Flame, Beef, Wheat, Droplets } from "lucide-react";
+import { Flame, Beef, Wheat, Droplets, RotateCcw } from "lucide-react";
 import { MACRO_STYLES } from "@/lib/design-tokens";
+import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 
 export function MacroBar() {
-  const { targets, getConsumed, getCaloriesRemaining } = useFoodStore();
+  const isHydrated = useHydrated();
+  const { targets, getConsumed, getCaloriesRemaining, selectedDate, setSelectedDate } = useFoodStore();
   const consumed = getConsumed();
   const caloriesRemaining = getCaloriesRemaining();
+  const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
 
   const caloriePercent = Math.min(
     100,
@@ -37,7 +41,17 @@ export function MacroBar() {
         <div>
           <div className="flex items-center gap-2 text-text-muted text-xs font-semibold uppercase tracking-wider">
             <Flame className="h-4 w-4 text-accent-green fill-accent-green" />
-            <span>Target Kalori Harian</span>
+            <span>Target Kalori {isSelectedToday ? "Harian" : formatDateDisplay(selectedDate, "short")}</span>
+            {!isSelectedToday && (
+              <button
+                onClick={() => setSelectedDate(getTodayKey())}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-pill bg-accent-yellow text-text-primary text-[10px] font-bold hover:bg-accent-green-light transition-colors normal-case"
+                title="Kembali ke Hari Ini"
+              >
+                <RotateCcw className="h-2.5 w-2.5" />
+                <span>Hari Ini</span>
+              </button>
+            )}
           </div>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-3xl font-extrabold tracking-tight text-text-primary font-heading">

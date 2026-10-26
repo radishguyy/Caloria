@@ -14,18 +14,25 @@ import {
   AlertTriangle,
   CheckCircle2,
   X,
+  Calendar,
+  RotateCcw,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
+import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 
 export default function FoodDiaryPage() {
+  const isHydrated = useHydrated();
   const {
     logs,
     removeLog,
     getConsumed,
     targets,
     goalPlan,
+    selectedDate,
+    setSelectedDate,
     latestFeedback,
     clearFeedback,
   } = useFoodStore();
@@ -33,6 +40,10 @@ export default function FoodDiaryPage() {
   const [activeFilter, setActiveFilter] = useState<MealTypeId | "all">("all");
   const consumed = getConsumed();
   const caloriesRemaining = Math.max(0, targets.calories - consumed.calories);
+
+  // Filter logs by active selected date
+  const dayLogs = logs.filter((l) => l.loggedDate === selectedDate);
+  const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
@@ -50,12 +61,32 @@ export default function FoodDiaryPage() {
               Food Diary & Meal Timeline
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-text-muted mt-1 ml-8 sm:ml-0">
-            Catatan asupan gizi harianmu untuk sarapan, makan siang, makan malam, dan camilan sehat.
-          </p>
+          <div className="flex items-center gap-2 mt-1 ml-8 sm:ml-0">
+            <span className="text-xs sm:text-sm text-text-muted">
+              {isSelectedToday ? "Catatan asupan gizi hari ini." : `Catatan: ${formatDateDisplay(selectedDate, "full")}`}
+            </span>
+            {!isSelectedToday && (
+              <button
+                onClick={() => setSelectedDate(getTodayKey())}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-accent-orange-dark bg-accent-yellow/50 hover:bg-accent-yellow px-2 py-0.5 rounded-pill transition-colors"
+                title="Kembali ke Hari Ini"
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>Hari Ini</span>
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5">
+          <Link
+            href="/diary/archive"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-text-primary text-xs font-bold transition-colors"
+          >
+            <Calendar className="h-4 w-4 text-accent-green" />
+            <span>Arsip Kalender</span>
+          </Link>
+
           <Link
             href="/diary/add"
             className="button-primary inline-flex items-center gap-2 px-5 py-2.5 text-xs"
@@ -181,11 +212,11 @@ export default function FoodDiaryPage() {
               : "text-neutral-10"
           )}
         >
-          Semua ({logs.length})
+          Semua ({dayLogs.length})
         </button>
 
         {MEAL_TYPES.map((m) => {
-          const count = logs.filter((l) => l.mealType === m.id).length;
+          const count = dayLogs.filter((l) => l.mealType === m.id).length;
           return (
             <button
               key={m.id}
@@ -209,7 +240,7 @@ export default function FoodDiaryPage() {
         {MEAL_TYPES.filter(
           (m) => activeFilter === "all" || activeFilter === m.id
         ).map((meal) => {
-          const mealLogs = logs.filter((l) => l.mealType === meal.id);
+          const mealLogs = dayLogs.filter((l) => l.mealType === meal.id);
           const mealCalories = mealLogs.reduce((sum, item) => sum + item.calories, 0);
 
           return (
