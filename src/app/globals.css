@@ -2,6 +2,71 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ── Caloria fonts ── */
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/openrunde/OpenRunde-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/openrunde/OpenRunde-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/openrunde/OpenRunde-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/openrunde/OpenRunde-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Secuela";
+  src: url("/fonts/secuela/Secuela-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Secuela";
+  src: url("/fonts/secuela/Secuela-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Secuela";
+  src: url("/fonts/secuela/Secuela-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Secuela";
+  src: url("/fonts/secuela/Secuela-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -49,38 +114,101 @@
 }
 
 :root {
+  /* ── Caloria design tokens (from caloria-design-system-agent-files) ── */
+  --color-canvas: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F8FAFC;
+  --color-text-primary: #529028;
+  --color-text-inverse: #FFFFFF;
+  --color-accent-green: #6AB04C;
+  --color-accent-green-light: #BADC58;
+  --color-accent-yellow: #F6E58D;
+  --color-accent-orange: #F0932B;
+  --color-accent-orange-dark: #CD6731;
+  --color-border-default: #D9D9D9;
+  --color-border-divider: #D1D9E2;
+  --color-text-muted: #8CA2C0;
+  --color-neutral-10: #486284;
+  --color-neutral-7: #8CA2C0;
+
+  /* Typography */
+  --font-heading: "Secuela", sans-serif;
+  --font-body: "Open Runde", sans-serif;
+  --text-h1: 60px;
+  --text-h2: 48px;
+  --text-h3: 40px;
+  --text-body: 20px;
+  --text-caption: 16px;
+  --leading-heading: 1.2;
+  --leading-body: 1.4;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Radius */
+  --radius-navigation: 14.022px;
+  --radius-button: 20px;
+  --radius-card: 33px;
+  --radius-input: 12px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-input: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-button: 0 9px 0 var(--color-text-primary);
+
+  /* Layout */
+  --page-gutter: 64px;
+  --section-gap: 96px;
+  --card-padding: 32px;
+  --card-gap: 24px;
+
+  /* ── shadcn semantic vars mapped to Caloria palette ── */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: #486284;
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: #486284;
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: #486284;
+  /* primary = Caloria green brand */
+  --primary: #529028;
+  --primary-foreground: #FFFFFF;
+  /* secondary = pale yellow surface */
+  --secondary: #F6E58D;
+  --secondary-foreground: #529028;
+  /* muted = near-white */
+  --muted: #F8FAFC;
+  --muted-foreground: #8CA2C0;
+  /* accent = light green hover */
+  --accent: #BADC58;
+  --accent-foreground: #529028;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: #D9D9D9;
+  --input: #D9D9D9;
+  --ring: #6AB04C;
+  --chart-1: #6AB04C;
+  --chart-2: #BADC58;
+  --chart-3: #F6E58D;
+  --chart-4: #F0932B;
+  --chart-5: #CD6731;
+  --radius: 0.875rem;
+  --sidebar: #F8FAFC;
+  --sidebar-foreground: #486284;
+  --sidebar-primary: #529028;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #BADC58;
+  --sidebar-accent-foreground: #529028;
+  --sidebar-border: #D1D9E2;
+  --sidebar-ring: #6AB04C;
 }
 
 .dark {
@@ -123,8 +251,71 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body);
   }
   html {
     @apply font-sans;
+  }
+  h1, h2 {
+    font-family: var(--font-heading);
+    line-height: var(--leading-heading);
+  }
+  h3, h4, h5, h6 {
+    font-family: var(--font-body);
+    line-height: var(--leading-heading);
+  }
+}
+
+/* ── Caloria component rules (from design-tokens.css) ── */
+.nav-item[aria-current="page"],
+.nav-item.is-selected {
+  background: var(--color-accent-orange);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-navigation);
+}
+
+.nav-item:hover:not([aria-current="page"]):not(.is-selected) {
+  background: var(--color-accent-green-light);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-navigation);
+}
+
+.button-primary {
+  background: var(--color-accent-green-light);
+  color: var(--color-text-primary);
+  border: 0;
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.card, .hero-card, .review-card {
+  background: var(--color-accent-yellow);
+  border-radius: var(--radius-card);
+}
+
+.input-field {
+  border: 4px solid var(--color-border-default);
+  border-radius: var(--radius-input);
+  background: var(--color-surface-subtle);
+  box-shadow: var(--shadow-input);
+  font-family: var(--font-body);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --page-gutter: 24px;
+    --section-gap: 64px;
+    --card-padding: 24px;
+    --card-gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --page-gutter: 20px;
+    --section-gap: 48px;
+    --card-padding: 20px;
   }
 }

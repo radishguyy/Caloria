@@ -1,53 +1,192 @@
-# Caloria
+# 🥑 Caloria
 
-Aplikasi web pencatat nutrisi bergamifikasi dengan Virtual Pet, Daily Missions, dan Co-op Streak.
+**Caloria** is a gamified nutrition and virtual pet companion web application built with **Next.js 16**, **TypeScript**, **Tailwind CSS v4**, **Drizzle ORM**, and **Supabase (PostgreSQL)**.
 
-## Tech stack
+Track meals, achieve macro targets, level up and evolve your virtual pet, customize cosmetics in the Plaza wardrobe, and maintain streaks with friends through social co-op groups!
 
-- Next.js 16 (App Router) + React 19
-- Tailwind CSS v4 + shadcn/ui
-- Zustand untuk state management
-- Supabase (auth) + Drizzle ORM (database)
+---
 
-## Getting started
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16 (App Router, Turbopack, React 19)
+- **Styling**: Tailwind CSS v4, Lucide Icons, Framer Motion
+- **Database & ORM**: PostgreSQL via Supabase, Drizzle ORM (`drizzle-orm/pg-core`)
+- **State Management**: Zustand (with local persistence)
+- **Authentication**: Supabase Auth (`@supabase/ssr`)
+- **Type Checking**: TypeScript 5 (Strict Mode)
+
+---
+
+## 🚀 Getting Started for Developers
+
+Follow these steps to set up the project locally.
+
+### 1. Prerequisites
+
+Make sure you have installed:
+- **Node.js**: `v20.x` or `v22.x` (LTS recommended)
+- **Package Manager**: `npm` (or `pnpm` / `bun`)
+- A **Supabase** account/project (or local PostgreSQL instance)
+
+---
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/radishguyy/Caloria.git
+cd Caloria
+```
+
+---
+
+### 3. Install Dependencies
 
 ```bash
 npm install
+```
+
+---
+
+### 4. Configure Environment Variables
+
+Create a `.env.local` file by copying the sample template:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in your configuration in `.env.local`:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Database Connection (Supabase Transaction Pooler URL or Direct PostgreSQL)
+# Recommended for Supabase pooler (Port 6543):
+DATABASE_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?sslmode=require
+
+# App URL & Cron Secret
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+CRON_SECRET=caloria_cron_secret_key_change_in_production
+```
+
+---
+
+### 5. Database Setup (Drizzle ORM + Supabase)
+
+Caloria defines 16 modular schema tables under `src/db/schema/` (User Profiles, Virtual Pets & Plaza, Foods & Diary, Social Co-op, Gamification & Badges).
+
+Generate migration files:
+```bash
+npm run db:generate
+```
+
+Push schema updates directly to your database:
+```bash
+npm run db:push
+```
+
+Or apply generated migrations:
+```bash
+npm run db:migrate
+```
+
+To inspect and manage database tables via Drizzle Studio GUI:
+```bash
+npm run db:studio
+```
+
+---
+
+### 6. Run the Development Server
+
+```bash
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Scripts
+---
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Jalankan development server |
-| `npm run build` | Build untuk production |
-| `npm run start` | Jalankan hasil build |
-| `npm run lint` | Jalankan ESLint |
-| `npm run db:generate` | Generate migrasi Drizzle |
-| `npm run db:migrate` | Jalankan migrasi |
-| `npm run db:push` | Push schema ke database |
-| `npm run db:studio` | Buka Drizzle Studio |
+## 📂 Project Architecture
 
-## Design system
+```
+caloria/
+├── drizzle/                 # Generated SQL migrations
+├── public/                  # Static assets & HTML wireframes
+├── src/
+│   ├── app/                 # Next.js App Router (pages & layouts)
+│   │   ├── (auth)/          # Authentication routes (login, register)
+│   │   ├── diary/           # Food diary & meal log workflows
+│   │   ├── fonts/           # Self-hosted typography (Open Runde & Secuela)
+│   │   ├── onboarding/      # Goal, TDEE, and user onboarding steps
+│   │   ├── pet/             # Virtual pet hub, stats, and evolution
+│   │   ├── plaza/           # Wardrobe & cosmetic store
+│   │   ├── social/          # Social hub, Co-op streak parties, and friends
+│   │   ├── globals.css      # Design tokens, themes, and CSS variables
+│   │   └── layout.tsx       # Root layout with navbar & bottom navigation
+│   ├── components/          # Reusable UI components & feature widgets
+│   ├── db/
+│   │   ├── index.ts         # Drizzle connection & client pooling
+│   │   └── schema/          # Modular Drizzle PostgreSQL schema definitions
+│   │       ├── enums.ts     # PostgreSQL enums + auth.users linkage
+│   │       ├── profiles.ts  # User profile & weight logs
+│   │       ├── pets-plaza.ts# Pet avatar & Plaza wardrobe items
+│   │       ├── nutrition.ts # Foods, food diary logs & daily summaries
+│   │       ├── social.ts    # Friendships, co-op parties, and pokes
+│   │       ├── gamification.ts # Badges, web push, and notifications
+│   │       ├── relations.ts # Table relations definitions
+│   │       └── index.ts     # Schema barrel export & inferred types
+│   ├── lib/                 # Pure utilities, calculations, and Supabase client
+│   ├── store/               # Zustand stores (diary, pet, weight, social, plaza)
+│   └── types/               # TypeScript interfaces and inferred database types
+└── drizzle.config.ts        # Drizzle Kit configuration
+```
 
-Referensi desain disimpan terpisah dari kode aplikasi:
+---
 
-- `Grand Design - Caloria (Gamified Nutrition & Virtual Pet Web App).md` — dokumen desain utama.
-- `caloria-design-system-agent-files/` — token desain (`design-tokens.css`, `design-tokens.json`) dan aturan implementasi untuk agent (`AGENTS.md`).
-- `public/wireframes/` — wireframe HTML untuk referensi layout per halaman.
+## 📜 Available Scripts
 
-## Fonts
+| Script | Command | Description |
+|---|---|---|
+| **dev** | `npm run dev` | Runs the Next.js development server with Turbopack |
+| **build** | `npm run build` | Builds the app for production |
+| **start** | `npm run start` | Starts the production server |
+| **lint** | `npm run lint` | Runs Next.js ESLint checks |
+| **db:generate** | `npm run db:generate` | Generates SQL migration files from Drizzle schema |
+| **db:push** | `npm run db:push` | Pushes the schema directly to your PostgreSQL database |
+| **db:migrate** | `npm run db:migrate` | Runs pending database migrations |
+| **db:studio** | `npm run db:studio` | Opens local Drizzle Studio database browser |
 
-Kedua font brand sudah tersedia di dalam repo dan dimuat otomatis lewat `next/font/local`.
+---
 
-| Font | Peran | File | CSS variable | Tailwind |
-| --- | --- | --- | --- | --- |
+## 🌿 Git Branch Workflow
+
+1. Always branch off `dev` for feature work (`git checkout -b feature/your-feature dev`).
+2. Test builds & types before committing (`npx tsc --noEmit && npm run build`).
+3. Merge back into `dev` after review.
+
+---
+
+## 🎨 Design System
+
+Design references live alongside the app:
+
+- `Grand Design - Caloria (Gamified Nutrition & Virtual Pet Web App).md` — main design document.
+- `caloria-design-system-agent-files/` — design tokens (`design-tokens.css`, `design-tokens.json`) and implementation rules for agents (`AGENTS.md`).
+- `public/wireframes/` — HTML wireframes for per-page layout reference.
+
+Caloria tokens are already wired into `src/app/globals.css` (colors, typography, spacing, radius, shadows) and mapped to shadcn semantic variables.
+
+## 🔤 Fonts
+
+Both brand fonts are self-hosted in `src/app/fonts/` and loaded automatically via `next/font/local` in `src/app/layout.tsx`:
+
+| Font | Role | Files | CSS variable | Tailwind |
+|---|---|---|---|---|
 | Open Runde | Body, UI, caption | `src/app/fonts/OpenRunde-{Regular,Medium,Semibold,Bold}.woff2` | `--font-open-runde` | `font-sans` |
 | Secuela | Heading (H1/H2) | `src/app/fonts/Secuela-{Regular,Medium,Bold,ExtraBold}.woff2` | `--font-secuela` | `font-heading` |
 
-Keduanya dimuat di `src/app/layout.tsx`. Gunakan `font-sans` untuk body dan `font-heading` untuk heading — tidak perlu menambahkan file font lain atau `@font-face` manual.
-
-Secuela dilisensikan under SIL Open Font License 1.1; lihat `src/app/fonts/Secuela-FONTLOG.txt`.
+Use `font-sans` for body text and `font-heading` for headings. Secuela is licensed under the SIL Open Font License 1.1; see `src/app/fonts/Secuela-FONTLOG.txt`.

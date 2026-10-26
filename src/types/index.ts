@@ -1,33 +1,78 @@
-import { InferSelectModel, InferInsertModel } from "drizzle-orm";
 import {
-  profiles,
-  pets,
-  foodLogs,
-  userStreaks,
-  coopParties,
-  coopMembers,
+  Profile,
+  NewProfile,
+  WeightLog,
+  NewWeightLog,
+  PlazaItem,
+  NewPlazaItem,
+  UserWardrobeItem,
+  NewUserWardrobeItem,
+  Pet,
+  NewPet,
+  Food,
+  NewFood,
+  FoodLog,
+  NewFoodLog,
+  DailyNutritionSummaryRecord,
+  NewDailyNutritionSummaryRecord,
+  Friendship,
+  NewFriendship,
+  CoopGroup,
+  NewCoopGroup,
+  CoopMember,
+  NewCoopMember,
+  PokeLog,
+  NewPokeLog,
+  Badge,
+  NewBadge,
+  UserBadge,
+  NewUserBadge,
+  PushSubscription,
+  NewPushSubscription,
+  NotificationRecord,
+  NewNotificationRecord,
 } from "@/db/schema";
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
 import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
-// Database Model Types
-export type Profile = InferSelectModel<typeof profiles>;
-export type NewProfile = InferInsertModel<typeof profiles>;
+// Re-export Database Model Types
+export type {
+  Profile,
+  NewProfile,
+  WeightLog,
+  NewWeightLog,
+  PlazaItem,
+  NewPlazaItem,
+  UserWardrobeItem,
+  NewUserWardrobeItem,
+  Pet,
+  NewPet,
+  Food,
+  NewFood,
+  FoodLog,
+  NewFoodLog,
+  DailyNutritionSummaryRecord,
+  NewDailyNutritionSummaryRecord,
+  Friendship,
+  NewFriendship,
+  CoopGroup,
+  NewCoopGroup,
+  CoopMember,
+  NewCoopMember,
+  PokeLog,
+  NewPokeLog,
+  Badge,
+  NewBadge,
+  UserBadge,
+  NewUserBadge,
+  PushSubscription,
+  NewPushSubscription,
+  NotificationRecord,
+  NewNotificationRecord,
+};
 
-export type Pet = InferSelectModel<typeof pets>;
-export type NewPet = InferInsertModel<typeof pets>;
-
-export type FoodLog = InferSelectModel<typeof foodLogs>;
-export type NewFoodLog = InferInsertModel<typeof foodLogs>;
-
-export type UserStreak = InferSelectModel<typeof userStreaks>;
-export type NewUserStreak = InferInsertModel<typeof userStreaks>;
-
-export type CoopParty = InferSelectModel<typeof coopParties>;
-export type NewCoopParty = InferInsertModel<typeof coopParties>;
-
-export type CoopMember = InferSelectModel<typeof coopMembers>;
-export type NewCoopMember = InferInsertModel<typeof coopMembers>;
+export type CoopParty = CoopGroup;
+export type NewCoopParty = NewCoopGroup;
 
 // Nutrition & Macro Types
 export interface MacroTargets {
@@ -82,9 +127,22 @@ export interface FoodCatalogItem {
   gramsPerUnit: number;
 }
 
-export interface ExtendedFoodLog extends FoodLog {
+export interface ExtendedFoodLog {
+  id: string;
+  userId: string;
+  name: string;
+  mealType: MealTypeId;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
   fiberG?: number;
   sugarG?: number;
+  servingSize: number;
+  servingUnit: string;
+  loggedDate: string;
+  loggedAt: Date;
+  createdAt: Date;
 }
 
 export interface DailyNutritionSummary {
