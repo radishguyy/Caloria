@@ -1,26 +1,30 @@
 {
   "name": "Caloria Design System",
-  "description": "Warm cream Calorie app palette with near-white surfaces, green actions, and orange reserved for selection and limited emphasis. Color proportions are qualitative visual guidance, not pixel-count measurements.",
+  "description": "Flat warm calorie app: near-white page canvas, one cream container surface, green primary actions, orange selection, no container borders or drop shadows. Only the primary CTA keeps hard 3D depth. Color proportions are qualitative visual guidance, not pixel-count measurements.",
   "color": {
     "canvas": {
-      "value": "#FFF6DB",
-      "type": "color"
-    },
-    "surface": {
       "value": "#FFFCF2",
       "type": "color"
     },
+    "surface": {
+      "value": "#FFF6DB",
+      "type": "color",
+      "description": "The single fill for cards, panels, banners, modals, and nested containers."
+    },
     "surface-raised": {
-      "value": "#FFFDF8",
-      "type": "color"
+      "value": "#FFF6DB",
+      "type": "color",
+      "description": "Alias of surface; do not use a lighter panel fill."
     },
     "surface-subtle": {
-      "value": "#FFF1CE",
-      "type": "color"
+      "value": "#FFF6DB",
+      "type": "color",
+      "description": "Alias of surface; do not use alternating surface shades."
     },
     "surface-sunken": {
-      "value": "#FFF1CE",
-      "type": "color"
+      "value": "#FFF6DB",
+      "type": "color",
+      "description": "Alias of surface; use canvas or warm-border for inset controls instead."
     },
     "highlight": {
       "value": "#F6E58D",
@@ -53,7 +57,7 @@
     "accent-green-light": {
       "value": "#BADC58",
       "type": "color",
-      "description": "Use for hover, secondary actions, and secondary navigation states."
+      "description": "Use for primary actions, hover, and secondary navigation states."
     },
     "brand-green-dark": {
       "value": "#4F7A2A",
@@ -77,13 +81,24 @@
       "value": "#C97A1E",
       "type": "color"
     },
+    "warm-border": {
+      "value": "#F0DFB0",
+      "type": "color",
+      "description": "Navbar/bottom-nav strokes and control-track fills only. Do not use for app container borders."
+    },
+    "warm-border-strong": {
+      "value": "#D9B879",
+      "type": "color"
+    },
     "border-default": {
       "value": "#F0DFB0",
-      "type": "color"
+      "type": "color",
+      "description": "Legacy alias; app containers, inputs, and rectilinear controls must not use borders."
     },
     "border-divider": {
       "value": "#F0DFB0",
-      "type": "color"
+      "type": "color",
+      "description": "Legacy alias; do not add divider strokes to app UI."
     },
     "border-strong": {
       "value": "#D9B879",
@@ -160,11 +175,13 @@
   "radius": {
     "navigation": {
       "value": "999px",
-      "type": "dimension"
+      "type": "dimension",
+      "description": "Pills are reserved for nav items, badges, chips, toggles, and avatars."
     },
     "button": {
       "value": "20px",
-      "type": "dimension"
+      "type": "dimension",
+      "description": "Squircle radius for action buttons and icon buttons."
     },
     "card": {
       "value": "33px",
@@ -230,56 +247,44 @@
     }
   },
   "shadow": {
-    "input": {
-      "value": "inset 0 0 0 1.5px #F0DFB0, 0 2px 0 rgba(176, 123, 75, 0.1)",
-      "type": "shadow"
-    },
     "button": {
       "value": "0 9px 0 #4F7A2A",
-      "type": "shadow"
-    },
-    "secondary-button": {
-      "value": "0 5px 0 #D9B879",
-      "type": "shadow"
-    },
-    "card": {
-      "value": "0 12px 32px rgba(176, 123, 75, 0.12)",
-      "type": "shadow"
-    },
-    "soft": {
-      "value": "0 4px 16px rgba(176, 123, 75, 0.1)",
-      "type": "shadow"
+      "type": "shadow",
+      "description": "Primary CTA only; size variants use 5px and 3px depth."
     }
   },
   "componentRules": {
-    "primaryAction": "Light green background, green-ink text, 0 9px 0 #4F7A2A shadow. Hover uses a white-to-light-green gradient. Active removes the shadow and translates 9px down.",
-    "secondaryAction": "Pale yellow background with 0 5px 0 #D9B879 shadow. Hover turns light green with green-ink text.",
-    "navigation": "Selected items use orange with ink text. Unselected hover uses light green with green-ink text. Never use orange hover.",
-    "cards": "Use surface #FFFCF2 with 1.5px #F0DFB0 borders and 33px outer radius. Nested panels use #FFF1CE with 28px radius.",
-    "inputs": "Use surface-raised #FFFDF8, 1.5px warm border, 16px radius, and green focus ring.",
-    "shape": "Apply squircle corner-shape only inside @supports (corner-shape: squircle)."
+    "primaryAction": "Light green background, green-ink text, hard green 3D shadow (9px default, 5px text-sm, 3px text-xs). Hover uses the only allowed gradient. Active removes the shadow and translates down by the depth.",
+    "secondaryAction": "Pale yellow highlight background, ink text, no border and no shadow. Hover turns light green with green-ink text.",
+    "ghostAction": "Surface background, ink text, no border and no shadow. Hover turns light green. Use for tertiary actions and modals.",
+    "iconAction": "42px squircle surface button with no border or shadow. Navbar-only CSS exception restores the existing pill outline.",
+    "navigation": "Selected items use orange with ink text. Unselected hover uses light green with green-ink text. Never use orange hover. Navbar and bottom-nav remain visually unchanged.",
+    "cards": "Every card, panel, banner, modal, and nested container uses solid surface #FFF6DB with no border, divider, ring, or shadow. Outer radius 33px; nested radius 28px.",
+    "inputs": "Borderless canvas #FFFCF2 with 16px radius and no shadow. Focus uses a soft light-green background tint, never an outline or ring.",
+    "selection": "Use orange tint (about 15% opacity) for selected cards and rows. Keep orange solid for selected nav pills and compact badges.",
+    "focus": "Non-stroke focus only: brightness change on shared page controls or a background shift on component buttons/fields.",
+    "charts": "Chart/data-visualization SVG strokes are allowed and must not be flattened with the rest of the UI.",
+    "shape": "Apply squircle corner-shape only inside @supports (corner-shape: squircle). Reserve fully rounded pills for badges, chips, toggles, avatars, and nav."
   },
   "colorUsage": {
     "estimatedVisualProportions": [
       {
-        "role": "warm cream canvas, near-white surfaces, and whitespace",
-        "target": "about 65-75%",
+        "role": "near-white canvas, warm cream surfaces, and whitespace",
+        "target": "about 68-78%",
         "colors": [
-          "#FFF6DB",
           "#FFFCF2",
-          "#FFFDF8"
+          "#FFF6DB"
         ]
       },
       {
-        "role": "sunken and highlight surfaces",
-        "target": "about 12-20%",
+        "role": "highlight chips and subtle accent panels",
+        "target": "about 8-14%",
         "colors": [
-          "#FFF1CE",
           "#F6E58D"
         ]
       },
       {
-        "role": "green family for actions, progress, and accents",
+        "role": "green family for primary actions, progress, and accents",
         "target": "about 8-12%",
         "colors": [
           "#6AB04C",
@@ -297,5 +302,28 @@
         ]
       }
     ]
+  },
+  "antiPatterns": [
+    "Do not use `bg-surface-raised`, `bg-surface-sunken`, or `bg-surface-subtle` in app code; they resolve to legacy tinted tokens. Use `bg-surface` or `bg-card`.",
+    "Do not add borders, outline strokes, or ring utilities to containers or controls (except chart SVGs and existing navbar/bottom-nav strokes).",
+    "Do not add drop shadows (`shadow-`, `drop-shadow-`) to containers, cards, buttons, or modals. Only `.btn-cta` has hard 3D depth.",
+    "Do not use gradients except the hover gradient on `.btn-cta` (`.btn-cta:hover`).",
+    "Do not use `.button-primary`. Use `.btn-cta` for primary 3D actions, `.btn-secondary` for flat highlight actions, and `.btn-ghost` for flat surface actions.",
+    "Do not override button heights or horizontal/vertical padding with custom utilities (`h-`, `py-`, `px-`). Use `text-xs` or `text-sm` size modifiers.",
+    "Do not use `rounded-full` on action buttons or filter tabs; squircles (`rounded-lg` / `rounded-2xl`) are reserved for actions/tabs, while full pills are for badges/chips/avatars/nav."
+  ],
+  "recipes": {
+    "container": "bg-surface rounded-3xl p-5 (or surface-card)",
+    "nestedCard": "bg-surface rounded-2xl p-4 (or surface-sunken)",
+    "primaryAction": "btn-cta (optionally text-xs or text-sm)",
+    "secondaryAction": "btn-secondary (optionally text-xs or text-sm)",
+    "ghostAction": "btn-ghost (optionally text-xs or text-sm)",
+    "iconButton": "btn-icon (42px squircle; no custom size utilities)",
+    "field": "field w-full px-3.5 py-2.5 text-sm font-semibold (borderless canvas fill, 16px radius)",
+    "fieldInline": "field-inline w-full text-sm font-black (transparent inline numeric field, focus tint, 16px radius)",
+    "filterTabActive": "px-3.5 py-2 rounded-lg text-xs font-bold bg-brand-orange text-ink",
+    "filterTabInactive": "px-3.5 py-2 rounded-lg text-xs font-semibold bg-card text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink",
+    "selectedCard": "bg-brand-orange/15 (15% orange tint; do not add border)",
+    "badge": "px-2.5 py-0.5 rounded-full text-xs font-bold bg-highlight text-ink"
   }
 }

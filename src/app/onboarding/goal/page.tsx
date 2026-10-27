@@ -23,7 +23,6 @@ export default function OnboardingGoalPage() {
       subtitle: "Menurunkan berat badan secara sehat, bertahap, dan terukur.",
       marginText: "-500 kkal / hari (~0.5 kg lemak per minggu)",
       icon: TrendingDown,
-      color: "border-warm-border bg-highlight/40",
       badgeText: "Populer untuk Fat Loss",
     },
     {
@@ -32,7 +31,6 @@ export default function OnboardingGoalPage() {
       subtitle: "Menambah massa otot dan berat badan dengan asupan tinggi protein & energi.",
       marginText: "+400 kkal / hari (Surplus bersih untuk hipertrofi)",
       icon: Dumbbell,
-      color: "border-warm-border bg-highlight/40",
       badgeText: "Optimal untuk Pembentukan Otot",
     },
     {
@@ -41,7 +39,6 @@ export default function OnboardingGoalPage() {
       subtitle: "Menjaga berat badan ideal dan memperbaiki komposisi gizi harian seimbang.",
       marginText: "Keseimbangan energi (TDEE seimbang)",
       icon: ShieldCheck,
-      color: "border-warm-border bg-highlight/40",
       badgeText: "Gaya Hidup & Pola Makan Sehat",
     },
   ];
@@ -82,18 +79,18 @@ export default function OnboardingGoalPage() {
               key={goal.id}
               onClick={() => setSelectedGoal(goal.id)}
               className={cn(
-                "p-5 rounded-3xl border-2 cursor-pointer transition-all flex items-start gap-4 shadow-xs",
+                "p-5 rounded-3xl  cursor-pointer transition-all flex items-start gap-4 ",
                 isSelected
-                  ? "border-brand-orange bg-highlight/60 ring-2 ring-brand-orange/20"
-                  : "border-warm-border bg-card hover:bg-brand-green-light/20"
+                  ? "bg-brand-orange/15"
+                  : "bg-card hover:bg-brand-green-light/20"
               )}
             >
               <div
                 className={cn(
                   "p-3 rounded-2xl shrink-0 mt-0.5",
                   isSelected
-                    ? "bg-brand-orange text-ink shadow-sm"
-                    : "bg-surface-sunken text-ink-muted"
+                    ? "bg-brand-orange text-ink"
+                    : "bg-brand-green/10 text-brand-green-dark"
                 )}
               >
                 <Icon className="h-6 w-6" />
@@ -104,7 +101,7 @@ export default function OnboardingGoalPage() {
                   <h3 className="text-sm sm:text-base font-bold text-ink">
                     {goal.title}
                   </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border border-warm-border bg-surface-raised text-ink-muted">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold   bg-surface text-ink-muted">
                     {goal.badgeText}
                   </span>
                 </div>

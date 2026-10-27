@@ -32,7 +32,7 @@ export function MacroBar() {
   return (
     <div className="surface-card p-5 text-ink">
       {/* Top Calorie Summary */}
-      <div className="flex flex-col justify-between gap-4 border-b border-warm-border pb-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4   pb-4 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
             <Flame className="h-4 w-4 fill-current text-brown" />
@@ -61,7 +61,7 @@ export function MacroBar() {
             </p>
           </div>
 
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-4 border-highlight">
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-full  ">
             <svg className="h-12 w-12 -rotate-90">
               <circle
                 cx="24"
@@ -93,7 +93,7 @@ export function MacroBar() {
       {/* Macronutrient Breakdown */}
       <div className="grid grid-cols-3 gap-3 pt-4">
         {/* Protein */}
-        <div className="flex flex-col gap-1.5 rounded-xl border border-brand-green/20 bg-brand-green/10 p-3">
+        <div className="flex flex-col gap-1.5 rounded-xl bg-surface p-3">
           <div className="flex items-center justify-between text-xs">
             <span className="flex items-center gap-1 font-semibold text-brand-green-dark">
               <Beef className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ export function MacroBar() {
         </div>
 
         {/* Carbs */}
-        <div className="flex flex-col gap-1.5 rounded-xl border border-warm-border bg-highlight/60 p-3">
+        <div className="flex flex-col gap-1.5 rounded-xl bg-surface p-3">
           <div className="flex items-center justify-between text-xs">
             <span className="flex items-center gap-1 font-semibold text-ink">
               <Wheat className="h-3.5 w-3.5" />
@@ -141,7 +141,7 @@ export function MacroBar() {
         </div>
 
         {/* Fat */}
-        <div className="flex flex-col gap-1.5 rounded-xl border border-brown/20 bg-brown/10 p-3">
+        <div className="flex flex-col gap-1.5 rounded-xl bg-surface p-3">
           <div className="flex items-center justify-between text-xs">
             <span className="flex items-center gap-1 font-semibold text-brown">
               <Droplets className="h-3.5 w-3.5" />
@@ -166,8 +166,8 @@ export function MacroBar() {
       </div>
 
       {/* Fiber & Sugar Micronutrient Details */}
-      <div className="mt-3 grid grid-cols-2 gap-3 border-t border-warm-border/70 pt-3 text-xs">
-        <div className="flex items-center justify-between rounded-xl bg-surface-sunken/70 px-3 py-2">
+      <div className="mt-3 grid grid-cols-2 gap-3   pt-3 text-xs">
+        <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2">
           <span className="text-ink-muted">Serat (Fiber)</span>
           <span className="font-semibold text-ink">
             {consumed.fiber}{" "}
@@ -176,7 +176,7 @@ export function MacroBar() {
             </span>
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-xl bg-surface-sunken/70 px-3 py-2">
+        <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2">
           <span className="text-ink-muted">Gula (Sugar)</span>
           <span className="font-semibold text-ink">
             {consumed.sugar}{" "}

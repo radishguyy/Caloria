@@ -44,9 +44,9 @@ export function NotificationDrawer() {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-ink/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="flex h-full w-full max-w-sm flex-col border-l border-warm-border bg-surface shadow-2xl animate-in slide-in-from-right duration-300 sm:max-w-md">
+      <div className="flex h-full w-full max-w-sm flex-col   bg-surface  animate-in slide-in-from-right duration-300 sm:max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-warm-border p-4 sm:p-5">
+        <div className="flex items-center justify-between   p-4 sm:p-5">
           <div className="flex items-center gap-2">
             <div className="rounded-2xl bg-brand-green-light p-2 text-brand-green-ink">
               <Bell className="h-5 w-5" />
@@ -67,7 +67,7 @@ export function NotificationDrawer() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold text-ink-muted transition-colors hover:bg-brand-green-light hover:text-brand-green-ink"
+                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-muted transition-colors hover:bg-brand-green-light hover:text-brand-green-ink"
                 title="Tandai semua dibaca"
               >
                 <CheckCheck className="h-4 w-4" />
@@ -76,7 +76,7 @@ export function NotificationDrawer() {
             )}
             <button
               onClick={() => setDrawerOpen(false)}
-              className="btn-icon h-9 w-9"
+              className="btn-icon"
             >
               <X className="h-5 w-5" />
             </button>
@@ -96,15 +96,15 @@ export function NotificationDrawer() {
                 key={notif.id}
                 onClick={() => markAsRead(notif.id)}
                 className={cn(
-                  "cursor-pointer space-y-1.5 rounded-2xl border p-3 transition-all",
+                  "cursor-pointer space-y-1.5 rounded-2xl  p-3 transition-all",
                   notif.isRead
-                    ? "border-transparent bg-transparent opacity-80 hover:bg-brand-green-light/60"
-                    : "border-warm-border bg-highlight/70"
+                    ? " bg-transparent opacity-80 hover:bg-brand-green-light/60"
+                    : " bg-brand-orange/10"
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-xl border border-warm-border bg-surface-raised p-1.5 shadow-xs">
+                    <div className="rounded-xl   bg-surface p-1.5 ">
                       {getIcon(notif.type)}
                     </div>
                     <h3 className="text-xs font-bold text-ink">
@@ -138,7 +138,7 @@ export function NotificationDrawer() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-warm-border bg-surface-sunken/60 p-4 text-xs">
+        <div className="flex items-center justify-between   bg-surface p-4 text-xs">
           <Link
             href="/profile/settings"
             onClick={() => setDrawerOpen(false)}
@@ -148,7 +148,7 @@ export function NotificationDrawer() {
           </Link>
           <button
             onClick={() => setDrawerOpen(false)}
-            className="btn-secondary min-h-0 px-3 py-1.5 text-xs shadow-[0_3px_0_var(--warm-border-strong)] active:translate-y-[3px]"
+            className="btn-secondary text-xs"
           >
             Tutup
           </button>

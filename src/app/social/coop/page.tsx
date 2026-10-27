@@ -115,12 +115,12 @@ export default function SocialCoopPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4  ">
         <div>
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard"
-              className="btn-icon h-9 w-9"
+              className="btn-icon"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -136,7 +136,7 @@ export default function SocialCoopPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAddFriendModalOpen(true)}
-            className="btn-cta min-h-0 inline-flex items-center gap-1.5 px-4 py-2 text-xs"
+            className="btn-cta gap-1.5 text-xs"
           >
             <UserPlus className="h-4 w-4" />
             <span>+ Tambah Teman / Party</span>
@@ -145,16 +145,16 @@ export default function SocialCoopPage() {
       </div>
 
       {/* Navigation Sub-Tabs: Co-op Streak vs Communities */}
-      <div className="flex items-center gap-2 border-b border-warm-border pb-1">
+      <div className="flex items-center gap-2   pb-1">
         <Link
           href="/social/coop"
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-orange text-ink"
+          className="rounded-lg bg-brand-orange px-4 py-2 text-xs font-bold text-ink"
         >
           Co-op Streak & Teman ({friends.length})
         </Link>
         <Link
           href="/social/communities"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:text-ink hover:bg-brand-green-light hover:text-brand-green-ink"
+          className="rounded-lg px-4 py-2 text-xs font-semibold text-ink-muted hover:text-ink hover:bg-brand-green-light hover:text-brand-green-ink"
         >
           Komunitas Misi Gizi
         </Link>
@@ -162,7 +162,7 @@ export default function SocialCoopPage() {
 
       {/* Active Poke Toast Banner */}
       {activePokeToast && (
-        <div className="p-4 rounded-2xl border bg-highlight border-warm-border text-ink flex items-center justify-between gap-3 animate-in fade-in duration-300">
+        <div className="surface-card p-4 text-ink flex items-center justify-between gap-3 animate-in fade-in duration-300">
           <div className="flex items-center gap-2.5">
             <Send className="h-5 w-5 text-brown animate-bounce" />
             <div>
@@ -180,14 +180,14 @@ export default function SocialCoopPage() {
       )}
 
       {/* 1. Hero Shared Co-op Streak Card */}
-      <section className="rounded-3xl border border-warm-border bg-gradient-to-tr from-brand-green/15 via-highlight/40 to-surface p-6 relative overflow-hidden">
+      <section className="surface-card rounded-3xl p-6 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-green to-brand-green-light text-surface-raised shadow-lg shadow-brand-green/25">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-green text-surface-raised">
               <Flame className="h-9 w-9 fill-current animate-pulse" />
             </div>
             <div className="space-y-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-green-light text-brand-green-ink border border-warm-border">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-green-light text-brand-green-ink  ">
                 Shared Co-op Streak Squad
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-ink">
@@ -212,10 +212,10 @@ export default function SocialCoopPage() {
           <div className="sm:text-right">
             <div
               className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border",
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ",
                 allMet
-                  ? "bg-brand-green-light text-brand-green-ink border-warm-border"
-                  : "border-warm-border bg-highlight text-brown"
+                  ? "bg-brand-green-light text-brand-green-ink "
+                  : " bg-highlight text-brown"
               )}
             >
               {allMet ? (
@@ -252,12 +252,12 @@ export default function SocialCoopPage() {
             {friends.map((friend) => (
               <div
                 key={friend.id}
-                className="rounded-3xl border border-warm-border bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-card"
+                className="rounded-3xl   bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 "
               >
                 <div className="flex items-start sm:items-center gap-3">
                   <div
                     className={cn(
-                      "h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center text-surface-raised font-extrabold text-base shadow-xs",
+                      "h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center text-surface-raised font-extrabold text-base ",
                       friend.avatarColor
                     )}
                   >
@@ -272,7 +272,7 @@ export default function SocialCoopPage() {
                       <span className="text-xs text-ink-muted">
                         @{friend.username}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-highlight border border-warm-border">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-highlight  ">
                         Pet Lv.{friend.petLevel} ({friend.petName})
                       </span>
                     </div>
@@ -295,14 +295,14 @@ export default function SocialCoopPage() {
                 {/* SENGGOL TEMAN Action Button */}
                 <div className="flex items-center gap-2 self-end sm:self-center">
                   {friend.dailyGoalMet ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-warm-border bg-brand-green-light px-3 py-1.5 text-xs font-semibold text-brand-green-ink">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl   bg-brand-green-light px-3 py-1.5 text-xs font-semibold text-brand-green-ink">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       <span>Sudah Makan</span>
                     </span>
                   ) : (
                     <button
                       onClick={() => handleTriggerPoke(friend.id)}
-                      className="btn-cta min-h-0 inline-flex items-center gap-1.5 px-4 py-2 text-xs"
+                      className="btn-cta gap-1.5 text-xs"
                     >
                       <Send className="h-3.5 w-3.5" />
                       <span>Senggol Teman 👋</span>
@@ -313,7 +313,7 @@ export default function SocialCoopPage() {
                   {!friend.dailyGoalMet && (
                     <button
                       onClick={() => simulateFriendLog(friend.id)}
-                      className="rounded-full border border-warm-border px-2 py-1 text-[10px] text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+                      className="rounded-lg px-2 py-1 text-[10px] text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
                       title="Simulasi teman mencatat makanan untuk testing streak"
                     >
                       Demo: Selesai
@@ -327,13 +327,13 @@ export default function SocialCoopPage() {
 
         {/* Right Column: Activity Feed & Invites */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="rounded-3xl border border-warm-border bg-card p-5 space-y-3 shadow-card">
+          <div className="rounded-3xl   bg-card p-5 space-y-3 ">
             <h3 className="text-sm font-bold text-ink flex items-center gap-1.5">
               <Bell className="h-4 w-4 text-brand-green" />
               <span>Riwayat Senggolan Squad</span>
             </h3>
 
-            <div className="divide-y divide-warm-border/70 text-xs max-h-[300px] overflow-y-auto pr-1">
+            <div className="  text-xs max-h-[300px] overflow-y-auto pr-1">
               {pokeHistory.length === 0 ? (
                 <p className="py-6 text-center text-ink-muted text-[11px]">
                   Belum ada riwayat senggolan hari ini.
@@ -355,7 +355,7 @@ export default function SocialCoopPage() {
           </div>
 
           {/* Quick Invite Link Card */}
-          <div className="rounded-3xl border border-warm-border bg-surface-sunken/70 p-5 space-y-2.5 text-xs">
+          <div className="rounded-3xl   bg-surface p-5 space-y-2.5 text-xs">
             <div className="flex items-center gap-1.5 font-bold text-ink">
               <Share2 className="h-4 w-4 text-brand-green" />
               <span>Bagikan Link Party:</span>
@@ -365,7 +365,7 @@ export default function SocialCoopPage() {
             </p>
             <button
               onClick={handleCopyInviteLink}
-              className="btn-ghost w-full py-2.5 font-semibold text-xs transition-colors flex items-center justify-center gap-2"
+              className="btn-ghost w-full font-semibold text-xs gap-2"
             >
               {copiedLink ? (
                 <>
@@ -386,8 +386,8 @@ export default function SocialCoopPage() {
       {/* [Modal] Tambah Teman (Pencarian Username, Kode ID, Salin Link) */}
       {addFriendModalOpen && (
         <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl border border-warm-border bg-card p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-warm-border">
+          <div className="w-full max-w-md rounded-3xl   bg-card p-6  space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-2  ">
               <div className="flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-brand-green" />
                 <h3 className="text-base font-bold text-ink">
@@ -407,8 +407,8 @@ export default function SocialCoopPage() {
                 className={cn(
                   "p-3 rounded-xl text-xs font-semibold",
                   statusMsg.type === "success"
-                    ? "border border-warm-border bg-brand-green-light text-brand-green-ink"
-                    : "bg-destructive/10 text-destructive border border-destructive/20"
+                    ? "  bg-brand-green-light text-brand-green-ink"
+                    : "bg-destructive/10 text-destructive  "
                 )}
               >
                 {statusMsg.text}
@@ -426,11 +426,11 @@ export default function SocialCoopPage() {
                   placeholder="misal: budi_runner"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
-                  className="field flex-1 px-3 py-2 text-xs outline-none"
+                  className="field flex-1 px-3 py-2 text-xs "
                 />
                 <button
                   type="submit"
-                  className="btn-cta min-h-0 shrink-0 px-4 py-2 text-xs"
+                  className="btn-cta shrink-0 text-xs"
                 >
                   Tambah
                 </button>
@@ -439,7 +439,7 @@ export default function SocialCoopPage() {
 
             <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-warm-border" />
+                <div className="w-full  " />
               </div>
               <div className="relative flex justify-center text-[10px] uppercase">
                 <span className="bg-card px-2 text-ink-muted">atau</span>
@@ -457,11 +457,11 @@ export default function SocialCoopPage() {
                   placeholder="misal: CAL-8829"
                   value={newPartyCode}
                   onChange={(e) => setNewPartyCode(e.target.value)}
-                  className="field flex-1 px-3 py-2 font-mono text-xs uppercase outline-none"
+                  className="field flex-1 px-3 py-2 font-mono text-xs uppercase "
                 />
                 <button
                   type="submit"
-                  className="btn-ghost min-h-0 shrink-0 px-4 py-2 text-xs"
+                  className="btn-ghost shrink-0 text-xs"
                 >
                   Gabung
                 </button>

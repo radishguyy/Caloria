@@ -63,17 +63,17 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
       {/* 1. Goal & N-Day Projection Banner */}
-      <section className="rounded-3xl border border-warm-border bg-gradient-to-r from-highlight/70 via-surface to-surface p-5 sm:p-6 relative overflow-hidden">
+      <section className="surface-card rounded-3xl p-5 sm:p-6 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-orange text-ink shadow-xs">
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-orange text-ink ">
                 Program {goalPlan.goalType}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-raised border border-warm-border text-ink">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface   text-ink">
                 BMI: {goalPlan.bmiScore} ({goalPlan.bmiCategory})
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-raised border border-warm-border text-ink-muted flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface   text-ink-muted flex items-center gap-1">
                 <Target className="h-3 w-3 text-brand-green" />
                 Target: {goalPlan.currentWeightKg} kg &rarr; {goalPlan.targetWeightKg} kg
               </span>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/onboarding/goal"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-ghost border-warm-border bg-surface-raised text-xs font-semibold transition-colors"
+              className="btn-ghost text-xs font-semibold gap-1.5"
             >
               <span>Ubah Target</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -112,9 +112,9 @@ export default function DashboardPage() {
             <span>Progres Program</span>
             <span>{progressPercent}% tercapai</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-surface-sunken overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-brand-green/15 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-brand-green-dark to-brand-green-light transition-all duration-500"
+              className="h-full bg-brand-green transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -122,9 +122,9 @@ export default function DashboardPage() {
       </section>
 
       {/* 2. Co-op Streak Alert Banner (Social Accountability) */}
-      <section className="rounded-2xl border border-warm-border bg-highlight/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <section className="surface-card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green text-surface-raised font-black shadow-[0_3px_0_var(--brand-green-dark)]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green text-surface-raised font-black ">
             <Flame className="h-6 w-6 fill-current" />
           </div>
           <div>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
             onClick={toggleDrawer}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl btn-ghost border-warm-border bg-surface-raised text-xs font-semibold"
+            className="btn-ghost text-xs gap-1.5"
           >
             <Bell className="h-3.5 w-3.5 text-brand-green" />
             <span>Notifikasi {unreadCount > 0 && `(${unreadCount})`}</span>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
 
           <Link
             href="/social/coop"
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl btn-cta text-xs font-semibold transition-transform active:scale-95"
+            className="btn-cta text-xs font-semibold gap-1.5"
           >
             <Users className="h-3.5 w-3.5" />
             <span>Buka Co-op & Senggol</span>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         {/* Left Column: Stage View (Ruang Interaktif Pet) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="surface-card rounded-3xl p-5 sm:p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-warm-border">
+            <div className="flex items-center justify-between pb-3  ">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-brand-green" />
                 <h2 className="text-sm font-bold tracking-tight text-ink">
@@ -174,7 +174,7 @@ export default function DashboardPage() {
               </div>
               <Link
                 href="/pet-customization/shop"
-                className="inline-flex items-center gap-1.5 rounded-full border border-warm-border bg-highlight px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-brand-green-light"
+                className="btn-secondary text-xs"
               >
                 <Coins className="h-3.5 w-3.5 text-brown" />
                 <span>{coins} Koin</span>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
             />
 
             {/* Pet Wardrobe Link Shortcut */}
-            <div className="mt-4 pt-4 border-t border-warm-border flex items-center justify-between text-xs">
+            <div className="mt-4 pt-4   flex items-center justify-between text-xs">
               <span className="text-ink-muted">Kustomisasi Outfit & Aksesoris</span>
               <Link
                 href="/pet-customization/wardrobe"
@@ -202,7 +202,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Pet Gamification Rules Card */}
-          <div className="rounded-2xl border border-warm-border bg-surface-sunken/70 p-4 text-xs text-ink-muted space-y-1.5">
+          <div className="rounded-2xl   bg-surface p-4 text-xs text-ink-muted space-y-1.5">
             <p className="font-semibold text-ink flex items-center gap-1.5">
               <Award className="h-4 w-4 text-brown" />
               Mekanisme Reward Gizi ke XP:
@@ -224,7 +224,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setQuickLogModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl btn-cta text-sm transition-transform active:scale-[0.98]"
+              className="btn-cta w-full text-sm gap-2"
             >
               <PlusCircle className="h-5 w-5" />
               <span>+ Quick Catat Makanan</span>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
 
             <Link
               href="/diary/add"
-              className="flex items-center justify-center gap-2 px-5 py-3.5 btn-secondary text-sm transition-colors"
+              className="btn-secondary w-full text-sm gap-2"
             >
               <Sparkles className="h-4 w-4 text-brand-green" />
               <span>Cari Katalog & Evaluasi Gizi</span>
@@ -241,7 +241,7 @@ export default function DashboardPage() {
 
           {/* Today's Meal Breakdown Quick List */}
           <div className="surface-card rounded-2xl p-5 space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-warm-border">
+            <div className="flex items-center justify-between pb-2  ">
               <h3 className="text-sm font-bold text-ink">
                 Catatan Waktu Makan Hari Ini
               </h3>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
                   <Link
                     key={meal.id}
                     href={`/diary?meal=${meal.id}`}
-                    className="p-3 rounded-xl border border-warm-border bg-surface-sunken/60 hover:bg-brand-green-light/60 transition-colors flex flex-col justify-between"
+                    className="p-3 rounded-xl   bg-surface hover:bg-brand-green-light/60 transition-colors flex flex-col justify-between"
                   >
                     <div>
                       <p className="text-xs font-semibold text-ink">
@@ -286,8 +286,8 @@ export default function DashboardPage() {
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
         <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md surface-card rounded-3xl p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-warm-border">
+          <div className="w-full max-w-md surface-card rounded-3xl p-6  space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-2  ">
               <h3 className="text-base font-bold text-ink flex items-center gap-2">
                 <PlusCircle className="h-5 w-5 text-brand-green" />
                 <span>Quick Catat Makanan</span>
@@ -310,10 +310,10 @@ export default function DashboardPage() {
                   <button
                     key={m.id}
                     onClick={() => setSelectedQuickMeal(m.id)}
-                    className={`py-1.5 px-1 rounded-xl text-xs font-medium border text-center transition-colors ${
+                    className={`py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-colors ${
                       selectedQuickMeal === m.id
-                        ? "bg-brand-orange text-ink border-brand-orange font-bold"
-                        : "bg-surface-raised text-ink-muted border-warm-border hover:bg-brand-green-light hover:text-brand-green-ink"
+                        ? "bg-brand-orange text-ink  font-bold"
+                        : "bg-surface text-ink-muted  hover:bg-brand-green-light hover:text-brand-green-ink"
                     }`}
                   >
                     {m.label}
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                   <div
                     key={food.id}
                     onClick={() => handleQuickAdd(food)}
-                    className="p-2.5 rounded-xl border border-warm-border bg-surface-raised hover:bg-brand-green-light/50 hover:border-brand-green-light cursor-pointer transition-colors flex items-center justify-between"
+                    className="p-2.5 rounded-xl   bg-surface hover:bg-brand-green-light/50  cursor-pointer transition-colors flex items-center justify-between"
                   >
                     <div>
                       <p className="text-xs font-semibold text-ink">{food.name}</p>
@@ -358,7 +358,7 @@ export default function DashboardPage() {
               </Link>
               <button
                 onClick={() => setQuickLogModalOpen(false)}
-                className="btn-ghost px-3.5 py-1.5 text-xs font-medium"
+                className="btn-ghost text-xs font-medium gap-1.5"
               >
                 Tutup
               </button>

@@ -24,19 +24,19 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* 1. Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-32 bg-gradient-to-b from-highlight/70 via-surface/60 to-canvas border-b border-warm-border">
+      <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-32 bg-canvas">
         <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Copy */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-warm-border bg-highlight text-ink text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full   bg-highlight text-ink text-xs font-semibold">
                 <Flame className="h-4 w-4 fill-current text-brown" />
                 <span>Nourish Your Body, Level Up Your Pet, Achieve Together</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-ink leading-[1.15]">
                 Pencatat Nutrisi Gamifikasi dengan{" "}
-                <span className="bg-gradient-to-r from-brand-green-dark via-brand-green to-brown bg-clip-text text-transparent">
+                <span className="text-brand-green-dark">
                   Virtual Pet
                 </span>{" "}
                 & Co-op Streak.
@@ -105,7 +105,7 @@ export default function LandingPage() {
             {/* Right Interactive Hero Preview */}
             <div className="lg:col-span-5 flex justify-center">
               <div className="w-full max-w-sm surface-card rounded-3xl p-6 relative overflow-hidden">
-                <div className="flex items-center justify-between pb-3 border-b border-warm-border">
+                <div className="flex items-center justify-between pb-3  ">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-brand-green animate-ping" />
                     <span className="text-xs font-bold">Virtual Pet Sahabat Gizi</span>
@@ -118,7 +118,7 @@ export default function LandingPage() {
                 {/* Pet Preview */}
                 <PetRenderer interactive={true} size="md" />
 
-                <div className="mt-3 p-3 rounded-2xl border border-warm-border bg-surface-sunken/70 text-xs text-ink-muted space-y-1">
+                <div className="mt-3 p-3 rounded-2xl   bg-surface text-xs text-ink-muted space-y-1">
                   <p className="font-semibold text-ink flex items-center gap-1">
                     <Zap className="h-3.5 w-3.5 text-brand-green" />
                     Misi Aktif: Program {goalPlan.goalType.toUpperCase()}
@@ -134,7 +134,7 @@ export default function LandingPage() {
       </section>
 
       {/* 2. Three Core Pillars Section */}
-      <section className="py-16 md:py-24 bg-surface/60">
+      <section className="py-16 md:py-24">
         <div className="container mx-auto max-w-6xl px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -184,7 +184,7 @@ export default function LandingPage() {
 
             {/* Pillar 3 */}
             <div className="surface-card rounded-3xl p-6 space-y-3.5">
-              <div className="h-12 w-12 rounded-2xl bg-surface-sunken text-brand-green-dark flex items-center justify-center">
+              <div className="h-12 w-12 rounded-2xl bg-surface text-brand-green-dark flex items-center justify-center">
                 <Users className="h-6 w-6" />
               </div>
               <h3 className="text-base font-bold">3. Shared Co-op Streak & Senggol Teman</h3>
@@ -205,7 +205,7 @@ export default function LandingPage() {
 
       {/* 3. CTA Banner */}
       <section className="py-16 container mx-auto max-w-5xl px-4">
-        <div className="rounded-3xl bg-gradient-to-r from-brand-green-dark to-brand-green p-8 sm:p-12 text-surface-raised shadow-[0_14px_0_var(--brand-green-dark)] text-center space-y-5">
+        <div className="rounded-3xl bg-brand-green p-8 sm:p-12 text-surface-raised text-center space-y-5">
           <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
             Siap Menemukan Teman Seperjalanan Sehatmu?
           </h2>

@@ -77,10 +77,10 @@ export default function OnboardingProjectionPage() {
       </div>
 
       {/* Projection Hero Card */}
-      <div className="rounded-3xl border border-warm-border bg-gradient-to-tr from-highlight/70 via-surface to-card p-6 sm:p-7 space-y-4 shadow-sm">
+      <div className="surface-card rounded-3xl p-6 sm:p-7 space-y-4">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-green-dark">
           <Sparkles className="h-4 w-4" />
-          <span>Hasil Proyeksi Waktu ($N$ Days)</span>
+          <span>Hasil Proyeksi Waktu ({plan.projectedDays} Hari)</span>
         </div>
 
         <div className="space-y-2">
@@ -95,7 +95,7 @@ export default function OnboardingProjectionPage() {
             <strong>{plan.dailyMarginKcal > 0 ? `+${plan.dailyMarginKcal}` : plan.dailyMarginKcal} kkal/hari</strong>:
           </p>
 
-          <div className="p-4 rounded-2xl border border-warm-border bg-surface-raised flex items-center justify-between gap-4">
+          <div className="p-4 rounded-2xl   bg-surface flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-brand-green text-surface-raised flex items-center justify-center font-bold">
                 <Calendar className="h-6 w-6" />
@@ -124,7 +124,7 @@ export default function OnboardingProjectionPage() {
       </div>
 
       {/* Recommended Daily Macronutrients Target Card */}
-      <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-4">
+      <div className="rounded-3xl   bg-card p-6  space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-ink flex items-center gap-2">
             <Flame className="h-4 w-4 fill-current text-brown" />
@@ -137,7 +137,7 @@ export default function OnboardingProjectionPage() {
 
         <div className="grid grid-cols-3 gap-3">
           {/* Protein */}
-          <div className="p-3.5 rounded-2xl border border-brand-green/20 bg-brand-green/10 text-center space-y-1">
+          <div className="p-3.5 rounded-2xl bg-surface text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-brand-green-dark">
               <Beef className="h-3.5 w-3.5" />
               <span>Protein</span>
@@ -147,7 +147,7 @@ export default function OnboardingProjectionPage() {
           </div>
 
           {/* Carbs */}
-          <div className="p-3.5 rounded-2xl border border-warm-border bg-highlight/60 text-center space-y-1">
+          <div className="p-3.5 rounded-2xl bg-surface text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-brown">
               <Wheat className="h-3.5 w-3.5" />
               <span>Karbo</span>
@@ -157,7 +157,7 @@ export default function OnboardingProjectionPage() {
           </div>
 
           {/* Fat */}
-          <div className="p-3.5 rounded-2xl border border-brown/20 bg-brown/10 text-center space-y-1">
+          <div className="p-3.5 rounded-2xl bg-surface text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-brown">
               <Droplets className="h-3.5 w-3.5" />
               <span>Lemak</span>
@@ -168,11 +168,11 @@ export default function OnboardingProjectionPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken/70">
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface">
             <span className="text-ink-muted">Target Serat:</span>
             <span className="font-bold text-ink">{plan.fiberG} gram</span>
           </div>
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken/70">
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface">
             <span className="text-ink-muted">Batas Gula:</span>
             <span className="font-bold text-ink">&lt; {plan.sugarG} gram</span>
           </div>
@@ -182,7 +182,7 @@ export default function OnboardingProjectionPage() {
       <div className="flex items-center justify-between pt-2">
         <Link
           href="/onboarding/profile-calculator"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 btn-ghost min-h-0 px-4 py-2.5 text-xs transition-colors"
+          className="btn-ghost text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Kembali</span>

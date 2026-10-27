@@ -59,7 +59,7 @@ export default function PetShopPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4  ">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-highlight text-brown">
@@ -75,23 +75,23 @@ export default function PetShopPage() {
         </div>
 
         {/* Live Coins Balance */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-warm-border bg-highlight text-ink font-bold text-sm shadow-xs self-start sm:self-auto">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl   bg-highlight text-ink font-bold text-sm  self-start sm:self-auto">
           <Coins className="h-5 w-5 text-brown animate-spin-slow" />
           <span>Saldo: {coins} Caloria Coins</span>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs: Wardrobe vs Shop */}
-      <div className="flex items-center gap-2 border-b border-warm-border pb-1">
+      <div className="flex items-center gap-2   pb-1">
         <Link
           href="/pet-customization/wardrobe"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
         >
           Wardrobe (Koleksi Milikmu)
         </Link>
         <Link
           href="/pet-customization/shop"
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-orange text-ink"
+          className="px-4 py-2 rounded-lg text-xs font-bold bg-brand-orange text-ink"
         >
           Pet Shop (Beli dengan Koin)
         </Link>
@@ -101,10 +101,10 @@ export default function PetShopPage() {
       {purchaseFeedback && (
         <div
           className={cn(
-            "p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs animate-in fade-in duration-300",
+            "surface-card rounded-2xl flex items-center justify-between gap-3 text-xs animate-in fade-in duration-300",
             purchaseFeedback.success
-              ? "bg-brand-green/10 border-brand-green/30 text-ink"
-              : "bg-destructive/10 border-destructive/30 text-destructive"
+              ? "text-ink"
+              : "text-destructive"
           )}
         >
           <div className="flex items-center gap-2">
@@ -131,10 +131,10 @@ export default function PetShopPage() {
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
             className={cn(
-              "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border",
+              "px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ",
               selectedCategory === cat.id
-                ? "bg-brand-orange text-ink border-brand-orange font-bold shadow-xs"
-                : "bg-card text-ink-muted border-warm-border hover:bg-brand-green-light hover:text-brand-green-ink"
+                ? "bg-brand-orange text-ink  font-bold "
+                : "bg-card text-ink-muted  hover:bg-brand-green-light hover:text-brand-green-ink"
             )}
           >
             {cat.label}
@@ -151,7 +151,7 @@ export default function PetShopPage() {
           return (
             <div
               key={item.id}
-              className="rounded-3xl border border-warm-border bg-card p-5 shadow-xs flex flex-col justify-between space-y-3 relative group hover:border-brand-green-light transition-colors"
+              className="rounded-3xl   bg-card p-5  flex flex-col justify-between space-y-3 relative group  transition-colors"
             >
               {isOwned && (
                 <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-green-light text-brand-green-ink">
@@ -167,7 +167,7 @@ export default function PetShopPage() {
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-warm-border/70 space-y-2.5">
+              <div className="pt-2   space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-ink-muted font-medium">Harga:</span>
                   <span className="font-extrabold text-brown flex items-center gap-1">
@@ -179,18 +179,19 @@ export default function PetShopPage() {
                 {isOwned ? (
                   <Link
                     href="/pet-customization/wardrobe"
-                    className="btn-ghost w-full py-2 text-xs text-center block font-bold"
+                    className="btn-secondary w-full text-xs font-bold"
                   >
                     Buka di Wardrobe
                   </Link>
                 ) : (
                   <button
                     onClick={() => setConfirmModalItem(item)}
+                    disabled={!canAfford}
                     className={cn(
-                      "btn-cta min-h-0 w-full py-2 text-xs shadow-[0_4px_0_var(--brand-green-dark)] active:translate-y-1 transition-transform active:scale-95 flex items-center justify-center gap-1.5",
+                      "btn-cta w-full text-xs",
                       canAfford
-                        ? "bg-brand-green-light hover:bg-brand-green text-brand-green-ink hover:text-surface-raised shadow-xs"
-                        : "bg-surface-sunken text-ink-muted cursor-not-allowed opacity-75"
+                        ? ""
+                        : "bg-surface text-ink-muted cursor-not-allowed opacity-75"
                     )}
                   >
                     <ShoppingBag className="h-3.5 w-3.5" />
@@ -206,7 +207,7 @@ export default function PetShopPage() {
       {/* [Modal] Konfirmasi Pembelian Item Kosmetik */}
       {confirmModalItem && (
         <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl border border-warm-border bg-card p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm rounded-3xl   bg-card p-6  text-center space-y-4 animate-in zoom-in-95 duration-200">
             <div className="text-4xl">{confirmModalItem.previewEmoji}</div>
 
             <div className="space-y-1">
@@ -221,7 +222,7 @@ export default function PetShopPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-3 text-xs space-y-1.5">
+            <div className="rounded-2xl   bg-surface p-3 text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-ink-muted">Saldo Koin Saat Ini:</span>
                 <span className="font-bold text-ink">{coins} Koin</span>
@@ -232,7 +233,7 @@ export default function PetShopPage() {
                   -{confirmModalItem.priceCoins} Koin
                 </span>
               </div>
-              <div className="flex justify-between border-t border-warm-border/60 pt-1 font-bold">
+              <div className="flex justify-between   pt-1 font-bold">
                 <span>Sisa Saldo Setelah Beli:</span>
                 <span className="text-brand-green-dark">
                   {coins - confirmModalItem.priceCoins} Koin
@@ -243,13 +244,13 @@ export default function PetShopPage() {
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 onClick={() => setConfirmModalItem(null)}
-                className="btn-ghost min-h-0 py-2.5 text-xs font-semibold"
+                className="btn-ghost text-xs font-semibold"
               >
                 Batal
               </button>
               <button
                 onClick={handleConfirmPurchase}
-                className="btn-cta min-h-0 py-2.5 text-xs"
+                className="btn-cta text-xs"
               >
                 Konfirmasi Beli
               </button>

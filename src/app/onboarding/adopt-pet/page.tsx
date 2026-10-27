@@ -54,10 +54,10 @@ export default function OnboardingAdoptPetPage() {
               key={spec.id}
               onClick={() => setSelectedSpecies(spec.id)}
               className={cn(
-                "p-4 rounded-3xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2.5 shadow-xs relative",
+                "p-4 rounded-3xl  cursor-pointer transition-all flex flex-col items-center text-center space-y-2.5  relative",
                 isSelected
-                  ? "border-brand-orange bg-highlight/60 ring-2 ring-brand-orange/20"
-                  : "border-warm-border bg-card hover:bg-brand-green-light/20"
+                  ? "bg-brand-orange/15"
+                  : "bg-card hover:bg-brand-green-light/20"
               )}
             >
               {isSelected && (
@@ -68,7 +68,7 @@ export default function OnboardingAdoptPetPage() {
 
               {/* Egg / Pet Avatar Preview */}
               <div
-                className="h-20 w-20 rounded-full flex items-center justify-center text-3xl shadow-md transition-transform"
+                className="h-20 w-20 rounded-full flex items-center justify-center text-3xl  transition-transform"
                 style={{ backgroundColor: `${spec.color}25` }}
               >
                 {spec.id === "flameling" ? "🔥" : spec.id === "bloomie" ? "🌱" : "💧"}
@@ -90,7 +90,7 @@ export default function OnboardingAdoptPetPage() {
       </div>
 
       {/* Pet Naming Form */}
-      <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-3.5">
+      <div className="rounded-3xl   bg-card p-6  space-y-3.5">
         <label className="text-xs font-bold text-ink flex items-center gap-1.5">
           <Heart className="h-4 w-4 text-brown" />
           <span>Beri Nama Teman Pet Kamu:</span>
@@ -101,7 +101,7 @@ export default function OnboardingAdoptPetPage() {
           onChange={(e) => setPetNickname(e.target.value)}
           placeholder="misal: Pyro, Leafy, Splash..."
           maxLength={25}
-          className="w-full field rounded-2xl px-4 py-3 text-base font-bold text-ink outline-none"
+                  className="w-full field px-4 py-3 text-base font-bold text-ink"
         />
         <p className="text-[11px] text-ink-muted">
           Pet ini akan menemani setiap waktu makan, menyemangati target protein, dan bertambah kuat seiring konsistensimu!
@@ -111,7 +111,7 @@ export default function OnboardingAdoptPetPage() {
       <div className="flex items-center justify-between pt-2">
         <Link
           href="/onboarding/projection"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 btn-ghost min-h-0 px-4 py-2.5 text-xs transition-colors"
+          className="btn-ghost text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Kembali</span>

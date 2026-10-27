@@ -83,10 +83,10 @@ export function PetRenderer({
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-2 px-3.5 py-1.5 rounded-2xl border border-warm-border bg-surface-raised shadow-md text-xs font-medium text-ink text-center max-w-xs relative"
+            className="mb-2 px-3.5 py-1.5 rounded-2xl   bg-surface  text-xs font-medium text-ink text-center max-w-xs relative"
           >
             <span>{dialogMessage}</span>
-            <div className="w-2.5 h-2.5 bg-surface-raised border-b border-r border-warm-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+            <div className="w-2.5 h-2.5 bg-surface    rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -114,7 +114,7 @@ export function PetRenderer({
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="absolute top-2 right-2 z-20 flex items-center gap-1 border border-warm-border bg-highlight text-brown px-2 py-0.5 rounded-full text-[11px] font-medium"
+            className="absolute top-2 right-2 z-20 flex items-center gap-1   bg-highlight text-brown px-2 py-0.5 rounded-full text-[11px] font-medium"
           >
             <AlertCircle className="h-3 w-3" />
             <span>Lapar!</span>
@@ -151,32 +151,18 @@ export function PetRenderer({
           />
 
           {/* SVG Character Representation */}
-          <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl">
-            <defs>
-              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={speciesInfo.color} />
-                <stop
-                  offset="100%"
-                  stopColor={species === "flameling" ? "#ea580c" : species === "bloomie" ? "#15803d" : "#0284c7"}
-                />
-              </linearGradient>
-              <radialGradient id="bellyGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#fef08a" stopOpacity="0.3" />
-              </radialGradient>
-            </defs>
-
+          <svg viewBox="0 0 200 200" className="w-full h-full ">
             {/* Shadow beneath pet */}
             <ellipse cx="100" cy="180" rx="60" ry="12" fill="currentColor" opacity="0.1" />
 
             {/* Main Body */}
             <motion.path
               d="M 100 40 C 150 40, 165 90, 160 140 C 155 175, 135 175, 100 175 C 65 175, 45 175, 40 140 C 35 90, 50 40, 100 40 Z"
-              fill="url(#bodyGrad)"
+              fill={speciesInfo.color}
             />
 
             {/* Belly highlight */}
-            <ellipse cx="100" cy="125" rx="35" ry="32" fill="url(#bellyGrad)" />
+            <ellipse cx="100" cy="125" rx="35" ry="32" fill="#FDE68A" opacity="0.55" />
 
             {/* Equipped Body Item Preview */}
             {bodyItem && !bodyItem.isDefaultFree && (
@@ -305,7 +291,7 @@ export function PetRenderer({
           </div>
           <div className="h-2 w-full rounded-full bg-warm-border overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-brand-green-dark to-brand-green transition-all duration-500"
+              className="h-full bg-brand-green transition-all duration-500"
               style={{ width: `${expPercent}%` }}
             />
           </div>
@@ -342,7 +328,7 @@ export function PetRenderer({
           </div>
           <div className="h-2 w-full rounded-full bg-warm-border overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-brand-orange to-brown transition-all duration-500"
+              className="h-full bg-brand-orange transition-all duration-500"
               style={{ width: `${happiness}%` }}
             />
           </div>
@@ -355,7 +341,7 @@ export function PetRenderer({
           <button
             onClick={() => feedPet(250)}
             disabled={animationState === "sleeping"}
-            className="flex items-center gap-1.5 px-4 py-2 bg-brand-green-light hover:bg-brand-green disabled:opacity-50 text-brand-green-ink hover:text-surface-raised rounded-xl text-xs font-bold shadow-[0_4px_0_var(--brand-green-dark)] transition-transform active:scale-95"
+            className="btn-cta text-xs gap-1.5 disabled:opacity-50"
           >
             <Utensils className="h-3.5 w-3.5" />
             <span>Beri Makan</span>
@@ -364,7 +350,7 @@ export function PetRenderer({
           <button
             onClick={handlePetClick}
             disabled={animationState === "sleeping"}
-            className="flex items-center gap-1.5 px-4 py-2 bg-highlight hover:bg-brand-green-light disabled:opacity-50 text-ink hover:text-brand-green-ink rounded-xl text-xs font-bold shadow-[0_4px_0_var(--warm-border-strong)] transition-transform active:scale-95"
+            className="btn-secondary text-xs gap-1.5 disabled:opacity-50"
           >
             <Heart className="h-3.5 w-3.5" />
             <span>Elus (+EXP)</span>
@@ -372,7 +358,7 @@ export function PetRenderer({
 
           <button
             onClick={toggleSleep}
-            className="flex items-center gap-1.5 px-3 py-2 border border-warm-border bg-surface-raised hover:bg-brand-green-light text-ink hover:text-brand-green-ink rounded-xl text-xs font-semibold transition-transform active:scale-95"
+            className="btn-ghost text-xs gap-1.5"
           >
             {animationState === "sleeping" ? (
               <>

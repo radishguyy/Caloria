@@ -1,10 +1,10 @@
 /* Caloria design tokens. Color proportions are qualitative visual guidance. */
 :root {
-  --color-canvas: #FFF6DB;
-  --color-surface: #FFFCF2;
-  --color-surface-raised: #FFFDF8;
-  --color-surface-subtle: #FFF1CE;
-  --color-surface-sunken: #FFF1CE;
+  --color-canvas: #FFFCF2;
+  --color-surface: #FFF6DB;
+  --color-surface-raised: #FFF6DB;
+  --color-surface-subtle: #FFF6DB;
+  --color-surface-sunken: #FFF6DB;
   --color-highlight: #F6E58D;
   --color-text-primary: #4E3B2A;
   --color-ink: #4E3B2A;
@@ -18,6 +18,8 @@
   --color-accent-yellow: #F6E58D;
   --color-accent-orange: #F0932B;
   --color-accent-orange-dark: #C97A1E;
+  --color-warm-border: #F0DFB0;
+  --color-warm-border-strong: #D9B879;
   --color-border-default: #F0DFB0;
   --color-border-divider: #F0DFB0;
   --color-border-strong: #D9B879;
@@ -50,13 +52,18 @@
   --radius-navigation: 999px;
   --radius-button: 20px;
   --radius-card: 33px;
+  --radius-nested-card: 28px;
   --radius-input: 16px;
   --radius-pill: 999px;
 
-  --shadow-input: inset 0 0 0 1.5px var(--color-border-default), 0 2px 0 rgba(176, 123, 75, 0.1);
+  /* Only the primary CTA uses a hard 3D shadow. */
   --shadow-button: 0 9px 0 var(--color-brand-green-dark);
-  --shadow-card: 0 12px 32px rgba(176, 123, 75, 0.12);
-  --shadow-soft: 0 4px 16px rgba(176, 123, 75, 0.1);
+  --btn-depth: 9px;
+  --btn-depth-sm: 5px;
+  --btn-depth-xs: 3px;
+  --btn-min-height: 50px;
+  --btn-min-height-sm: 42px;
+  --btn-min-height-xs: 36px;
 
   --page-gutter: 64px;
   --section-gap: 96px;
@@ -77,10 +84,9 @@
   border-radius: var(--radius-navigation);
 }
 
-.btn-cta,
-.button-primary {
+.btn-cta {
   display: inline-flex;
-  min-height: 50px;
+  min-height: var(--btn-min-height);
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -97,22 +103,35 @@
   transition: background 180ms ease, color 180ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
 
-.btn-cta:hover,
-.button-primary:hover {
+.btn-cta:hover {
   background: linear-gradient(180deg, #FFFDF4 0%, var(--color-accent-green-light) 100%);
   color: var(--color-brand-green-ink);
 }
 
-.btn-cta:active,
-.button-primary:active {
+.btn-cta:active {
   background: var(--color-accent-green-light);
   box-shadow: none;
-  transform: translateY(9px);
+  transform: translateY(var(--btn-depth));
+}
+
+.btn-cta:focus-visible {
+  background: var(--color-highlight);
+  color: var(--color-brand-green-ink);
+  outline: none;
+}
+
+.btn-cta:disabled,
+.btn-cta[aria-disabled="true"] {
+  background: var(--color-warm-border);
+  box-shadow: none;
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn-secondary {
   display: inline-flex;
-  min-height: 46px;
+  min-height: var(--btn-min-height);
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -120,56 +139,99 @@
   color: var(--color-ink);
   border: 0;
   border-radius: var(--radius-button);
-  box-shadow: 0 5px 0 var(--color-border-strong);
+  box-shadow: none;
   padding: 10.4px 20px;
   font-family: var(--font-body);
   font-weight: 700;
   line-height: 1.1;
   cursor: pointer;
-  transition: background 180ms ease, color 180ms ease, box-shadow 120ms ease, transform 120ms ease;
+  transition: background 180ms ease, color 180ms ease;
 }
 
 .btn-secondary:hover {
   background: var(--color-accent-green-light);
   color: var(--color-brand-green-ink);
-  box-shadow: 0 5px 0 var(--color-brand-green-dark);
 }
 
 .btn-secondary:active {
-  box-shadow: none;
-  transform: translateY(5px);
+  background: var(--color-accent-orange);
+}
+
+.btn-secondary:focus-visible {
+  background: var(--color-accent-orange);
+  outline: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  min-height: var(--btn-min-height);
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding: 9.6px 17.6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  background: var(--color-accent-green-light);
+  color: var(--color-brand-green-ink);
+  outline: none;
+}
+
+.btn-ghost:active {
+  background: var(--color-accent-green);
+  color: #F7FFE8;
+}
+
+.btn-cta.text-xs,
+.btn-secondary.text-xs,
+.btn-ghost.text-xs {
+  --btn-depth: var(--btn-depth-xs);
+  --btn-min-height: var(--btn-min-height-xs);
+  padding: 7.2px 13.6px;
+}
+
+.btn-cta.text-sm,
+.btn-secondary.text-sm,
+.btn-ghost.text-sm {
+  --btn-depth: var(--btn-depth-sm);
+  --btn-min-height: var(--btn-min-height-sm);
+  padding: 9.6px 18.4px;
 }
 
 .surface-card,
+.surface-sunken,
+.surface-raised,
 .card,
 .hero-card,
 .review-card {
   background: var(--color-surface);
-  border: 1.5px solid var(--color-border-default);
+  border: 0;
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
-.surface-sunken {
-  background: var(--color-surface-sunken);
-  border: 1.5px solid var(--color-border-default);
-  border-radius: 28px;
-}
-
+.surface-sunken,
 .surface-raised {
-  background: var(--color-surface-raised);
-  border: 1.5px solid var(--color-border-default);
-  border-radius: 28px;
-  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius-nested-card);
 }
 
 .field,
 .input-field {
-  border: 1.5px solid var(--color-border-default);
+  border: 0;
   border-radius: var(--radius-input);
-  background: var(--color-surface-raised);
+  background: var(--color-canvas);
   color: var(--color-ink);
-  box-shadow: var(--shadow-input);
+  box-shadow: none;
   font-family: var(--font-body);
 }
 
@@ -177,33 +239,8 @@
 .field:focus-within,
 .input-field:focus,
 .input-field:focus-within {
-  border-color: var(--color-accent-green);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-green) 22%, transparent);
+  background: color-mix(in srgb, var(--color-accent-green-light) 18%, var(--color-canvas));
   outline: none;
-}
-
-.btn-ghost {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1.5px solid var(--color-border-default);
-  border-radius: var(--radius-button);
-  background: var(--color-surface-raised);
-  color: var(--color-ink);
-  padding: 9.6px 17.6px;
-  font-family: var(--font-body);
-  font-weight: 600;
-  line-height: 1.1;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
-}
-
-.btn-ghost:hover {
-  background: var(--color-accent-green-light);
-  border-color: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
 }
 
 .btn-icon {
@@ -212,32 +249,42 @@
   width: 42px;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--color-border-default);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-raised);
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--color-surface);
   color: var(--color-ink);
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition: background 160ms ease, color 160ms ease;
 }
 
-.btn-icon:hover {
+.btn-icon:hover,
+.btn-icon:focus-visible {
   background: var(--color-accent-green-light);
-  border-color: var(--color-accent-green-light);
   color: var(--color-brand-green-ink);
+  outline: none;
 }
 
 .btn-icon[aria-pressed="true"],
 .btn-icon.is-selected {
   background: var(--color-accent-orange);
-  border-color: var(--color-accent-orange);
   color: var(--color-ink);
+}
+
+/* Navbar-only exception: the shared icon button keeps its pill outline there. */
+header .btn-icon {
+  border: 1.5px solid var(--color-warm-border);
+  border-radius: var(--radius-pill);
+}
+
+header .btn-icon:hover {
+  border-color: var(--color-accent-green-light);
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1.5px solid var(--color-border-default);
+  border: 0;
   border-radius: var(--radius-pill);
   background: var(--color-highlight);
   color: var(--color-ink);
@@ -273,7 +320,9 @@
   .btn-cta,
   .btn-secondary,
   .btn-ghost,
+  .btn-icon,
   .field,
+  .field-inline,
   .card,
   .hero-card,
   .review-card {
@@ -289,6 +338,7 @@
     --card-gap: 16px;
   }
 }
+
 @media (max-width: 480px) {
   :root {
     --page-gutter: 20px;

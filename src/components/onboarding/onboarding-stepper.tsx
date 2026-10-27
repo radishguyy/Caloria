@@ -37,12 +37,12 @@ export function OnboardingStepper({ currentStep }: OnboardingStepperProps) {
             <div key={step.number} className="flex flex-col items-center gap-1.5 z-10 bg-canvas px-1">
               <div
                 className={cn(
-                  "h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs",
+                  "h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold transition-all",
                   isDone
                     ? "bg-brand-green text-surface-raised"
                     : isCurrent
-                    ? "bg-brand-green text-surface-raised ring-4 ring-brand-green/20"
-                    : "border border-warm-border bg-surface-sunken text-ink-muted"
+                    ? "bg-brand-green text-surface-raised"
+                    : "bg-surface text-ink-muted"
                 )}
               >
                 {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}

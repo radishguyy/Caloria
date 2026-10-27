@@ -75,7 +75,7 @@ export default function OnboardingProfileCalculatorPage() {
         </p>
       </div>
 
-      <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-5">
+      <div className="rounded-3xl   bg-card p-6  space-y-5">
         {/* Gender Selection */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-ink-muted">
@@ -86,10 +86,10 @@ export default function OnboardingProfileCalculatorPage() {
               type="button"
               onClick={() => setGender("male")}
               className={cn(
-                "py-2.5 px-4 rounded-2xl border text-xs font-bold transition-colors",
+                "py-2.5 px-4 rounded-2xl  text-xs font-bold transition-colors",
                 gender === "male"
-                  ? "bg-brand-orange text-ink border-brand-orange shadow-sm"
-                  : "bg-surface-raised border-warm-border text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+                  ? "bg-brand-orange text-ink  "
+                  : "bg-surface  text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
               )}
             >
               Laki-Laki
@@ -98,10 +98,10 @@ export default function OnboardingProfileCalculatorPage() {
               type="button"
               onClick={() => setGender("female")}
               className={cn(
-                "py-2.5 px-4 rounded-2xl border text-xs font-bold transition-colors",
+                "py-2.5 px-4 rounded-2xl  text-xs font-bold transition-colors",
                 gender === "female"
-                  ? "bg-brand-orange text-ink border-brand-orange shadow-sm"
-                  : "bg-surface-raised border-warm-border text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+                  ? "bg-brand-orange text-ink  "
+                  : "bg-surface  text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
               )}
             >
               Perempuan
@@ -121,7 +121,7 @@ export default function OnboardingProfileCalculatorPage() {
               max="100"
               value={age}
               onChange={(e) => setAge(parseInt(e.target.value) || 20)}
-              className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
+              className="mt-1 w-full field px-3.5 py-2.5 text-sm font-semibold"
             />
           </div>
 
@@ -135,7 +135,7 @@ export default function OnboardingProfileCalculatorPage() {
               max="250"
               value={heightCm}
               onChange={(e) => setHeightCm(parseInt(e.target.value) || 160)}
-              className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
+              className="mt-1 w-full field px-3.5 py-2.5 text-sm font-semibold"
             />
           </div>
 
@@ -150,7 +150,7 @@ export default function OnboardingProfileCalculatorPage() {
               max="250"
               value={currentWeightKg}
               onChange={(e) => setCurrentWeightKg(parseFloat(e.target.value) || 60)}
-              className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
+              className="mt-1 w-full field px-3.5 py-2.5 text-sm font-semibold"
             />
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function OnboardingProfileCalculatorPage() {
             max="250"
             value={targetWeightKg}
             onChange={(e) => setTargetWeightKg(parseFloat(e.target.value) || 60)}
-            className="mt-1 w-full field rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none"
+            className="mt-1 w-full field px-3.5 py-2.5 text-sm font-semibold"
           />
         </div>
 
@@ -188,10 +188,10 @@ export default function OnboardingProfileCalculatorPage() {
                 type="button"
                 onClick={() => setActivityLevel(levelKey)}
                 className={cn(
-                  "w-full text-left p-3 rounded-2xl border text-xs transition-colors flex items-center justify-between",
+                  "w-full text-left p-3 rounded-2xl  text-xs transition-colors flex items-center justify-between",
                   activityLevel === levelKey
-                    ? "border-brand-orange bg-highlight/60 text-ink font-bold"
-                    : "border-warm-border bg-surface-raised text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+                    ? "bg-brand-orange/15 text-ink font-bold"
+                    : "bg-surface text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
                 )}
               >
                 <span>{ACTIVITY_MULTIPLIERS[levelKey].label}</span>
@@ -204,14 +204,14 @@ export default function OnboardingProfileCalculatorPage() {
         </div>
 
         {/* Live BMI & TDEE Result Card */}
-        <div className="rounded-2xl border border-warm-border bg-highlight/50 p-4 space-y-2">
+        <div className="rounded-2xl bg-surface p-4 space-y-2">
           <div className="flex items-center gap-2 text-xs font-bold text-brand-green-dark uppercase tracking-wider">
             <Calculator className="h-4 w-4" />
             <span>Hasil Analisis Profil Fisik:</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center pt-1">
-            <div className="p-2.5 rounded-xl border border-warm-border bg-surface-raised shadow-xs">
+            <div className="p-2.5 rounded-xl   bg-surface ">
               <span className="text-[10px] text-ink-muted">Skor BMI</span>
               <p className="text-base font-extrabold text-ink">{bmiAnalysis.score}</p>
               <span
@@ -228,13 +228,13 @@ export default function OnboardingProfileCalculatorPage() {
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl border border-warm-border bg-surface-raised shadow-xs">
+            <div className="p-2.5 rounded-xl   bg-surface ">
               <span className="text-[10px] text-ink-muted">BMR Alami</span>
               <p className="text-base font-extrabold text-ink">{bmr}</p>
               <span className="text-[10px] text-ink-muted">kkal / hari</span>
             </div>
 
-            <div className="p-2.5 rounded-xl border border-warm-border bg-surface-raised shadow-xs">
+            <div className="p-2.5 rounded-xl   bg-surface ">
               <span className="text-[10px] text-ink-muted">TDEE Total</span>
               <p className="text-base font-extrabold text-brand-green-dark">
                 {tdee}
@@ -248,7 +248,7 @@ export default function OnboardingProfileCalculatorPage() {
       <div className="flex items-center justify-between pt-2">
         <Link
           href="/onboarding/goal"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 btn-ghost min-h-0 px-4 py-2.5 text-xs transition-colors"
+          className="btn-ghost text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Kembali</span>

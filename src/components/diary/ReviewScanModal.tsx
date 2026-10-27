@@ -176,9 +176,9 @@ export function ReviewScanModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-xl rounded-3xl border border-warm-border bg-card shadow-2xl overflow-hidden my-8 animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-xl rounded-3xl   bg-card  overflow-hidden my-8 animate-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-warm-border bg-surface-sunken/50">
+        <div className="flex items-center justify-between px-6 py-4   bg-surface">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-2xl bg-brand-green-light text-brand-green-ink flex items-center justify-center">
               <Sparkles className="h-5 w-5" />
@@ -197,7 +197,7 @@ export function ReviewScanModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="btn-icon h-9 w-9 transition-colors"
+            className="btn-icon transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -207,7 +207,7 @@ export function ReviewScanModal({
           {/* Top Row: Thumbnail Preview & Basic Food Identity */}
           <div className="flex flex-col sm:flex-row gap-4 items-start">
             {/* Compact Thumbnail Preview */}
-            <div className="relative w-full sm:w-28 h-28 rounded-2xl border border-warm-border overflow-hidden bg-surface-sunken shrink-0 group">
+            <div className="relative w-full sm:w-28 h-28 rounded-2xl   overflow-hidden bg-surface shrink-0 group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imagePreviewUrl}
@@ -234,7 +234,7 @@ export function ReviewScanModal({
                   onChange={(e) => setFoodName(e.target.value)}
                   required
                   placeholder="Contoh: Susu UHT Full Cream"
-                  className="w-full rounded-xl field border-0 bg-transparent px-3.5 py-2 text-xs font-bold text-ink outline-none "
+                  className="w-full field px-3.5 py-2 text-xs font-bold text-ink"
                 />
               </div>
 
@@ -250,7 +250,7 @@ export function ReviewScanModal({
                     value={servingSize}
                     onChange={(e) => setServingSize(e.target.value)}
                     placeholder="30"
-                    className="w-full rounded-xl field border-0 bg-transparent px-3 py-2 text-xs font-bold text-ink outline-none "
+                    className="w-full field px-3 py-2 text-xs font-bold text-ink"
                   />
                 </div>
                 <div>
@@ -262,7 +262,7 @@ export function ReviewScanModal({
                     value={servingUnit}
                     onChange={(e) => setServingUnit(e.target.value)}
                     placeholder="g / ml / pcs"
-                    className="w-full rounded-xl field border-0 bg-transparent px-3 py-2 text-xs font-bold text-ink outline-none "
+                    className="w-full field px-3 py-2 text-xs font-bold text-ink"
                   />
                 </div>
               </div>
@@ -270,7 +270,7 @@ export function ReviewScanModal({
           </div>
 
           {/* Servings Consumed Multiplier Stepper */}
-          <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-3.5 flex items-center justify-between gap-4">
+          <div className="rounded-2xl   bg-surface p-3.5 flex items-center justify-between gap-4">
             <div>
               <span className="text-xs font-extrabold text-ink block">
                 Jumlah Porsi Dikonsumsi
@@ -287,7 +287,7 @@ export function ReviewScanModal({
               <button
                 type="button"
                 onClick={() => handleAdjustServings(-0.25)}
-                className="h-8 w-8 rounded-xl border border-warm-border bg-surface-raised hover:bg-brand-green-light hover:text-brand-green-ink flex items-center justify-center text-ink transition-colors"
+                className="h-8 w-8 rounded-xl   bg-surface hover:bg-brand-green-light hover:text-brand-green-ink flex items-center justify-center text-ink transition-colors"
               >
                 <Minus className="h-3.5 w-3.5" />
               </button>
@@ -303,12 +303,12 @@ export function ReviewScanModal({
                     setServingsConsumed(val);
                   }
                 }}
-                className="w-16 text-center rounded-xl field border-0 bg-transparent py-1.5 text-xs font-extrabold text-ink outline-none "
+                className="field-inline w-16 text-center py-1.5 text-xs font-extrabold text-ink"
               />
               <button
                 type="button"
                 onClick={() => handleAdjustServings(0.25)}
-                className="h-8 w-8 rounded-xl border border-warm-border bg-surface-raised hover:bg-brand-green-light hover:text-brand-green-ink flex items-center justify-center text-ink transition-colors"
+                className="h-8 w-8 rounded-xl   bg-surface hover:bg-brand-green-light hover:text-brand-green-ink flex items-center justify-center text-ink transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>
@@ -331,7 +331,7 @@ export function ReviewScanModal({
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {/* Calories */}
-              <div className="rounded-2xl border border-warm-border bg-surface-raised p-2.5">
+              <div className="rounded-2xl   bg-surface p-2.5">
                 <label className="flex items-center gap-1 text-[10px] font-bold text-brand-green-dark uppercase mb-1">
                   <Flame className="h-3 w-3" /> Kalori (kcal)
                 </label>
@@ -341,12 +341,12 @@ export function ReviewScanModal({
                   min="0"
                   value={caloriesKcal}
                   onChange={(e) => setCaloriesKcal(e.target.value)}
-                  className="w-full bg-transparent text-sm font-black text-ink outline-none"
+                  className="field-inline w-full text-sm font-black text-ink"
                 />
               </div>
 
               {/* Protein */}
-              <div className="rounded-2xl border border-warm-border bg-surface-raised p-2.5">
+              <div className="rounded-2xl   bg-surface p-2.5">
                 <label className="flex items-center gap-1 text-[10px] font-bold text-brand-green-dark uppercase mb-1">
                   <Beef className="h-3 w-3" /> Protein (g)
                 </label>
@@ -356,12 +356,12 @@ export function ReviewScanModal({
                   min="0"
                   value={proteinG}
                   onChange={(e) => setProteinG(e.target.value)}
-                  className="w-full bg-transparent text-sm font-black text-ink outline-none"
+                  className="field-inline w-full text-sm font-black text-ink"
                 />
               </div>
 
               {/* Carbs */}
-              <div className="rounded-2xl border border-warm-border bg-surface-raised p-2.5">
+              <div className="rounded-2xl   bg-surface p-2.5">
                 <label className="flex items-center gap-1 text-[10px] font-bold text-brown uppercase mb-1">
                   <Wheat className="h-3 w-3" /> Karbohidrat (g)
                 </label>
@@ -371,12 +371,12 @@ export function ReviewScanModal({
                   min="0"
                   value={carbsG}
                   onChange={(e) => setCarbsG(e.target.value)}
-                  className="w-full bg-transparent text-sm font-black text-ink outline-none"
+                  className="field-inline w-full text-sm font-black text-ink"
                 />
               </div>
 
               {/* Fat */}
-              <div className="rounded-2xl border border-warm-border bg-surface-raised p-2.5">
+              <div className="rounded-2xl   bg-surface p-2.5">
                 <label className="flex items-center gap-1 text-[10px] font-bold text-brand-orange uppercase mb-1">
                   <Droplets className="h-3 w-3" /> Lemak Total (g)
                 </label>
@@ -386,12 +386,12 @@ export function ReviewScanModal({
                   min="0"
                   value={fatG}
                   onChange={(e) => setFatG(e.target.value)}
-                  className="w-full bg-transparent text-sm font-black text-ink outline-none"
+                  className="field-inline w-full text-sm font-black text-ink"
                 />
               </div>
 
               {/* Fiber */}
-              <div className="rounded-2xl border border-warm-border bg-surface-raised p-2.5">
+              <div className="rounded-2xl   bg-surface p-2.5">
                 <label className="block text-[10px] font-bold text-brand-green-dark uppercase mb-1">
                   Serat Pangan (g)
                 </label>
@@ -401,12 +401,12 @@ export function ReviewScanModal({
                   min="0"
                   value={fiberG}
                   onChange={(e) => setFiberG(e.target.value)}
-                  className="w-full bg-transparent text-sm font-black text-ink outline-none"
+                  className="field-inline w-full text-sm font-black text-ink"
                 />
               </div>
 
               {/* Sugar */}
-              <div className="rounded-2xl border border-warm-border bg-surface-raised p-2.5">
+              <div className="rounded-2xl   bg-surface p-2.5">
                 <label className="block text-[10px] font-bold text-brown uppercase mb-1">
                   Gula Total (g)
                 </label>
@@ -416,14 +416,14 @@ export function ReviewScanModal({
                   min="0"
                   value={sugarG}
                   onChange={(e) => setSugarG(e.target.value)}
-                  className="w-full bg-transparent text-sm font-black text-ink outline-none"
+                  className="field-inline w-full text-sm font-black text-ink"
                 />
               </div>
             </div>
           </div>
 
           {/* Real-Time Dynamic Recalculation Summary Badge */}
-          <div className="rounded-2xl border border-warm-border bg-gradient-to-r from-highlight/70 via-surface to-surface-sunken p-4 space-y-2.5">
+          <div className="rounded-2xl bg-surface p-4 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-ink">
                 Total Asupan ({servingsConsumed}x Porsi)
@@ -433,7 +433,7 @@ export function ReviewScanModal({
               </span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 pt-1 border-t border-warm-border text-center text-xs">
+            <div className="grid grid-cols-4 gap-2 pt-1   text-center text-xs">
               <div>
                 <span className="text-[10px] text-ink-muted block">
                   Protein
@@ -470,7 +470,7 @@ export function ReviewScanModal({
           </div>
 
           {/* Save to Custom Food Catalog Checkbox */}
-          <label className="flex items-center gap-3 p-3 rounded-2xl border border-warm-border bg-surface-sunken/60 cursor-pointer hover:bg-brand-green-light/40 transition-colors">
+          <label className="flex items-center gap-3 p-3 rounded-2xl   bg-surface cursor-pointer hover:bg-brand-green-light/40 transition-colors">
             <input
               type="checkbox"
               checked={saveToCatalog}
@@ -481,7 +481,7 @@ export function ReviewScanModal({
               <BookmarkPlus className="h-4 w-4 text-brand-green shrink-0" />
               <span className="font-semibold text-ink">
                 Simpan ke katalog makanan kustom (tabel{" "}
-                <code className="text-[11px] px-1 py-0.5 rounded bg-surface-sunken">
+                <code className="text-[11px] px-1 py-0.5 rounded bg-surface">
                   foods
                 </code>
                 ) untuk digunakan kembali nanti
@@ -490,7 +490,7 @@ export function ReviewScanModal({
           </label>
 
           {submitError && (
-            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-xs text-destructive font-medium">
+            <div className="p-3 rounded-xl bg-destructive/10   text-xs text-destructive font-medium">
               {submitError}
             </div>
           )}
@@ -501,7 +501,7 @@ export function ReviewScanModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 rounded-2xl border border-warm-border bg-surface-raised hover:bg-brand-green-light hover:text-brand-green-ink text-xs font-bold text-ink-muted hover:text-ink transition-colors"
+              className="btn-ghost text-xs"
             >
               Batal
             </button>
@@ -510,7 +510,7 @@ export function ReviewScanModal({
               type="submit"
               disabled={isSubmitting}
               className={cn(
-                "px-5 py-2.5 rounded-2xl btn-cta min-h-0 px-5 py-2.5 text-xs font-extrabold flex items-center gap-2 transition-transform active:scale-95",
+                "btn-cta text-xs font-extrabold gap-2",
                 isSubmitting && "opacity-75 cursor-not-allowed"
               )}
             >

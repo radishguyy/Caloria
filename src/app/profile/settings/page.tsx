@@ -47,12 +47,12 @@ export default function ProfileSettingsPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4  ">
         <div>
           <div className="flex items-center gap-2">
             <Link
               href="/profile/overview"
-              className="btn-icon h-9 w-9"
+              className="btn-icon"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -74,22 +74,22 @@ export default function ProfileSettingsPage() {
       </div>
 
       {/* Sub-Tabs: Overview vs Achievements vs Settings */}
-      <div className="flex items-center gap-2 border-b border-warm-border pb-1">
+      <div className="flex items-center gap-2   pb-1">
         <Link
           href="/profile/overview"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
         >
           Overview & Berat Badan
         </Link>
         <Link
           href="/profile/achievements"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
         >
           Galeri Achievement
         </Link>
         <Link
           href="/profile/settings"
-          className="rounded-full bg-brand-orange px-4 py-2 text-xs font-bold text-ink"
+          className="rounded-lg bg-brand-orange px-4 py-2 text-xs font-bold text-ink"
         >
           Pengaturan Notifikasi
         </Link>
@@ -97,7 +97,7 @@ export default function ProfileSettingsPage() {
 
       <div className="space-y-5">
         {/* Web Push Notification Toggle Card */}
-        <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-4">
+        <div className="rounded-3xl   bg-card p-6  space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <h3 className="text-sm font-bold text-ink flex items-center gap-2">
@@ -112,13 +112,13 @@ export default function ProfileSettingsPage() {
             <button
               onClick={() => handleToggle("webPushEnabled")}
               className={cn(
-                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
-                settings.webPushEnabled ? "bg-brand-green" : "bg-surface-sunken"
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full   transition-colors duration-200 ease-in-out ",
+                settings.webPushEnabled ? "bg-brand-green" : "bg-warm-border"
               )}
             >
               <span
                 className={cn(
-                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface-raised shadow-lg ring-0 transition duration-200 ease-in-out",
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface transition duration-200 ease-in-out",
                   settings.webPushEnabled ? "translate-x-5" : "translate-x-0"
                 )}
               />
@@ -127,7 +127,7 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* Scheduled Reminders */}
-        <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-5">
+        <div className="rounded-3xl   bg-card p-6  space-y-5">
           <h3 className="text-sm font-bold text-ink flex items-center gap-2">
             <Clock className="h-4 w-4 text-brand-green" />
             <span>Jadwal Pengingat Jam Makan</span>
@@ -135,7 +135,7 @@ export default function ProfileSettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             {/* Breakfast */}
-            <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-4 space-y-2">
+            <div className="rounded-2xl   bg-surface p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-ink">Sarapan</span>
                 <span className="text-[10px] text-ink-muted">Pagi</span>
@@ -144,12 +144,12 @@ export default function ProfileSettingsPage() {
                 type="time"
                 value={settings.breakfastTime}
                 onChange={(e) => handleTimeChange("breakfastTime", e.target.value)}
-                className="w-full field rounded-xl px-3 py-1.5 text-xs font-semibold outline-none"
+                className="w-full field px-3 py-1.5 text-xs font-semibold"
               />
             </div>
 
             {/* Lunch */}
-            <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-4 space-y-2">
+            <div className="rounded-2xl   bg-surface p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-ink">Makan Siang</span>
                 <span className="text-[10px] text-ink-muted">Siang</span>
@@ -158,12 +158,12 @@ export default function ProfileSettingsPage() {
                 type="time"
                 value={settings.lunchTime}
                 onChange={(e) => handleTimeChange("lunchTime", e.target.value)}
-                className="w-full field rounded-xl px-3 py-1.5 text-xs font-semibold outline-none"
+                className="w-full field px-3 py-1.5 text-xs font-semibold"
               />
             </div>
 
             {/* Dinner */}
-            <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-4 space-y-2">
+            <div className="rounded-2xl   bg-surface p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-ink">Makan Malam</span>
                 <span className="text-[10px] text-ink-muted">Malam</span>
@@ -172,20 +172,20 @@ export default function ProfileSettingsPage() {
                 type="time"
                 value={settings.dinnerTime}
                 onChange={(e) => handleTimeChange("dinnerTime", e.target.value)}
-                className="w-full field rounded-xl px-3 py-1.5 text-xs font-semibold outline-none"
+                className="w-full field px-3 py-1.5 text-xs font-semibold"
               />
             </div>
           </div>
         </div>
 
         {/* Social & Streak Reminder Toggles */}
-        <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-4">
+        <div className="rounded-3xl   bg-card p-6  space-y-4">
           <h3 className="text-sm font-bold text-ink flex items-center gap-2">
             <Bell className="h-4 w-4 text-brand-green" />
             <span>Preferensi Notifikasi Lainnya</span>
           </h3>
 
-          <div className="divide-y divide-warm-border/70 text-xs">
+          <div className="  text-xs">
             <div className="py-3 flex items-center justify-between gap-4">
               <div>
                 <p className="font-bold text-ink">Alert Senggolan Teman (Poke Nudge)</p>
@@ -196,13 +196,13 @@ export default function ProfileSettingsPage() {
               <button
                 onClick={() => handleToggle("friendPokes")}
                 className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
-                  settings.friendPokes ? "bg-brand-green" : "bg-surface-sunken"
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full   transition-colors duration-200 ease-in-out",
+                  settings.friendPokes ? "bg-brand-green" : "bg-warm-border"
                 )}
               >
                 <span
                   className={cn(
-                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface-raised shadow-lg ring-0 transition duration-200 ease-in-out",
+                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface transition duration-200 ease-in-out",
                     settings.friendPokes ? "translate-x-5" : "translate-x-0"
                   )}
                 />
@@ -219,13 +219,13 @@ export default function ProfileSettingsPage() {
               <button
                 onClick={() => handleToggle("nutritionEvaluations")}
                 className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
-                  settings.nutritionEvaluations ? "bg-brand-green" : "bg-surface-sunken"
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full   transition-colors duration-200 ease-in-out",
+                  settings.nutritionEvaluations ? "bg-brand-green" : "bg-warm-border"
                 )}
               >
                 <span
                   className={cn(
-                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface-raised shadow-lg ring-0 transition duration-200 ease-in-out",
+                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface transition duration-200 ease-in-out",
                     settings.nutritionEvaluations ? "translate-x-5" : "translate-x-0"
                   )}
                 />
@@ -235,13 +235,13 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* Account Information & Logout */}
-        <div className="rounded-3xl border border-warm-border bg-card p-6 shadow-card space-y-4">
+        <div className="rounded-3xl   bg-card p-6  space-y-4">
           <h3 className="text-sm font-bold text-ink flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-brand-green" />
             <span>Informasi Akun</span>
           </h3>
 
-          <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-4 text-xs space-y-2">
+          <div className="rounded-2xl   bg-surface p-4 text-xs space-y-2">
             <div className="flex justify-between">
               <span className="text-ink-muted">Nama Pengguna:</span>
               <span className="font-bold text-ink">{user?.fullName || "Iman Nur"}</span>
@@ -259,7 +259,7 @@ export default function ProfileSettingsPage() {
           <div className="pt-2">
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-destructive/30 text-destructive hover:bg-destructive/10 font-bold text-xs transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 font-bold text-xs transition-colors"
             >
               <LogOut className="h-4 w-4" />
               <span>Keluar dari Akun (Logout)</span>

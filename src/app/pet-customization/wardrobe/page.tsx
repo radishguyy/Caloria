@@ -45,7 +45,7 @@ export default function PetWardrobePage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4  ">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-highlight text-brand-green-dark">
@@ -63,7 +63,7 @@ export default function PetWardrobePage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/pet-customization/shop"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-warm-border bg-highlight text-brown hover:bg-brand-green-light hover:text-brand-green-ink font-bold text-xs transition-colors"
+            className="btn-secondary text-xs"
           >
             <Coins className="h-4 w-4 text-brown" />
             <span>{coins} Koin • Buka Pet Shop</span>
@@ -72,16 +72,16 @@ export default function PetWardrobePage() {
       </div>
 
       {/* Navigation Sub-Tabs: Wardrobe vs Shop */}
-      <div className="flex items-center gap-2 border-b border-warm-border pb-1">
+      <div className="flex items-center gap-2   pb-1">
         <Link
           href="/pet-customization/wardrobe"
-          className="rounded-full bg-brand-orange px-4 py-2 text-xs font-bold text-ink"
+          className="rounded-lg bg-brand-orange px-4 py-2 text-xs font-bold text-ink"
         >
           Wardrobe (Koleksi Milikmu)
         </Link>
         <Link
           href="/pet-customization/shop"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
         >
           Pet Shop (Beli dengan Koin)
         </Link>
@@ -89,8 +89,8 @@ export default function PetWardrobePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Interactive Live Pet Preview */}
-        <div className="lg:col-span-5 rounded-3xl border border-warm-border bg-card p-6 shadow-card flex flex-col items-center justify-center space-y-4">
-          <div className="w-full flex items-center justify-between border-b border-warm-border pb-2 text-xs">
+        <div className="lg:col-span-5 rounded-3xl   bg-card p-6  flex flex-col items-center justify-center space-y-4">
+          <div className="w-full flex items-center justify-between   pb-2 text-xs">
             <span className="font-bold text-ink">Tampilan Langsung {name}</span>
             <span className="text-ink-muted text-[11px]">Kustomisasi Aktif</span>
           </div>
@@ -100,7 +100,7 @@ export default function PetWardrobePage() {
           {/* Quick Unequip All in category */}
           <button
             onClick={() => unequipItem(selectedCategory)}
-            className="btn-ghost min-h-0 px-3 py-1.5 text-xs transition-colors"
+            className="btn-ghost text-xs"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Reset {categories.find((c) => c.id === selectedCategory)?.label}</span>
@@ -116,10 +116,10 @@ export default function PetWardrobePage() {
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border",
+                  "px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ",
                   selectedCategory === cat.id
-                    ? "bg-brand-orange text-ink border-brand-orange font-bold shadow-xs"
-                    : "bg-card text-ink-muted border-warm-border hover:bg-brand-green-light hover:text-brand-green-ink"
+                    ? "bg-brand-orange text-ink  font-bold "
+                    : "bg-card text-ink-muted  hover:bg-brand-green-light hover:text-brand-green-ink"
                 )}
               >
                 {cat.label}
@@ -128,7 +128,7 @@ export default function PetWardrobePage() {
           </div>
 
           {/* Owned Items Grid */}
-          <div className="rounded-3xl border border-warm-border bg-card p-5 shadow-card space-y-4">
+          <div className="rounded-3xl   bg-card p-5  space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
                 Pilih Item untuk Dipasang:
@@ -159,10 +159,10 @@ export default function PetWardrobePage() {
                       key={item.id}
                       onClick={() => equipItem(selectedCategory, item.id)}
                       className={cn(
-                        "p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 relative shadow-xs",
+                        "p-3.5 rounded-2xl  cursor-pointer transition-all flex flex-col items-center text-center space-y-2 relative ",
                         isEquipped
-                          ? "border-brand-orange bg-highlight/60 ring-2 ring-brand-orange/20"
-                          : "border-warm-border bg-surface-raised hover:bg-brand-green-light"
+                          ? "bg-brand-orange/15"
+                          : "bg-surface hover:bg-brand-green-light"
                       )}
                     >
                       {isEquipped && (
@@ -187,7 +187,7 @@ export default function PetWardrobePage() {
                           "px-2 py-0.5 rounded-full text-[10px] font-bold mt-auto",
                           isEquipped
                             ? "bg-brand-orange text-ink"
-                            : "bg-surface-sunken text-ink-muted"
+                            : "bg-brand-green/10 text-brand-green-dark"
                         )}
                       >
                         {isEquipped ? "Terpasang" : "Pasang"}
@@ -200,7 +200,7 @@ export default function PetWardrobePage() {
           </div>
 
           {/* Shop Callout Banner */}
-          <div className="rounded-2xl border border-warm-border bg-surface-sunken/60 p-4 flex items-center justify-between text-xs">
+          <div className="rounded-2xl   bg-surface p-4 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-ink">Ingin Koleksi Kostum Lainnya?</p>
               <p className="text-ink-muted text-[11px]">
@@ -209,7 +209,7 @@ export default function PetWardrobePage() {
             </div>
             <Link
               href="/pet-customization/shop"
-              className="btn-cta min-h-0 ml-3 shrink-0 px-3.5 py-2 text-xs"
+              className="btn-cta ml-3 shrink-0 text-xs"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               <span>Ke Pet Shop</span>

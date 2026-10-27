@@ -26,7 +26,7 @@ export default function OnboardingRootPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-20 text-center space-y-3">
-      <div className="h-8 w-8 rounded-full border-2 border-brand-green border-t-transparent animate-spin mx-auto" />
+      <div className="h-8 w-8 rounded-full bg-brand-green/20 animate-pulse mx-auto" />
       <p className="text-xs text-ink-muted">Menyiapkan langkah Smart Onboarding Caloria...</p>
     </div>
   );

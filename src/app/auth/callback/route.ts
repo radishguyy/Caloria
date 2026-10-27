@@ -6,7 +6,11 @@ import { ensureProfileForUser } from "@/lib/profile";
  * Allowed post-auth redirect destinations (same-origin application paths only).
  * Anything else falls back to "/dashboard".
  */
-const ALLOWED_REDIRECTS = new Set<string>(["/dashboard", "/onboarding", "/onboarding/goal"]);
+const ALLOWED_REDIRECTS = new Set<string>([
+  "/dashboard",
+  "/onboarding",
+  "/onboarding/goal",
+]);
 
 function resolveRedirect(next: string | null): string {
   if (!next) return "/dashboard";
@@ -26,14 +30,27 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get("next");
   const error = requestUrl.searchParams.get("error");
   const errorDescription = requestUrl.searchParams.get("error_description");
+  const errorUri = requestUrl.searchParams.get("error_uri");
 
-  // Surface OAuth-level errors to the login page with a friendly message.
+  // Diagnostic: surface the raw callback query so the real failure reason is
+  // visible in the logs instead of a generic "code not received" message.
+  console.log("[auth/callback] incoming", {
+    pathname: requestUrl.pathname,
+    hasCode: !!code,
+    codeLen: code?.length,
+    error,
+    errorDescription,
+    errorUri,
+    next,
+    cookieNames: request.cookies.getAll().map((c) => c.name),
+  });
+
+  // Surface OAuth-level errors to the login page with the real reason.
   if (error) {
     const loginUrl = new URL("/login", requestUrl.origin);
-    loginUrl.searchParams.set(
-      "error",
-      errorDescription || "Autentikasi Google dibatalkan atau gagal."
-    );
+    loginUrl.searchParams.set("error", errorDescription || error || "Autentikasi Google gagal.");
+    if (errorUri) loginUrl.searchParams.set("error_uri", errorUri);
+    console.warn("[auth/callback] OAuth error, redirecting to /login", { error, errorDescription });
     return NextResponse.redirect(loginUrl);
   }
 
@@ -43,20 +60,31 @@ export async function GET(request: NextRequest) {
       "error",
       "Kode otorisasi tidak diterima. Silakan coba lagi."
     );
+    console.warn("[auth/callback] no code param; redirecting to /login");
     return NextResponse.redirect(loginUrl);
   }
 
   const supabase = await createClient();
 
   // Exchange the authorization code for a Supabase session (PKCE flow).
-  const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error: exchangeError } =
+    await supabase.auth.exchangeCodeForSession(code);
+
+  console.log("[auth/callback] exchangeCodeForSession result", {
+    hasUser: !!data?.user,
+    userId: data?.user?.id,
+    exchangeError: exchangeError
+      ? { message: exchangeError.message, status: exchangeError.status, name: exchangeError.name }
+      : null,
+  });
 
   if (exchangeError || !data.user) {
     const loginUrl = new URL("/login", requestUrl.origin);
     loginUrl.searchParams.set(
       "error",
-      exchangeError?.message || "Sesi tidak dapat dibuat. Silakan coba lagi."
+      exchangeError?.message || "Sesi tidak dapat dibuat. Silakan coba lagi.",
     );
+    console.warn("[auth/callback] exchange failed; redirecting to /login", exchangeError?.message);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -83,6 +111,11 @@ export async function GET(request: NextRequest) {
   const target = onboardingCompleted
     ? resolveRedirect(next)
     : "/onboarding/goal";
+
+  console.log("[auth/callback] success, redirecting to", target, {
+    onboardingCompleted,
+    next,
+  });
 
   const response = NextResponse.redirect(new URL(target, requestUrl.origin));
   return response;

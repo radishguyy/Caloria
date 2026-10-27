@@ -22,9 +22,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-16 flex flex-col items-center justify-center">
-      <div className="w-full rounded-3xl border border-warm-border bg-card p-6 sm:p-8 shadow-card space-y-6">
+      <div className="w-full rounded-3xl   bg-card p-6 sm:p-8  space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-green to-brand-green-light text-surface-raised shadow-lg shadow-brand-green/25">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-green text-surface-raised  ">
             <Flame className="h-7 w-7 fill-current" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-ink">
@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {submitted ? (
-          <div className="rounded-2xl border border-warm-border bg-brand-green-light p-4 text-center space-y-2 text-brand-green-ink">
+          <div className="rounded-2xl   bg-brand-green-light p-4 text-center space-y-2 text-brand-green-ink">
             <CheckCircle2 className="mx-auto h-6 w-6 text-brand-green-dark" />
             <h3 className="text-sm font-bold">Email Terkirim!</h3>
             <p className="text-xs opacity-90">
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@email.com"
                   required
-                  className="field w-full pl-10 pr-4 py-2 text-sm outline-none"
+                  className="field w-full pl-10 pr-4 py-2 text-sm "
                 />
               </div>
             </div>
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-cta w-full py-3 text-sm"
+              className="btn-cta w-full text-sm"
             >
               {loading ? "Mengirim..." : "Kirim Tautan Pemulihan"}
             </button>

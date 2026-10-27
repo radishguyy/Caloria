@@ -37,12 +37,12 @@ export default function FoodDiaryPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4  ">
         <div>
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard"
-              className="btn-icon h-9 w-9"
+              className="btn-icon"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -58,7 +58,7 @@ export default function FoodDiaryPage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/diary/add"
-            className="btn-cta min-h-11 px-5 py-2.5 text-xs shadow-[0_7px_0_var(--brand-green-dark)] active:translate-y-[7px]"
+            className="btn-cta text-sm"
           >
             <Plus className="h-4 w-4" />
             <span>+ Cari & Tambah Makanan</span>
@@ -70,17 +70,17 @@ export default function FoodDiaryPage() {
       {latestFeedback && (
         <div
           className={cn(
-            "p-4 rounded-2xl border transition-all animate-in fade-in duration-300 relative",
+            "surface-card rounded-2xl transition-all animate-in fade-in duration-300 relative",
             latestFeedback.type === "success"
-              ? "bg-brand-green/10 border-brand-green/30 text-ink"
+              ? "text-ink"
               : latestFeedback.type === "warning"
-              ? "bg-highlight/70 border-warm-border text-ink"
-              : "bg-surface-sunken border-warm-border text-ink"
+              ? "text-ink"
+              : "text-ink"
           )}
         >
           <button
             onClick={clearFeedback}
-            className="absolute right-3 top-3 rounded-full p-1 text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
+            className="absolute right-3 top-3 rounded-lg p-1 text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
           >
             <X className="h-4 w-4" />
           </button>
@@ -97,7 +97,7 @@ export default function FoodDiaryPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h4 className="text-sm font-bold">{latestFeedback.title}</h4>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-raised/80 border">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface ">
                   +{latestFeedback.xpEarned} XP • +{latestFeedback.coinsEarned} Koin
                 </span>
               </div>
@@ -109,7 +109,7 @@ export default function FoodDiaryPage() {
 
       {/* Daily Target Progress Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-2xl border border-warm-border bg-card p-3.5 shadow-xs space-y-1">
+        <div className="rounded-2xl   bg-card p-3.5  space-y-1">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>Kalori Masuk</span>
             <Flame className="h-3.5 w-3.5 fill-current text-brown" />
@@ -125,7 +125,7 @@ export default function FoodDiaryPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-warm-border bg-card p-3.5 shadow-xs space-y-1">
+        <div className="rounded-2xl   bg-card p-3.5  space-y-1">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>Protein</span>
             <Beef className="h-3.5 w-3.5 text-brand-green" />
@@ -139,7 +139,7 @@ export default function FoodDiaryPage() {
           <p className="text-[10px] text-ink-muted">Target {goalPlan.goalType}</p>
         </div>
 
-        <div className="rounded-2xl border border-warm-border bg-card p-3.5 shadow-xs space-y-1">
+        <div className="rounded-2xl   bg-card p-3.5  space-y-1">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>Karbohidrat</span>
             <Wheat className="h-3.5 w-3.5 text-brown" />
@@ -153,7 +153,7 @@ export default function FoodDiaryPage() {
           <p className="text-[10px] text-ink-muted">Bahan bakar harian</p>
         </div>
 
-        <div className="rounded-2xl border border-warm-border bg-card p-3.5 shadow-xs space-y-1">
+        <div className="rounded-2xl   bg-card p-3.5  space-y-1">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>Lemak</span>
             <Droplets className="h-3.5 w-3.5 text-brown" />
@@ -169,11 +169,11 @@ export default function FoodDiaryPage() {
       </div>
 
       {/* Filter Tabs by Meal Time */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-warm-border">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none  ">
         <button
           onClick={() => setActiveFilter("all")}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors",
+            "px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
             activeFilter === "all"
               ? "bg-brand-orange text-ink font-bold"
               : "text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
@@ -189,7 +189,7 @@ export default function FoodDiaryPage() {
               key={m.id}
               onClick={() => setActiveFilter(m.id)}
               className={cn(
-                "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5",
+                "px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5",
                 activeFilter === m.id
                   ? "bg-brand-orange text-ink font-bold"
                   : "text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink"
@@ -213,14 +213,14 @@ export default function FoodDiaryPage() {
           return (
             <div
               key={meal.id}
-              className="rounded-3xl border border-warm-border bg-card p-5 space-y-3.5 shadow-xs"
+              className="rounded-3xl   bg-card p-5 space-y-3.5 "
             >
-              <div className="flex items-center justify-between pb-2 border-b border-warm-border/70">
+              <div className="flex items-center justify-between pb-2  ">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-ink">
                     {meal.label}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface-sunken text-ink-muted">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface text-ink-muted">
                     {mealLogs.length} menu
                   </span>
                 </div>
@@ -232,7 +232,7 @@ export default function FoodDiaryPage() {
 
                   <Link
                     href={`/diary/add?meal=${meal.id}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-warm-border bg-highlight px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-brand-green-light hover:text-brand-green-ink"
+                    className="btn-secondary text-xs"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>Tambah</span>
@@ -246,7 +246,7 @@ export default function FoodDiaryPage() {
                   Belum ada menu dicatat untuk {meal.label}. Tekan tombol &quot;+ Tambah&quot; untuk mencatat.
                 </div>
               ) : (
-                <div className="divide-y divide-warm-border/50">
+                <div className=" ">
                   {mealLogs.map((item) => (
                     <div
                       key={item.id}
