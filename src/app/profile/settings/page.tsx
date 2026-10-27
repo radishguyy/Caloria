@@ -14,14 +14,41 @@ import {
 } from "lucide-react";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { cn } from "@/lib/utils";
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
   const { settings, updateSettings } = useNotificationStore();
   const { user, logout } = useAuthStore();
+  const {
+    isSupported,
+    isSubscribed,
+    isLoading: isPushLoading,
+    error: pushError,
+    subscribeToPush,
+    unsubscribeFromPush,
+  } = usePushNotifications();
 
   const [savedFeedback, setSavedFeedback] = useState(false);
+
+  const handlePushToggle = async () => {
+    if (isSubscribed) {
+      const ok = await unsubscribeFromPush();
+      if (ok) {
+        updateSettings({ webPushEnabled: false });
+        setSavedFeedback(true);
+        setTimeout(() => setSavedFeedback(false), 2000);
+      }
+    } else {
+      const ok = await subscribeToPush();
+      if (ok) {
+        updateSettings({ webPushEnabled: true });
+        setSavedFeedback(true);
+        setTimeout(() => setSavedFeedback(false), 2000);
+      }
+    }
+  };
 
   const handleToggle = (key: keyof typeof settings) => {
     updateSettings({
@@ -109,21 +136,30 @@ export default function ProfileSettingsPage() {
                 <span>Web Push Notifications (Browser / HP)</span>
               </h3>
               <p className="text-xs text-text-muted">
-                Kirimkan notifikasi langsung ke layar browser atau perangkat HP kamu.
+                {isSupported
+                  ? "Kirimkan notifikasi langsung ke layar browser atau perangkat HP kamu."
+                  : "Browser kamu saat ini belum mendukung Web Push Notifications."}
               </p>
+              {pushError && (
+                <p className="text-[11px] text-destructive font-medium mt-1">
+                  {pushError}
+                </p>
+              )}
             </div>
 
             <button
-              onClick={() => handleToggle("webPushEnabled")}
+              onClick={handlePushToggle}
+              disabled={!isSupported || isPushLoading}
               className={cn(
                 "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-pill border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
-                settings.webPushEnabled ? "bg-accent-green" : "bg-border-default"
+                isSubscribed ? "bg-accent-green" : "bg-border-default",
+                (!isSupported || isPushLoading) && "opacity-50 cursor-not-allowed"
               )}
             >
               <span
                 className={cn(
                   "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
-                  settings.webPushEnabled ? "translate-x-5" : "translate-x-0"
+                  isSubscribed ? "translate-x-5" : "translate-x-0"
                 )}
               />
             </button>
