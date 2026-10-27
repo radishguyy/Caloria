@@ -9,9 +9,13 @@ const globalForDb = globalThis as unknown as {
 
 function getClient() {
   if (!globalForDb.conn) {
-    const connectionString =
-      process.env.DATABASE_URL ||
-      "postgres://postgres:password@localhost:5432/caloria";
+    const connectionString = process.env.DATABASE_URL;
+
+    if (!connectionString) {
+      throw new Error(
+        "DATABASE_URL is not configured. Please set the DATABASE_URL environment variable in your Vercel Project Settings."
+      );
+    }
 
     // Supabase free tier connection pooling best practice:
     // Set max connection to 1 for serverless/edge environments to prevent connection exhaustion.
