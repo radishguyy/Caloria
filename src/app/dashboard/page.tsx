@@ -22,6 +22,7 @@ import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { useSocialStore } from "@/store/use-social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
@@ -39,9 +40,17 @@ export default function DashboardPage() {
     getRecentFoods,
     getFrequentFoods,
   } = useFoodStore();
-  const { coins, feedPet } = usePetStore();
+  const { coins, feedPet, stage } = usePetStore();
   const { coopStreakDays, partyName, friends } = useSocialStore();
   const { toggleDrawer, getUnreadCount } = useNotificationStore();
+  const {
+    isSupported: isPushSupported,
+    isSubscribed: isPushSubscribed,
+    isLoading: isPushLoading,
+    subscribeToPush,
+  } = usePushNotifications();
+
+  const [dismissedPushBanner, setDismissedPushBanner] = useState(false);
 
   const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
 
@@ -187,6 +196,44 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* Web Push Prompt Banner (After Pet Hatching / Stage >= 1) */}
+      {isPushSupported && !isPushSubscribed && !dismissedPushBanner && (
+        <section className="rounded-card border-2 border-accent-green/30 bg-gradient-to-r from-accent-green/10 via-surface to-accent-yellow/15 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-navigation bg-accent-green text-text-inverse font-bold shadow-xs">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-text-primary">
+                Aktifkan Notifikasi Pengingat Pet! 🐾🔔
+              </h2>
+              <p className="text-xs text-text-muted">
+                Dapatkan alarm jam makan, peringatan streak jam 10 malam, dan info saat temanmu selesai log makanan.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setDismissedPushBanner(true)}
+              className="px-3 py-1.5 rounded-navigation border border-border-default hover:bg-surface-subtle text-text-muted text-xs font-semibold transition-colors"
+            >
+              Nanti Saja
+            </button>
+            <button
+              type="button"
+              disabled={isPushLoading}
+              onClick={subscribeToPush}
+              className="button-primary px-4 py-1.5 text-xs inline-flex items-center gap-1.5 shadow-xs"
+            >
+              <Bell className="h-3.5 w-3.5" />
+              <span>{isPushLoading ? "Mengaktifkan..." : "Aktifkan Web Push"}</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* 2. Co-op Streak Alert Banner (Social Accountability) */}
       <section className="rounded-card border border-border-divider bg-surface p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">

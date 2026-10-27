@@ -165,6 +165,18 @@ export async function batchLogFoodsAction(
       })
       .where(eq(pets.userId, userId));
 
+    // 5. Trigger Peer Pressure notification to co-op teammates who haven't logged today
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    fetch(`${appUrl}/api/notifications/trigger-friend-event`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).catch((err) => {
+      // Background non-blocking trigger
+      console.warn("[batchLogFoodsAction] Failed to trigger friend event notification:", err.message);
+    });
+
     revalidatePath("/diary");
     revalidatePath("/dashboard");
 

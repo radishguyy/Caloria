@@ -5,6 +5,7 @@ export * from "./pets-plaza";
 export * from "./nutrition";
 export * from "./social";
 export * from "./gamification";
+export * from "./push-subscriptions";
 export * from "./relations";
 
 import { profiles, weightLogs } from "./profiles";
