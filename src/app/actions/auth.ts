@@ -39,18 +39,43 @@ export async function registerAction(formData: {
   }
 
   try {
-    // Check if username already exists in `profiles`
-    const existing = await db
-      .select({ id: profiles.id })
-      .from(profiles)
-      .where(eq(profiles.username, cleanUsername))
-      .limit(1);
-
-    if (existing.length > 0) {
-      return { success: false, error: "Username sudah digunakan, silakan pilih yang lain." };
-    }
-
     const supabase = await createClient();
+
+    // 1. Check if username already exists in `profiles` (Supabase REST fallback if DB is direct pooler)
+    if (process.env.DATABASE_URL) {
+      try {
+        const existing = await db
+          .select({ id: profiles.id })
+          .from(profiles)
+          .where(eq(profiles.username, cleanUsername))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return { success: false, error: "Username sudah digunakan, silakan pilih yang lain." };
+        }
+      } catch (dbErr) {
+        console.warn("[registerAction DB check fallback to supabase client]:", dbErr);
+        const { data: existingUser } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("username", cleanUsername)
+          .maybeSingle();
+
+        if (existingUser) {
+          return { success: false, error: "Username sudah digunakan, silakan pilih yang lain." };
+        }
+      }
+    } else {
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", cleanUsername)
+        .maybeSingle();
+
+      if (existingUser) {
+        return { success: false, error: "Username sudah digunakan, silakan pilih yang lain." };
+      }
+    }
 
     // Sign up with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -73,30 +98,76 @@ export async function registerAction(formData: {
 
     const userId = authData.user.id;
 
-    // Create default profile in `profiles` table
-    await db
-      .insert(profiles)
-      .values({
-        id: userId,
-        username: cleanUsername,
-        fullName: fullName.trim(),
-        isOnboardingCompleted: false,
-      })
-      .onConflictDoNothing();
+    // Create default profile in `profiles` table & starter egg pet in `pets` table
+    try {
+      if (process.env.DATABASE_URL) {
+        await db
+          .insert(profiles)
+          .values({
+            id: userId,
+            username: cleanUsername,
+            fullName: fullName.trim(),
+            isOnboardingCompleted: false,
+          })
+          .onConflictDoNothing();
 
-    // Create starter egg pet in `pets` table
-    await db
-      .insert(pets)
-      .values({
-        userId,
-        name: "Egg Starter",
-        species: "egg_starter",
-        stage: 1,
-        level: 1,
-        currentXp: 0,
-        nextLevelXp: 100,
-      })
-      .onConflictDoNothing();
+        await db
+          .insert(pets)
+          .values({
+            userId,
+            name: "Egg Starter",
+            species: "egg_starter",
+            stage: 1,
+            level: 1,
+            currentXp: 0,
+            nextLevelXp: 100,
+          })
+          .onConflictDoNothing();
+      } else {
+        await supabase
+          .from("profiles")
+          .upsert({
+            id: userId,
+            username: cleanUsername,
+            full_name: fullName.trim(),
+            is_onboarding_completed: false,
+          }, { onConflict: "id" });
+
+        await supabase
+          .from("pets")
+          .upsert({
+            user_id: userId,
+            name: "Egg Starter",
+            species: "egg_starter",
+            stage: 1,
+            level: 1,
+            current_xp: 0,
+            next_level_xp: 100,
+          }, { onConflict: "user_id" });
+      }
+    } catch (insertErr) {
+      console.warn("[registerAction insert fallback]:", insertErr);
+      await supabase
+        .from("profiles")
+        .upsert({
+          id: userId,
+          username: cleanUsername,
+          full_name: fullName.trim(),
+          is_onboarding_completed: false,
+        }, { onConflict: "id" });
+
+      await supabase
+        .from("pets")
+        .upsert({
+          user_id: userId,
+          name: "Egg Starter",
+          species: "egg_starter",
+          stage: 1,
+          level: 1,
+          current_xp: 0,
+          next_level_xp: 100,
+        }, { onConflict: "user_id" });
+    }
 
     revalidatePath("/", "layout");
 
@@ -152,16 +223,55 @@ export async function loginAction(formData: {
 
     const userId = data.user.id;
 
-    // Query user profile
-    const [profile] = await db
-      .select({
-        username: profiles.username,
-        fullName: profiles.fullName,
-        isOnboardingCompleted: profiles.isOnboardingCompleted,
-      })
-      .from(profiles)
-      .where(eq(profiles.id, userId))
-      .limit(1);
+    let userUsername = data.user.email?.split("@")[0] || "user";
+    let userFullName = "Caloria User";
+    let userOnboardingCompleted = false;
+
+    // Query user profile with Supabase client fallback
+    try {
+      if (process.env.DATABASE_URL) {
+        const [profile] = await db
+          .select({
+            username: profiles.username,
+            fullName: profiles.fullName,
+            isOnboardingCompleted: profiles.isOnboardingCompleted,
+          })
+          .from(profiles)
+          .where(eq(profiles.id, userId))
+          .limit(1);
+
+        if (profile) {
+          userUsername = profile.username;
+          userFullName = profile.fullName || userFullName;
+          userOnboardingCompleted = profile.isOnboardingCompleted;
+        }
+      } else {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, is_onboarding_completed")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (profile) {
+          userUsername = profile.username;
+          userFullName = profile.full_name || userFullName;
+          userOnboardingCompleted = profile.is_onboarding_completed ?? false;
+        }
+      }
+    } catch (queryErr) {
+      console.warn("[loginAction profile fetch fallback]:", queryErr);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username, full_name, is_onboarding_completed")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (profile) {
+        userUsername = profile.username;
+        userFullName = profile.full_name || userFullName;
+        userOnboardingCompleted = profile.is_onboarding_completed ?? false;
+      }
+    }
 
     revalidatePath("/", "layout");
 
@@ -170,9 +280,9 @@ export async function loginAction(formData: {
       user: {
         id: userId,
         email: data.user.email || email,
-        username: profile?.username || email.split("@")[0],
-        fullName: profile?.fullName || "Caloria User",
-        isOnboardingCompleted: profile?.isOnboardingCompleted ?? false,
+        username: userUsername,
+        fullName: userFullName,
+        isOnboardingCompleted: userOnboardingCompleted,
       },
     };
   } catch (error) {
