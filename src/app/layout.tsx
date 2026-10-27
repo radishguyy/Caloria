@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SessionProvider } from "@/components/shared/session-provider";
 import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
@@ -46,10 +47,12 @@ export default function RootLayout({
       className={`h-full antialiased ${openRunde.variable} ${secuela.variable}`}
     >
       <body className="min-h-full flex flex-col bg-canvas text-ink font-sans">
-        <Navbar />
-        <main className="flex-1 pb-24 lg:pb-12">{children}</main>
-        <BottomNav />
-        <NotificationDrawer />
+        <SessionProvider>
+          <Navbar />
+          <main className="flex-1 pb-24 lg:pb-12">{children}</main>
+          <BottomNav />
+          <NotificationDrawer />
+        </SessionProvider>
       </body>
     </html>
   );

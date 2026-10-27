@@ -17,6 +17,8 @@ interface SocialStoreState {
   joinPartyByCode: (code: string) => boolean;
   simulateFriendLog: (friendId: string) => void;
   clearPokeToast: () => void;
+  /** Overwrite the streak from the server-side profile row (used by SessionProvider). */
+  setStreak: (days: number) => void;
 }
 
 export const useSocialStore = create<SocialStoreState>()(
@@ -178,6 +180,11 @@ export const useSocialStore = create<SocialStoreState>()(
       },
 
       clearPokeToast: () => set({ activePokeToast: null }),
+      setStreak: (days: number) =>
+        set((state) => ({
+          coopStreakDays: days,
+          highestCoopStreak: Math.max(state.highestCoopStreak, days),
+        })),
     }),
     {
       name: "caloria-social-storage",

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Flame, ArrowRight } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
+import { GoogleButton } from "@/components/auth/google-button";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -40,10 +41,10 @@ export default function RegisterPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-12 sm:py-16 flex flex-col items-center justify-center">
-      <div className="w-full rounded-3xl border border-warm-border bg-card p-6 sm:p-8 shadow-card space-y-6">
+      <div className="w-full rounded-3xl   bg-card p-6 sm:p-8  space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-green to-brand-green-light text-surface-raised shadow-lg shadow-brand-green/25">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-green text-surface-raised  ">
             <Flame className="h-7 w-7 fill-current" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-ink">
@@ -55,7 +56,7 @@ export default function RegisterPage() {
         </div>
 
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 text-xs">
+          <div className="p-3 rounded-xl bg-destructive/10 text-destructive   text-xs">
             {errorMsg}
           </div>
         )}
@@ -71,7 +72,7 @@ export default function RegisterPage() {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="misal: Afza Pratama"
               required
-              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
+              className="field mt-1 w-full px-3.5 py-2 text-sm "
             />
           </div>
 
@@ -85,7 +86,7 @@ export default function RegisterPage() {
               onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, "_"))}
               placeholder="misal: afza_fit"
               required
-              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
+              className="field mt-1 w-full px-3.5 py-2 text-sm "
             />
           </div>
 
@@ -99,7 +100,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nama@email.com"
               required
-              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
+              className="field mt-1 w-full px-3.5 py-2 text-sm "
             />
           </div>
 
@@ -113,7 +114,7 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimal 6 karakter"
               required
-              className="field mt-1 w-full px-3.5 py-2 text-sm outline-none"
+              className="field mt-1 w-full px-3.5 py-2 text-sm "
             />
           </div>
 
@@ -121,13 +122,22 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-cta w-full py-3 text-sm flex items-center justify-center gap-2"
+              className="btn-cta w-full text-sm flex items-center justify-center gap-2"
             >
               <span>{loading ? "Mendaftarkan..." : "Daftar & Mulai Onboarding"}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 pt-1">
+          <div className="h-px flex-1 bg-warm-border" />
+          <span className="text-[11px] font-semibold text-ink-muted">atau</span>
+          <div className="h-px flex-1 bg-warm-border" />
+        </div>
+
+        <GoogleButton mode="register" />
 
         <div className="pt-2 text-center text-xs text-ink-muted">
           Sudah punya akun?{" "}
