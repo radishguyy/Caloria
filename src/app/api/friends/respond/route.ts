@@ -21,29 +21,30 @@ export async function PATCH(request: NextRequest) {
 
     const newStatus = action === "accept" ? "accepted" : "declined";
 
-    if (process.env.DATABASE_URL && db) {
-      try {
-        const [updated] = await db
-          .update(friendships)
-          .set({
-            status: newStatus,
-            updatedAt: new Date(),
-          })
-          .where(eq(friendships.id, requestId))
-          .returning();
+    if (!process.env.DATABASE_URL || !db) {
+      return NextResponse.json(
+        { success: false, message: "Database tidak terhubung." },
+        { status: 500 }
+      );
+    }
 
-        return NextResponse.json({
-          success: true,
-          status: newStatus,
-          message:
-            action === "accept"
-              ? "Permintaan pertemanan berhasil diterima!"
-              : "Permintaan pertemanan ditolak.",
-          friendship: updated,
-        });
-      } catch (dbErr: any) {
-        console.warn("[API respond PATCH] DB update fallback:", dbErr?.message);
-      }
+    const [updated] = await db
+      .update(friendships)
+      .set({
+        status: newStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(friendships.id, requestId))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Data pertemanan tidak ditemukan.",
+        },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
@@ -53,11 +54,7 @@ export async function PATCH(request: NextRequest) {
         action === "accept"
           ? "Permintaan pertemanan berhasil diterima!"
           : "Permintaan pertemanan ditolak.",
-      friendship: {
-        id: requestId,
-        status: newStatus,
-        updatedAt: new Date().toISOString(),
-      },
+      friendship: updated,
     });
   } catch (err: any) {
     console.error("[API respond PATCH] Error:", err);
@@ -67,4 +64,3 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
-

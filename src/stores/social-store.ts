@@ -7,6 +7,7 @@ import {
   PokeNotification,
 } from "@/types";
 import { useNotificationStore } from "@/store/use-notification-store";
+import { useAuthStore } from "@/store/use-auth-store";
 
 export interface SocialStoreState {
   // Friends & Invitations
@@ -41,156 +42,23 @@ export interface SocialStoreState {
   simulateIncomingRequest: (name: string, username: string) => void;
 }
 
-const INITIAL_FRIENDS: Friend[] = [
-  {
-    id: "friendship-afza",
-    userId: "user-afza",
-    username: "afza_design",
-    fullName: "Afza Pratama",
-    avatarColor: "bg-indigo-500",
-    petName: "Leafy",
-    petSpecies: "bloomie",
-    petLevel: 5,
-    petStage: "Juvenile",
-    goalType: "bulking",
-    caloriesLoggedToday: 1850,
-    calorieTarget: 2400,
-    mealsLoggedToday: 3,
-    dailyGoalMet: true,
-    streakDays: 7,
-    lastActiveText: "Baru saja mencatat makan siang",
-    lastPokedAt: null,
-    status: "accepted",
-  },
-  {
-    id: "friendship-nadia",
-    userId: "user-nadia",
-    username: "nadia_fit",
-    fullName: "Nadia Putri",
-    avatarColor: "bg-rose-500",
-    petName: "Bubbles",
-    petSpecies: "droplet",
-    petLevel: 4,
-    petStage: "Hatchling",
-    goalType: "diet",
-    caloriesLoggedToday: 420,
-    calorieTarget: 1650,
-    mealsLoggedToday: 1,
-    dailyGoalMet: false,
-    streakDays: 4,
-    lastActiveText: "Belum mencatat makan siang & malam",
-    lastPokedAt: null,
-    status: "accepted",
-  },
-  {
-    id: "friendship-rizky",
-    userId: "user-rizky",
-    username: "rizky_gym",
-    fullName: "Rizky Ramadhan",
-    avatarColor: "bg-emerald-500",
-    petName: "Blaze",
-    petSpecies: "flameling",
-    petLevel: 6,
-    petStage: "Juvenile",
-    goalType: "maintenance",
-    caloriesLoggedToday: 0,
-    calorieTarget: 2100,
-    mealsLoggedToday: 0,
-    dailyGoalMet: false,
-    streakDays: 12,
-    lastActiveText: "Belum mencatat makanan hari ini!",
-    lastPokedAt: null,
-    status: "accepted",
-  },
-];
-
-const INITIAL_REQUESTS: FriendRequest[] = [
-  {
-    id: "req-incoming-1",
-    senderId: "user-budi",
-    receiverId: "current-user",
-    status: "pending",
-    direction: "incoming",
-    sender: {
-      id: "user-budi",
-      username: "budi_health",
-      fullName: "Budi Santoso",
-      avatarColor: "bg-teal-500",
-      petName: "Sprout",
-      petSpecies: "bloomie",
-      petLevel: 3,
-      petStage: "Hatchling",
-    },
-    createdAt: "2 jam yang lalu",
-  },
-  {
-    id: "req-outgoing-1",
-    senderId: "current-user",
-    receiverId: "user-maya",
-    status: "pending",
-    direction: "outgoing",
-    sender: {
-      id: "current-user",
-      username: "iman_dev",
-      fullName: "Iman Nur",
-    },
-    receiver: {
-      id: "user-maya",
-      username: "mayasalsa",
-      fullName: "Maya Salsabila",
-    },
-    createdAt: "Kemarin",
-  },
-];
-
-const INITIAL_RECOMMENDATIONS: FriendRecommendation[] = [
-  {
-    id: "rec-user-1",
-    username: "dimas_runs",
-    fullName: "Dimas Anggara",
-    petName: "Leafy",
-    petSpecies: "bloomie",
-    petLevel: 4,
-    petStage: "Hatchling",
-    mutualTag: "🔥 5-day streak",
-    calorieTarget: 2200,
-    streakDays: 5,
-    goalType: "maintenance",
-  },
-  {
-    id: "rec-user-2",
-    username: "siti_balance",
-    fullName: "Siti Rahma",
-    petName: "Aqua",
-    petSpecies: "droplet",
-    petLevel: 5,
-    petStage: "Juvenile",
-    mutualTag: "🎯 Target Seimbang",
-    calorieTarget: 1800,
-    streakDays: 9,
-    goalType: "diet",
-  },
-  {
-    id: "rec-user-3",
-    username: "kevin_lift",
-    fullName: "Kevin Wijaya",
-    petName: "Pyro",
-    petSpecies: "flameling",
-    petLevel: 6,
-    petStage: "Juvenile",
-    mutualTag: "💪 Fokus Protein",
-    calorieTarget: 2600,
-    streakDays: 12,
-    goalType: "bulking",
-  },
-];
+function getAuthHeaders(): HeadersInit {
+  const currentUserId = useAuthStore.getState().user?.id;
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  if (currentUserId) {
+    headers["x-user-id"] = currentUserId;
+  }
+  return headers;
+}
 
 export const useSocialStore = create<SocialStoreState>()(
   persist(
     (set, get) => ({
-      friends: INITIAL_FRIENDS,
-      pendingRequests: INITIAL_REQUESTS,
-      recommendations: INITIAL_RECOMMENDATIONS.slice(0, 3),
+      friends: [],
+      pendingRequests: [],
+      recommendations: [],
       isLoading: false,
       error: null,
 
@@ -198,24 +66,17 @@ export const useSocialStore = create<SocialStoreState>()(
       partyCode: "CAL-8829",
       coopStreakDays: 7,
       highestCoopStreak: 14,
-      pokeHistory: [
-        {
-          id: "poke-init-1",
-          fromUser: "afza_design",
-          toUser: "Kamu",
-          message:
-            "Afza menyenggolmu: Jangan lupa penuhi target protein hari ini agar Co-op Streak 7 hari kita aman!",
-          timestamp: "2 jam lalu",
-        },
-      ],
+      pokeHistory: [],
       activePokeToast: null,
 
       fetchSocialData: async () => {
         try {
           set({ isLoading: true, error: null });
+          const headers = getAuthHeaders();
+
           const [friendsRes, recsRes] = await Promise.all([
-            fetch("/api/friends").catch(() => null),
-            fetch("/api/friends/recommendations").catch(() => null),
+            fetch("/api/friends", { headers }).catch(() => null),
+            fetch("/api/friends/recommendations", { headers }).catch(() => null),
           ]);
 
           if (friendsRes && friendsRes.ok) {
@@ -226,10 +87,8 @@ export const useSocialStore = create<SocialStoreState>()(
                 ...(data.pendingRequests?.outgoing || []),
               ];
               set({
-                friends: data.friends?.length ? data.friends : get().friends,
-                pendingRequests: combinedRequests.length
-                  ? combinedRequests
-                  : get().pendingRequests,
+                friends: Array.isArray(data.friends) ? data.friends : [],
+                pendingRequests: combinedRequests,
               });
             }
           }
@@ -243,7 +102,7 @@ export const useSocialStore = create<SocialStoreState>()(
             }
           }
         } catch (err: any) {
-          console.warn("[SocialStore] fetchSocialData offline fallback:", err?.message);
+          console.warn("[SocialStore] fetchSocialData error:", err?.message);
         } finally {
           set({ isLoading: false });
         }
@@ -251,40 +110,28 @@ export const useSocialStore = create<SocialStoreState>()(
 
       sendFriendRequest: async (targetUserId: string) => {
         try {
+          const headers = getAuthHeaders();
           const res = await fetch("/api/friends/invite", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({ targetUserId }),
-          }).catch(() => null);
+          });
 
-          // Optimistic local state update
-          const rec = get().recommendations.find((r) => r.id === targetUserId);
-          const newReq: FriendRequest = {
-            id: `req-out-${Date.now()}`,
-            senderId: "current-user",
-            receiverId: targetUserId,
-            status: "pending",
-            direction: "outgoing",
-            sender: {
-              id: "current-user",
-              username: "iman_dev",
-              fullName: "Iman Nur",
-            },
-            receiver: {
-              id: targetUserId,
-              username: rec?.username || "caloria_user",
-              fullName: rec?.fullName || "Teman Caloria",
-              avatarUrl: rec?.avatarUrl,
-            },
-            createdAt: "Baru saja",
-          };
+          const data = await res.json().catch(() => ({}));
 
-          set((state) => ({
-            pendingRequests: [newReq, ...state.pendingRequests],
-            recommendations: state.recommendations.filter((r) => r.id !== targetUserId),
-          }));
-
-          return { success: true, message: "Permintaan pertemanan berhasil dikirim!" };
+          if (res.ok && data.success) {
+            // Refresh real data from DB
+            await get().fetchSocialData();
+            return {
+              success: true,
+              message: data.message || "Permintaan pertemanan berhasil dikirim!",
+            };
+          } else {
+            return {
+              success: false,
+              message: data.message || "Gagal mengirim permintaan pertemanan.",
+            };
+          }
         } catch (err: any) {
           return { success: false, message: err?.message || "Gagal mengirim permintaan." };
         }
@@ -296,8 +143,8 @@ export const useSocialStore = create<SocialStoreState>()(
           return { success: false, message: "Masukkan username atau Caloria Tag yang valid!" };
         }
 
-        // Prevent self-friending
-        if (clean.toLowerCase() === "iman_dev" || clean.toLowerCase() === "nuriman") {
+        const currentUsername = useAuthStore.getState().user?.username;
+        if (currentUsername && clean.toLowerCase() === currentUsername.toLowerCase()) {
           return { success: false, message: "Kamu tidak bisa menambahkan akun sendiri sebagai teman." };
         }
 
@@ -319,82 +166,38 @@ export const useSocialStore = create<SocialStoreState>()(
         }
 
         try {
+          const headers = getAuthHeaders();
           const res = await fetch("/api/friends/invite", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({ username: clean }),
-          }).catch(() => null);
+          });
 
-          // Optimistic local update
-          const newReq: FriendRequest = {
-            id: `req-out-${Date.now()}`,
-            senderId: "current-user",
-            receiverId: `user-${clean.toLowerCase()}`,
-            status: "pending",
-            direction: "outgoing",
-            sender: {
-              id: "current-user",
-              username: "iman_dev",
-              fullName: "Iman Nur",
-            },
-            receiver: {
-              id: `user-${clean.toLowerCase()}`,
-              username: clean,
-              fullName: clean.charAt(0).toUpperCase() + clean.slice(1),
-            },
-            createdAt: "Baru saja",
-          };
+          const data = await res.json().catch(() => ({}));
 
-          set((state) => ({
-            pendingRequests: [newReq, ...state.pendingRequests],
-            recommendations: state.recommendations.filter(
-              (r) => r.username.toLowerCase() !== clean.toLowerCase()
-            ),
-          }));
-
-          return { success: true, message: `Undangan berhasil dikirim ke @${clean}!` };
+          if (res.ok && data.success) {
+            await get().fetchSocialData();
+            return { success: true, message: data.message || `Undangan berhasil dikirim ke @${clean}!` };
+          } else {
+            return { success: false, message: data.message || "Gagal mengirim undangan." };
+          }
         } catch (err: any) {
           return { success: false, message: err?.message || "Gagal mengirim undangan." };
         }
       },
 
       acceptFriendRequest: async (requestId: string) => {
-        const req = get().pendingRequests.find((r) => r.id === requestId);
-        if (!req) return;
-
         try {
-          await fetch("/api/friends/respond", {
+          const headers = getAuthHeaders();
+          const res = await fetch("/api/friends/respond", {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({ requestId, action: "accept" }),
-          }).catch(() => null);
+          });
 
-          const newFriend: Friend = {
-            id: req.id,
-            userId: req.sender.id,
-            username: req.sender.username,
-            fullName: req.sender.fullName,
-            avatarUrl: req.sender.avatarUrl,
-            avatarColor: req.sender.avatarColor || "bg-teal-500",
-            petName: req.sender.petName || "Buddy",
-            petSpecies: req.sender.petSpecies || "bloomie",
-            petLevel: req.sender.petLevel || 3,
-            petStage: (req.sender.petStage as any) || "Hatchling",
-            goalType: "diet",
-            caloriesLoggedToday: 0,
-            calorieTarget: 2000,
-            mealsLoggedToday: 0,
-            dailyGoalMet: false,
-            streakDays: 1,
-            lastActiveText: "Baru saja menjadi teman",
-            lastPokedAt: null,
-            status: "accepted",
-          };
-
-          set((state) => ({
-            friends: [newFriend, ...state.friends],
-            pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
-          }));
+          if (res.ok) {
+            await get().fetchSocialData();
+          }
         } catch (err) {
           console.error("[SocialStore] acceptFriendRequest error:", err);
         }
@@ -402,15 +205,16 @@ export const useSocialStore = create<SocialStoreState>()(
 
       declineFriendRequest: async (requestId: string) => {
         try {
-          await fetch("/api/friends/respond", {
+          const headers = getAuthHeaders();
+          const res = await fetch("/api/friends/respond", {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({ requestId, action: "decline" }),
-          }).catch(() => null);
+          });
 
-          set((state) => ({
-            pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
-          }));
+          if (res.ok) {
+            await get().fetchSocialData();
+          }
         } catch (err) {
           console.error("[SocialStore] declineFriendRequest error:", err);
         }
@@ -456,30 +260,8 @@ export const useSocialStore = create<SocialStoreState>()(
         );
         if (exists) return false;
 
-        const newFriend: Friend = {
-          id: `friend-${Date.now()}`,
-          userId: `user-${clean.toLowerCase()}`,
-          username: clean.toLowerCase().replace(/\s+/g, "_"),
-          fullName: clean.charAt(0).toUpperCase() + clean.slice(1),
-          avatarColor: "bg-amber-500",
-          petName: "Sparky",
-          petSpecies: "flameling",
-          petLevel: 2,
-          petStage: "Hatchling",
-          goalType: "diet",
-          caloriesLoggedToday: 650,
-          calorieTarget: 1800,
-          mealsLoggedToday: 1,
-          dailyGoalMet: false,
-          streakDays: 1,
-          lastActiveText: "Baru bergabung ke Co-op Party",
-          lastPokedAt: null,
-          status: "accepted",
-        };
-
-        set((state) => ({
-          friends: [...state.friends, newFriend],
-        }));
+        // Trigger real invite via server
+        get().sendFriendRequestByUsername(clean);
         return true;
       },
 
@@ -555,15 +337,14 @@ export const useSocialStore = create<SocialStoreState>()(
     }),
     {
       name: "caloria-social-storage",
-      version: 2,
+      version: 3,
       migrate: (persistedState: any, version: number) => {
-        if (version < 2 || !persistedState) {
+        if (version < 3 || !persistedState) {
           return {
             ...persistedState,
-            friends: persistedState?.friends || INITIAL_FRIENDS,
-            pendingRequests: persistedState?.pendingRequests || INITIAL_REQUESTS,
-            recommendations:
-              persistedState?.recommendations || INITIAL_RECOMMENDATIONS.slice(0, 3),
+            friends: [],
+            pendingRequests: [],
+            recommendations: [],
           };
         }
         return persistedState;
@@ -571,4 +352,3 @@ export const useSocialStore = create<SocialStoreState>()(
     }
   )
 );
-
