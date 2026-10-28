@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Flame,
@@ -58,14 +58,15 @@ export default function DashboardPage() {
   const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
 
   const [quickLogModalOpen, setQuickLogModalOpen] = useState(false);
-  const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>(() => {
-    if (typeof window === "undefined") return "breakfast";
+  const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>("breakfast");
+
+  useEffect(() => {
     const hours = new Date().getHours();
-    if (hours >= 11 && hours < 15) return "lunch";
-    if (hours >= 15 && hours < 18) return "snack";
-    if (hours >= 18 || hours < 5) return "dinner";
-    return "breakfast";
-  });
+    if (hours >= 11 && hours < 15) setSelectedQuickMeal("lunch");
+    else if (hours >= 15 && hours < 18) setSelectedQuickMeal("snack");
+    else if (hours >= 18 || hours < 5) setSelectedQuickMeal("dinner");
+    else setSelectedQuickMeal("breakfast");
+  }, []);
   const [quickFilter, setQuickFilter] = useState<"popular" | "recent" | "frequent">("popular");
   const [selectedQuickItems, setSelectedQuickItems] = useState<(typeof FOOD_CATALOG)[0][]>([]);
 
@@ -394,33 +395,46 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {MEAL_TYPES.map((meal) => {
-                const logs = getMealLogs(meal.id);
-                const mealCalories = logs.reduce((sum, item) => sum + item.calories, 0);
-
-                return (
-                  <Link
-                    key={meal.id}
-                    href={`/diary?meal=${meal.id}`}
-                    className="p-3.5 rounded-button border border-border-divider bg-surface-subtle hover:bg-accent-green-light/35 transition-colors flex flex-col justify-between"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-foreground">
-                        {meal.label}
-                      </p>
-                      <p className="text-[11px] text-text-muted mt-0.5">
-                        {logs.length > 0 ? `${logs.length} item` : "Belum dicatat"}
-                      </p>
+              {!isHydrated
+                ? MEAL_TYPES.map((meal) => (
+                    <div
+                      key={meal.id}
+                      className="p-3.5 rounded-button border border-border-divider bg-surface-subtle flex flex-col justify-between h-[88px]"
+                    >
+                      <div className="space-y-1">
+                        <div className="h-3.5 w-16 bg-surface animate-pulse rounded-navigation" />
+                        <div className="h-2.5 w-20 bg-surface animate-pulse rounded-navigation" />
+                      </div>
+                      <div className="h-4 w-12 bg-surface animate-pulse rounded-navigation mt-2" />
                     </div>
-                    <p className="text-sm font-extrabold text-text-primary mt-2">
-                      {mealCalories}{" "}
-                      <span className="text-[10px] text-text-muted font-normal">
-                        kcal
-                      </span>
-                    </p>
-                  </Link>
-                );
-              })}
+                  ))
+                : MEAL_TYPES.map((meal) => {
+                    const logs = getMealLogs(meal.id);
+                    const mealCalories = logs.reduce((sum, item) => sum + item.calories, 0);
+
+                    return (
+                      <Link
+                        key={meal.id}
+                        href={`/diary?meal=${meal.id}`}
+                        className="p-3.5 rounded-button border border-border-divider bg-surface-subtle hover:bg-accent-green-light/35 transition-colors flex flex-col justify-between"
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-foreground">
+                            {meal.label}
+                          </p>
+                          <p className="text-[11px] text-text-muted mt-0.5">
+                            {logs.length > 0 ? `${logs.length} item` : "Belum dicatat"}
+                          </p>
+                        </div>
+                        <p className="text-sm font-extrabold text-text-primary mt-2">
+                          {mealCalories}{" "}
+                          <span className="text-[10px] text-text-muted font-normal">
+                            kcal
+                          </span>
+                        </p>
+                      </Link>
+                    );
+                  })}
             </div>
           </div>
         </div>
