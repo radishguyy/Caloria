@@ -22,6 +22,17 @@ interface AuthStoreState {
   setOnboardingStep: (step: number) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
+  /** Hydrate the store from a verified Supabase session (used by SessionProvider). */
+  setUserFromSession: (input: {
+    id: string;
+    email: string | null;
+    username: string;
+    fullName: string | null;
+    avatarUrl: string | null;
+    isOnboardingCompleted: boolean;
+  }) => void;
+  /** Clear the store on sign-out. */
+  clearUser: () => void;
 }
 
 export const useAuthStore = create<AuthStoreState>()(
@@ -80,6 +91,28 @@ export const useAuthStore = create<AuthStoreState>()(
 
       resetOnboarding: () =>
         set({
+          onboardingCompleted: false,
+          activeOnboardingStep: 1,
+        }),
+
+      setUserFromSession: (input) =>
+        set({
+          isAuthenticated: true,
+          onboardingCompleted: input.isOnboardingCompleted,
+          activeOnboardingStep: input.isOnboardingCompleted ? 4 : 1,
+          user: {
+            id: input.id,
+            email: input.email || "",
+            username: input.username,
+            fullName: input.fullName || input.username,
+            avatarUrl: input.avatarUrl || undefined,
+          },
+        }),
+
+      clearUser: () =>
+        set({
+          isAuthenticated: false,
+          user: null,
           onboardingCompleted: false,
           activeOnboardingStep: 1,
         }),

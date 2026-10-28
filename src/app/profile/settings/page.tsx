@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bell,
   Clock,
-  ArrowLeft,
   Check,
   LogOut,
   ShieldCheck,
@@ -15,6 +13,7 @@ import {
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { ProfileHeader } from "@/components/profile/profile-header";
 import { cn } from "@/lib/utils";
 
 export default function ProfileSettingsPage() {
@@ -76,55 +75,16 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6 sm:py-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/profile/overview"
-              className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
-              Pengaturan Notifikasi & Akun
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-text-muted mt-1 ml-8 sm:ml-0">
-            Atur jadwal Web Push reminder jam makan, alert senggolan teman, dan preferensi akun kamu.
-          </p>
-        </div>
+      <ProfileHeader title="Pengaturan" />
 
-        {savedFeedback && (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-accent-green/15 text-text-primary text-xs font-bold animate-in fade-in">
-            <Check className="h-3.5 w-3.5" />
+      {savedFeedback && (
+        <div className="flex justify-end">
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-accent-green/15 px-3 py-1 text-xs font-bold text-text-primary animate-in fade-in">
+            <Check className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Perubahan Tersimpan</span>
           </span>
-        )}
-      </div>
-
-      {/* Sub-Tabs: Overview vs Achievements vs Settings */}
-      <div className="flex items-center gap-2 border-b border-border-divider pb-2">
-        <Link
-          href="/profile/overview"
-          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
-        >
-          Overview & Berat Badan
-        </Link>
-        <Link
-          href="/profile/achievements"
-          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
-        >
-          Galeri Achievement
-        </Link>
-        <Link
-          href="/profile/settings"
-          aria-current="page"
-          className="nav-item is-selected px-4 py-2 text-xs font-bold"
-        >
-          Pengaturan Notifikasi
-        </Link>
-      </div>
+        </div>
+      )}
 
       <div className="space-y-5">
         {/* Web Push Notification Toggle Card */}

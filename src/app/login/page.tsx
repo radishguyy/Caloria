@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Flame, ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { loginAction } from "@/app/actions/auth";
+import { GoogleButton } from "@/components/auth/google-button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -134,6 +135,14 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <div className="flex items-center gap-3 pt-1">
+          <div className="h-px flex-1 bg-border-divider" />
+          <span className="text-[11px] font-semibold text-text-muted">atau</span>
+          <div className="h-px flex-1 bg-border-divider" />
+        </div>
+
+        <GoogleButton mode="login" />
 
         <div className="pt-2 text-center text-xs text-text-muted">
           Belum memiliki akun Caloria?{" "}

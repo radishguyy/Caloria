@@ -19,6 +19,13 @@
     {
       "idx": 2,
       "version": "7",
+      "when": 1793200435398,
+      "tag": "0001_coin_transactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
       "when": 1793204000000,
       "tag": "0002_clinical_nutrition_rpg",
       "breakpoints": true

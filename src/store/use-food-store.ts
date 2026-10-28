@@ -35,7 +35,6 @@ export interface NutritionFeedback {
   title: string;
   message: string;
   xpEarned: number;
-  coinsEarned: number;
 }
 
 export interface FoodStoreState {
@@ -719,7 +718,6 @@ export const useFoodStore = create<FoodStoreState>()(
             title: "Indikator Peringatan Lemak",
             message: `Asupan lemak hari ini sudah mencapai ${fatPct}% batas maksimal program ${programLabel}-mu. Pilih menu rendah minyak untuk waktu makan berikutnya ya!`,
             xpEarned: 20,
-            coinsEarned: 5,
           };
         } else if (logInput.proteinG >= 20 || proteinPct >= 70) {
           feedback = {
@@ -727,15 +725,13 @@ export const useFoodStore = create<FoodStoreState>()(
             title: "Misi Protein Ideal!",
             message: `Menu ${logInput.name} menyumbang ${logInput.proteinG}g Protein! Kamu sudah memenuhi ${Math.min(100, proteinPct)}% misi protein harian untuk program ${programLabel}-mu.`,
             xpEarned: 35,
-            coinsEarned: 15,
           };
         } else if (calPct >= 85 && calPct <= 105) {
           feedback = {
             type: "success",
             title: "Target Kalori Harian Terpenuhi!",
-            message: `Luar biasa! Total kalori harianmu (${consumed.calories} kkal) tepat berada di zona ideal program ${programLabel}. Jackpot XP & Caloria Coins ditambahkan!`,
+            message: `Luar biasa! Total kalori harianmu (${consumed.calories} kkal) tepat berada di zona ideal program ${programLabel}. Jackpot XP ditambahkan!`,
             xpEarned: 50,
-            coinsEarned: 25,
           };
         } else {
           feedback = {
@@ -743,7 +739,6 @@ export const useFoodStore = create<FoodStoreState>()(
             title: "Catatan Makanan Tersimpan",
             message: `${logInput.name} (${logInput.calories} kkal) berhasil dicatat. Terus lengkapi nutrisi harianmu agar Pet semakin cepat naik level!`,
             xpEarned: 20,
-            coinsEarned: 10,
           };
         }
 
@@ -772,7 +767,6 @@ export const useFoodStore = create<FoodStoreState>()(
           title: `${logInputs.length} Menu Berhasil Dicatat!`,
           message: `${logInputs.length} item berhasil ditambahkan ke diary.`,
           xpEarned: 25 + Math.max(0, logInputs.length - 1) * 15,
-          coinsEarned: 10 + Math.max(0, logInputs.length - 1) * 4,
         };
 
         const consumed = get().getConsumed();

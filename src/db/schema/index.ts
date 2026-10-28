@@ -21,6 +21,18 @@ import {
   notifications,
 } from "./gamification";
 
+import { profiles, weightLogs } from "./profiles";
+import { plazaItems, userWardrobe, pets } from "./pets-plaza";
+import { foods, foodLogs, dailyNutritionSummaries } from "./nutrition";
+import { friendships, coopGroups, coopMembers, pokeLogs } from "./social";
+import {
+  badges,
+  userBadges,
+  pushSubscriptions,
+  notifications,
+  coinTransactions,
+} from "./gamification";
+
 // ==========================================
 // Inferred TypeScript Types ($inferSelect & $inferInsert)
 // ==========================================
@@ -79,4 +91,7 @@ export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
 
 export type NotificationRecord = typeof notifications.$inferSelect;
 export type NewNotificationRecord = typeof notifications.$inferInsert;
+
+export type CoinTransaction = typeof coinTransactions.$inferSelect;
+export type NewCoinTransaction = typeof coinTransactions.$inferInsert;
 

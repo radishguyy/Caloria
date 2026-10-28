@@ -38,6 +38,10 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register");
 
+  // The OAuth callback must never be intercepted — it exchanges the auth code
+  // and sets session cookies. Let it proceed unconditionally.
+  const isCallbackRoute = request.nextUrl.pathname.startsWith("/auth/callback");
+
   const isProtectedPage =
     request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/diary") ||
@@ -51,6 +55,10 @@ export async function updateSession(request: NextRequest) {
   const isConfigured =
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("dummy-project");
+
+  if (isCallbackRoute) {
+    return supabaseResponse;
+  }
 
   if (isConfigured) {
     if (!user && isProtectedPage) {
