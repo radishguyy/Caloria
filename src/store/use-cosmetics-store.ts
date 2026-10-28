@@ -1,42 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CosmeticCategory, COSMETICS_CATALOG } from "@/lib/cosmetics-catalog";
+import {
+  CosmeticCategory,
+  COSMETICS_CATALOG,
+  DEFAULT_FREE_ITEM_IDS,
+} from "@/lib/cosmetics-catalog";
 import { EquippedCosmetics } from "@/types";
 
-const DEFAULT_OWNED_IDS = [
-  "head-none",
-  "head-red-ribbon",
-  "glasses-none",
-  "body-none",
-  "held-none",
-  "skin-default",
-  "room-default",
-  // Everyday & Food starter collection unlocked for immediate customization
-  "acc-round-glasses",
-  "acc-rectangular-glasses",
-  "acc-star-glasses",
-  "acc-beanie",
-  "acc-baseball-cap",
-  "acc-bucket-hat",
-  "acc-beret",
-  "acc-bow",
-  "acc-headphones",
-  "acc-scarf",
-  "acc-backpack",
-  "acc-hoodie",
-  "acc-lettuce-leaf-hat",
-  "acc-strawberry-hair-clip",
-  "acc-orange-slice",
-  "acc-chef-hat",
-  "acc-mini-burger",
-  "acc-apple",
-  "acc-carrot",
-  "acc-rice-bowl",
-  "acc-milk-carton",
-  "acc-water-bottle",
-  "acc-leafy-headband",
-  "acc-fruit-hat",
-];
+export { DEFAULT_FREE_ITEM_IDS };
 
 interface CosmeticsStoreState {
   ownedItemIds: string[];
@@ -45,10 +16,12 @@ interface CosmeticsStoreState {
 
   // Actions
   setSelectedCategory: (category: CosmeticCategory) => void;
+  setOwnedItemIds: (ids: string[]) => void;
+  addOwnedItem: (itemId: string) => void;
   buyItem: (
     itemId: string,
     userCoins: number,
-    deductCoins: (amount: number) => void
+    deductCoins: (amount: number) => void,
   ) => {
     success: boolean;
     message: string;
@@ -62,9 +35,10 @@ interface CosmeticsStoreState {
 export const useCosmeticsStore = create<CosmeticsStoreState>()(
   persist(
     (set, get) => ({
-      ownedItemIds: DEFAULT_OWNED_IDS,
+      // Every accessory starts locked and unowned by default; only free defaults are owned
+      ownedItemIds: DEFAULT_FREE_ITEM_IDS,
       equipped: {
-        head: "head-red-ribbon",
+        head: "head-none",
         body: "body-none",
         glasses: "glasses-none",
         held: "held-none",
@@ -73,108 +47,123 @@ export const useCosmeticsStore = create<CosmeticsStoreState>()(
       },
       selectedCategory: "head",
 
-      setSelectedCategory: (category: CosmeticCategory) =>
-        set({ selectedCategory: category }),
+      setSelectedCategory: (category) => set({ selectedCategory: category }),
 
-      isItemOwned: (itemId: string) => {
-        return get().ownedItemIds.includes(itemId);
+      setOwnedItemIds: (ids) => {
+        // Guarantee default items are always included
+        const merged = Array.from(new Set([...DEFAULT_FREE_ITEM_IDS, ...ids]));
+        set({ ownedItemIds: merged });
       },
 
-      buyItem: (
-        itemId: string,
-        userCoins: number,
-        deductCoins: (amount: number) => void
-      ) => {
+      addOwnedItem: (itemId) =>
+        set((state) => ({
+          ownedItemIds: state.ownedItemIds.includes(itemId)
+            ? state.ownedItemIds
+            : [...state.ownedItemIds, itemId],
+        })),
+
+      buyItem: (itemId, userCoins, deductCoins) => {
         const item = COSMETICS_CATALOG.find((i) => i.id === itemId);
         if (!item) {
-          return {
-            success: false,
-            message: "Item tidak ditemukan dalam katalog.",
-          };
+          return { success: false, message: "Item tidak ditemukan." };
         }
 
-        if (get().ownedItemIds.includes(itemId)) {
-          return { success: false, message: "Kamu sudah memiliki item ini!" };
+        const state = get();
+        if (state.ownedItemIds.includes(itemId)) {
+          return {
+            success: false,
+            message: "Aksesori ini sudah kamu miliki!",
+          };
         }
 
         if (userCoins < item.priceCoins) {
           return {
             success: false,
-            message: `Koin Caloria tidak mencukupi. Butuh ${item.priceCoins} Koin (Saldo kamu: ${userCoins} Koin).`,
+            message: `Caloria Coins tidak cukup! Butuh ${item.priceCoins} koin.`,
           };
         }
 
-        deductCoins(-item.priceCoins);
-
-        set((state) => ({
-          ownedItemIds: [...state.ownedItemIds, itemId],
-        }));
+        // Deduct coins & add to inventory
+        deductCoins(item.priceCoins);
+        state.addOwnedItem(itemId);
 
         return {
           success: true,
-          message: `Berhasil membeli ${item.name}! Item kini tersimpan di Wardrobe kamu.`,
+          message: `Berhasil membeli ${item.name}! Aksesori telah ditambahkan ke koleksi.`,
         };
       },
 
-      equipItem: (category: CosmeticCategory, itemId: string) => {
-        if (!get().ownedItemIds.includes(itemId)) {
+      equipItem: (category, itemId) => {
+        const state = get();
+        // Check ownership (free items are always owned)
+        if (!state.isItemOwned(itemId)) {
           return false;
         }
 
-        set((state) => ({
+        set((s) => ({
           equipped: {
-            ...state.equipped,
+            ...s.equipped,
             [category]: itemId,
           },
         }));
         return true;
       },
 
-      unequipItem: (category: CosmeticCategory) => {
-        const defaultItem = COSMETICS_CATALOG.find(
-          (i) => i.category === category && i.isDefaultFree
-        );
-        const fallbackId = defaultItem ? defaultItem.id : `${category}-none`;
+      unequipItem: (category) => {
+        const noneMap: Record<CosmeticCategory, string> = {
+          head: "head-none",
+          glasses: "glasses-none",
+          body: "body-none",
+          held: "held-none",
+          skin: "skin-default",
+          room: "room-default",
+        };
 
         set((state) => ({
           equipped: {
             ...state.equipped,
-            [category]: fallbackId,
+            [category]: noneMap[category],
           },
         }));
       },
 
-      setEquippedLoadout: (loadout: Partial<EquippedCosmetics>) => {
+      setEquippedLoadout: (loadout) =>
         set((state) => ({
           equipped: {
             ...state.equipped,
             ...loadout,
           },
-        }));
+        })),
+
+      isItemOwned: (itemId) => {
+        const state = get();
+        // Default items are always unlocked
+        const item = COSMETICS_CATALOG.find((i) => i.id === itemId);
+        if (item?.isDefaultFree || DEFAULT_FREE_ITEM_IDS.includes(itemId)) {
+          return true;
+        }
+        return state.ownedItemIds.includes(itemId);
       },
     }),
     {
-      name: "caloria-cosmetics-storage",
+      name: "caloria-cosmetics-storage-v2",
+      // Merge function ensures newly added default items or migrations don't break existing local cache
       merge: (persistedState, currentState) => {
-        const persisted = (persistedState as Partial<CosmeticsStoreState>) || {};
+        const typed = persistedState as Partial<CosmeticsStoreState>;
+        const rawOwned = typed?.ownedItemIds || [];
         const mergedOwned = Array.from(
-          new Set([
-            ...DEFAULT_OWNED_IDS,
-            ...(Array.isArray(persisted.ownedItemIds)
-              ? persisted.ownedItemIds
-              : []),
-          ])
+          new Set([...DEFAULT_FREE_ITEM_IDS, ...rawOwned]),
         );
         return {
           ...currentState,
-          ...persisted,
+          ...typed,
           ownedItemIds: mergedOwned,
           equipped: {
             ...currentState.equipped,
-            ...(persisted.equipped || {}),
+            ...(typed?.equipped || {}),
           },
         };
       },
-    }
-  )
+    },
+  ),
 );

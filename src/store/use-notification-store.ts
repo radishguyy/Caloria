@@ -50,7 +50,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
           message: "Afza menyenggolmu: Ayo jangan lupa catat makan malam hari ini agar Co-op Streak 7 hari kita tetap aman!",
           timestamp: "10 menit yang lalu",
           isRead: false,
-          actionUrl: "/social/coop",
+          actionUrl: "/social",
         },
         {
           id: "notif-2",

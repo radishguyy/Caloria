@@ -131,7 +131,7 @@ export default function FoodDiaryPage() {
                   {latestFeedback.title}
                 </h4>
                 <span className="px-2 py-0.5 rounded-pill text-[10px] font-bold bg-surface border border-border-default text-text-primary">
-                  +{latestFeedback.xpEarned} XP • +{latestFeedback.coinsEarned} Koin
+                  +{latestFeedback.xpEarned} XP
                 </span>
               </div>
               <p className="text-xs text-neutral-10">{latestFeedback.message}</p>

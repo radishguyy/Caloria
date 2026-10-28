@@ -1,10 +1,15 @@
 import webpush from "web-push";
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { pushSubscriptions } from "@/db/schema";
+import {
+  pushSubscriptions,
+  coopMembers,
+  profiles,
+  foodLogs,
+} from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
-export interface PushNotificationPayload {
+export interface NotificationPayload {
   title: string;
   body: string;
   icon?: string;
@@ -12,6 +17,8 @@ export interface PushNotificationPayload {
   url?: string;
   tag?: string;
 }
+
+export type PushNotificationPayload = NotificationPayload;
 
 let isVapidConfigured = false;
 
@@ -42,7 +49,7 @@ function ensureVapidDetails() {
  */
 export async function sendNotificationToUser(
   userId: string,
-  payload: PushNotificationPayload
+  payload: NotificationPayload
 ): Promise<{ success: boolean; sentCount: number; prunedCount: number }> {
   ensureVapidDetails();
 
@@ -117,8 +124,9 @@ export async function sendNotificationToUser(
         await webpush.sendNotification(pushConfig, notificationString);
         sentCount++;
       } catch (error: any) {
+        const statusCode = error?.statusCode || error?.status;
         // Automatic Pruning: HTTP 404 (Not Found) or 410 (Gone / Unsubscribed)
-        if (error.statusCode === 404 || error.statusCode === 410) {
+        if (statusCode === 404 || statusCode === 410) {
           console.log(`[PushService] Pruning expired subscription: ${sub.endpoint}`);
           prunedCount++;
           try {
@@ -137,11 +145,128 @@ export async function sendNotificationToUser(
             console.error("[PushService] Error pruning subscription:", deleteErr);
           }
         } else {
-          console.warn(`[PushService] Failed to send push to ${sub.endpoint}:`, error.message);
+          console.warn(`[PushService] Failed to send push to ${sub.endpoint}:`, error?.message || error);
         }
       }
     })
   );
 
   return { success: true, sentCount, prunedCount };
+}
+
+/**
+ * Scenario 2: Friend Logged, User Behind (Peer Pressure Trigger)
+ * Triggered when User A logs food. Checks User A's co-op teammates.
+ * If a teammate has 0 logs today, dispatches:
+ *   Title: "Temanmu udah makan nih! 👀"
+ *   Body: "{friend_name} baru aja nyatet makanannya. Kamu jangan mau kalah, yuk log makananmu!"
+ *   URL: "/diary/add"
+ */
+export async function triggerFriendLoggedNotification(actorUserId: string): Promise<{
+  success: boolean;
+  notifiedCount: number;
+}> {
+  try {
+    const todayStr = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    // 1. Fetch current actor's name
+    let actorName = "Temanmu";
+    if (process.env.DATABASE_URL) {
+      const [actor] = await db
+        .select({ fullName: profiles.fullName, username: profiles.username })
+        .from(profiles)
+        .where(eq(profiles.id, actorUserId))
+        .limit(1);
+      actorName = actor?.fullName || actor?.username || "Temanmu";
+    } else {
+      const supabase = await createClient();
+      const { data: actor } = await supabase
+        .from("profiles")
+        .select("full_name, username")
+        .eq("id", actorUserId)
+        .maybeSingle();
+      actorName = actor?.full_name || actor?.username || "Temanmu";
+    }
+
+    // 2. Find groups that actor belongs to
+    let userGroups: Array<{ groupId: string }> = [];
+    if (process.env.DATABASE_URL) {
+      userGroups = await db
+        .select({ groupId: coopMembers.groupId })
+        .from(coopMembers)
+        .where(eq(coopMembers.userId, actorUserId));
+    } else {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from("coop_members")
+        .select("group_id")
+        .eq("user_id", actorUserId);
+      userGroups = (data || []).map((g: any) => ({ groupId: g.group_id }));
+    }
+
+    if (userGroups.length === 0) {
+      return { success: true, notifiedCount: 0 };
+    }
+
+    const groupIds = userGroups.map((g) => g.groupId);
+    const notifiedUserIds = new Set<string>();
+
+    for (const gId of groupIds) {
+      let teammates: Array<{ userId: string }> = [];
+      if (process.env.DATABASE_URL) {
+        teammates = await db
+          .select({ userId: coopMembers.userId })
+          .from(coopMembers)
+          .where(and(eq(coopMembers.groupId, gId), sql`${coopMembers.userId} != ${actorUserId}`));
+      } else {
+        const supabase = await createClient();
+        const { data } = await supabase
+          .from("coop_members")
+          .select("user_id")
+          .eq("group_id", gId)
+          .neq("user_id", actorUserId);
+        teammates = (data || []).map((t: any) => ({ userId: t.user_id }));
+      }
+
+      for (const t of teammates) {
+        if (notifiedUserIds.has(t.userId)) continue;
+
+        // Check if teammate has logged any meal today
+        let hasLoggedToday = false;
+        if (process.env.DATABASE_URL) {
+          const logsToday = await db
+            .select({ id: foodLogs.id })
+            .from(foodLogs)
+            .where(and(eq(foodLogs.userId, t.userId), eq(foodLogs.logDate, todayStr)))
+            .limit(1);
+          hasLoggedToday = logsToday.length > 0;
+        } else {
+          const supabase = await createClient();
+          const { data: logsToday } = await supabase
+            .from("food_logs")
+            .select("id")
+            .eq("user_id", t.userId)
+            .eq("log_date", todayStr)
+            .limit(1);
+          hasLoggedToday = (logsToday || []).length > 0;
+        }
+
+        // If teammate hasn't logged food today, dispatch peer pressure notification
+        if (!hasLoggedToday) {
+          notifiedUserIds.add(t.userId);
+          await sendNotificationToUser(t.userId, {
+            title: "Temanmu udah makan nih! 👀",
+            body: `${actorName} baru aja nyatet makanannya. Kamu jangan mau kalah, yuk log makananmu!`,
+            url: "/diary/add",
+            tag: `friend-logged-${todayStr}`,
+          });
+        }
+      }
+    }
+
+    return { success: true, notifiedCount: notifiedUserIds.size };
+  } catch (err: any) {
+    console.error("[triggerFriendLoggedNotification Error]:", err);
+    return { success: false, notifiedCount: 0 };
+  }
 }

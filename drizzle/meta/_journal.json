@@ -8,6 +8,27 @@
       "when": 1792865355298,
       "tag": "0000_bright_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0001_friendships_refactor",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793200435398,
+      "tag": "0001_coin_transactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793204000000,
+      "tag": "0002_clinical_nutrition_rpg",
+      "breakpoints": true
     }
   ]
 }

@@ -22,7 +22,6 @@ export interface RewardEvaluationResult {
   baseXp: number;
   bonusMultiplier: number;
   totalXp: number;
-  coinsEarned: number;
   isDailyJackpot: boolean;
   leveledUp: boolean;
   evolvedStage: boolean;
@@ -72,7 +71,6 @@ export function evaluateFoodReward(input: RewardEvaluationInput): RewardEvaluati
 
   let baseXp = 20;
   let bonusMultiplier = 1.0;
-  let coinsEarned = 10;
   let isDailyJackpot = false;
   let feedbackType: "success" | "warning" | "info" = "info";
   let title = "Catatan Makanan Tersimpan";
@@ -86,7 +84,6 @@ export function evaluateFoodReward(input: RewardEvaluationInput): RewardEvaluati
   // 1. High Protein / Balanced Macro bonus
   if (foodProteinG >= 20 || proteinPercent >= 70) {
     bonusMultiplier = 1.5;
-    coinsEarned += 5;
     feedbackType = "success";
     title = "Misi Asupan Protein Ideal!";
     message = `Menu ${foodName} menyumbang ${foodProteinG}g Protein! Kamu sudah memenuhi ${Math.min(100, proteinPercent)}% misi protein harian untuk program ${goalType.toUpperCase()}-mu (+Bonus XP!).`;
@@ -96,10 +93,9 @@ export function evaluateFoodReward(input: RewardEvaluationInput): RewardEvaluati
   if (caloriePercent >= 90 && caloriePercent <= 110) {
     isDailyJackpot = true;
     baseXp += 30;
-    coinsEarned += 20;
     feedbackType = "success";
     title = "Jackpot Kalori Tercapai!";
-    message = `Luar biasa! Asupan kalori harianmu (${newTotalCalories} kkal) tepat berada di zona ideal program ${goalType.toUpperCase()}. Jackpot XP dan Caloria Coins ditambahkan!`;
+    message = `Luar biasa! Asupan kalori harianmu (${newTotalCalories} kkal) tepat berada di zona ideal program ${goalType.toUpperCase()}. Jackpot XP ditambahkan!`;
   }
 
   const totalXp = Math.round(baseXp * bonusMultiplier);
@@ -120,7 +116,6 @@ export function evaluateFoodReward(input: RewardEvaluationInput): RewardEvaluati
     exp = exp - expNeeded;
     leveledUp = true;
 
-    // Check stage evolution
     let targetStage = 1;
     if (level >= 30) targetStage = 5;
     else if (level >= 15) targetStage = 4;
@@ -137,7 +132,6 @@ export function evaluateFoodReward(input: RewardEvaluationInput): RewardEvaluati
     baseXp,
     bonusMultiplier,
     totalXp,
-    coinsEarned,
     isDailyJackpot,
     leveledUp,
     evolvedStage,
@@ -209,7 +203,6 @@ export function evaluateBatchFoodReward(input: BatchRewardEvaluationInput): Batc
   // 1. Base XP scaling with batch size (prevents single-log farming and rewards comprehensive logging)
   // 1 item = 25 XP; 2 items = 40 XP; 3 items = 55 XP; 4+ items = 70 XP
   const baseXp = Math.min(80, 25 + (itemCount - 1) * 15);
-  let coinsEarned = 10 + (itemCount - 1) * 4;
   let bonusMultiplier = 1.0;
   let isDailyJackpot = false;
   let isComboBalanced = false;
@@ -225,11 +218,9 @@ export function evaluateBatchFoodReward(input: BatchRewardEvaluationInput): Batc
   if (hasSubstantialProtein && hasSubstantialCarbs && hasSubstantialFiberOrVeg) {
     isComboBalanced = true;
     bonusMultiplier = 1.4;
-    coinsEarned += 10;
     feedbackType = "success";
   } else if (hasSubstantialProtein) {
     bonusMultiplier = 1.25;
-    coinsEarned += 5;
     feedbackType = "success";
   }
 
@@ -239,7 +230,6 @@ export function evaluateBatchFoodReward(input: BatchRewardEvaluationInput): Batc
   // Daily Jackpot Check
   if (caloriePercent >= 90 && caloriePercent <= 110) {
     isDailyJackpot = true;
-    coinsEarned += 20;
     feedbackType = "success";
   }
 
@@ -288,7 +278,6 @@ export function evaluateBatchFoodReward(input: BatchRewardEvaluationInput): Batc
     baseXp,
     bonusMultiplier,
     totalXp,
-    coinsEarned,
     isDailyJackpot,
     isComboBalanced,
     itemCount,

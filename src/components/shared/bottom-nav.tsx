@@ -12,7 +12,7 @@ export function BottomNav() {
     { href: "/dashboard", label: "Home", icon: Sparkles },
     { href: "/diary", label: "Diary", icon: UtensilsCrossed },
     { href: "/pet-customization/wardrobe", label: "Wardrobe", icon: Award },
-    { href: "/social/coop", label: "Co-op", icon: Users },
+    { href: "/social", label: "Sosial", icon: Users },
     { href: "/profile/overview", label: "Profil", icon: UserCircle },
   ];
 

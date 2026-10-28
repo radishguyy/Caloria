@@ -408,3 +408,18 @@
     --card-padding: 20px;
   }
 }
+
+/* New navbar aliases (appended; existing tokens left untouched) */
+@theme inline {
+  --color-ink: var(--color-neutral-10);
+  --color-ink-muted: var(--color-text-muted);
+  --color-brand-green: var(--color-accent-green);
+  --color-brand-green-light: var(--color-accent-green-light);
+  --color-brand-green-ink: var(--color-text-primary);
+  --color-brand-orange: var(--color-accent-orange);
+  --color-warm-border: var(--color-border-divider);
+}
+
+:root {
+  --brand-green-dark: #4f7a2a;
+}

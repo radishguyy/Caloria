@@ -41,13 +41,7 @@ export const itemCategoryEnum = pgEnum("item_category_enum", [
   "room_decoration",
 ]);
 
-// 5. Friendship Status Enum
-export const friendshipStatusEnum = pgEnum("friendship_status_enum", [
-  "pending",
-  "accepted",
-  "declined",
-  "blocked",
-]);
+// 5. Friendship Status Enum is defined in ./friendships.ts
 
 // 6. Badge Category Enum
 export const badgeCategoryEnum = pgEnum("badge_category_enum", [

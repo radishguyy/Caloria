@@ -21,12 +21,7 @@ import {
 } from "@/lib/character-assets/types";
 
 export type CosmeticCategory =
-  | "head"
-  | "body"
-  | "glasses"
-  | "held"
-  | "skin"
-  | "room";
+  "head" | "body" | "glasses" | "held" | "skin" | "room";
 
 export interface CosmeticItem {
   id: string;
@@ -44,6 +39,49 @@ export interface CosmeticItem {
   layerOrder?: number;
   compatibleCharacters?: "all" | CharacterId[];
   isDefaultFree?: boolean;
+}
+
+export const DEFAULT_FREE_ITEM_IDS: string[] = [
+  "head-none",
+  "glasses-none",
+  "body-none",
+  "held-none",
+  "skin-default",
+  "room-default",
+];
+
+export const CATEGORY_MAP: Record<
+  CosmeticCategory,
+  "hat" | "outfit" | "glasses" | "accessory" | "skin" | "room_decoration"
+> = {
+  head: "hat",
+  body: "outfit",
+  glasses: "glasses",
+  held: "accessory",
+  skin: "skin",
+  room: "room_decoration",
+};
+
+export interface PetCustomizationStateResult {
+  success: boolean;
+  authenticated: boolean;
+  coins: number | null;
+  ownedItemIds: string[];
+  equipped: {
+    head: string | null;
+    glasses: string | null;
+    body: string | null;
+    held: string | null;
+    skin: string | null;
+    room: string | null;
+  } | null;
+}
+
+export interface PurchaseResult {
+  success: boolean;
+  message: string;
+  newCoins?: number;
+  itemId?: string;
 }
 
 const DEFAULT_NONE_ITEMS: CosmeticItem[] = [
@@ -100,7 +138,8 @@ const SKIN_AND_ROOM_ITEMS: CosmeticItem[] = [
     name: "Skin Original Karakter",
     category: "skin",
     priceCoins: 0,
-    description: "Warna bawaan atau warna kustom pilihanmu tanpa efek aura tambahan.",
+    description:
+      "Warna bawaan atau warna kustom pilihanmu tanpa efek aura tambahan.",
     previewEmoji: "🔥",
     colorAccent: "#f97316",
     isDefaultFree: true,

@@ -1,20 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import {
-  Award,
-  Lock,
-  CheckCircle2,
-  Coins,
-  ArrowLeft,
-} from "lucide-react";
+import { Award, Lock, CheckCircle2, Coins } from "lucide-react";
 import {
   ACHIEVEMENTS_DATA,
   AchievementBadge,
   AchievementCategory,
 } from "@/lib/achievements-data";
 import { useAchievementsStore } from "@/store/use-achievements-store";
+import { ProfileHeader } from "@/components/profile/profile-header";
 import { cn } from "@/lib/utils";
 
 export default function ProfileAchievementsPage() {
@@ -41,55 +35,15 @@ export default function ProfileAchievementsPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/profile/overview"
-              className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
-              Galeri Badge & Prestasi
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-text-muted mt-1 ml-8 sm:ml-0">
-            Penghargaan otomatis atas rekam jejak konsistensi gizi, penyelesaian misi, dan kerja sama Co-op.
-          </p>
-        </div>
+      <ProfileHeader title="Galeri Badge & Prestasi" />
 
-        {/* Unlocked Counter Pill */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-pill bg-accent-yellow border border-accent-green/30 text-text-primary font-bold text-xs">
-          <Award className="h-4 w-4 text-accent-green" />
+      <div className="flex justify-end">
+        <div className="flex items-center gap-2 rounded-xl bg-accent-yellow border border-accent-green/30 px-4 py-2 text-text-primary font-bold text-xs">
+          <Award className="h-4 w-4 text-accent-green" aria-hidden="true" />
           <span>
             {totalUnlocked} dari {ACHIEVEMENTS_DATA.length} Terbuka
           </span>
         </div>
-      </div>
-
-      {/* Sub-Tabs: Overview vs Achievements vs Settings */}
-      <div className="flex items-center gap-2 border-b border-border-divider pb-2">
-        <Link
-          href="/profile/overview"
-          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
-        >
-          Overview & Berat Badan
-        </Link>
-        <Link
-          href="/profile/achievements"
-          aria-current="page"
-          className="nav-item is-selected px-4 py-2 text-xs font-bold"
-        >
-          Galeri Achievement
-        </Link>
-        <Link
-          href="/profile/settings"
-          className="nav-item px-4 py-2 text-xs font-semibold text-neutral-10"
-        >
-          Pengaturan Notifikasi
-        </Link>
       </div>
 
       {/* Category Filter Pills */}
@@ -163,7 +117,7 @@ export default function ProfileAchievementsPage() {
                   </span>
                   <span
                     className={cn(
-                      "text-[9px] font-bold px-2 py-0.5 rounded-pill",
+                      "text-[9px] font-bold px-2 py-0.5 rounded-md",
                       isUnlocked
                         ? "bg-accent-green/15 text-text-primary"
                         : "bg-surface border border-border-default text-text-muted"
@@ -187,7 +141,7 @@ export default function ProfileAchievementsPage() {
             </div>
 
             <div className="space-y-1">
-              <span className="px-2.5 py-0.5 rounded-pill text-[10px] font-bold uppercase tracking-wider bg-surface-subtle border border-border-divider text-text-muted">
+              <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-surface-subtle border border-border-divider text-text-muted">
                 Kategori {selectedBadge.category}
               </span>
               <h3 className="text-lg font-black text-text-primary font-heading">

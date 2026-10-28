@@ -24,11 +24,11 @@ self.addEventListener("push", (event) => {
     };
   }
 
-  const title = payload.title || "Caloria 🥑";
+  const title = payload.title || "Caloria 🍽️";
   const options = {
     body: payload.body || "Jangan lupa pantau nutrisi harianmu!",
     icon: payload.icon || "/icons/icon-192x192.png",
-    badge: payload.badge || "/icons/icon-192x192.png",
+    badge: payload.badge || payload.icon || "/icons/icon-192x192.png",
     data: {
       url: payload.url || "/dashboard",
       dateOfArrival: Date.now(),
@@ -45,7 +45,8 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || "/dashboard";
+  const targetPath = event.notification.data?.url || "/dashboard";
+  const fullTargetUrl = new URL(targetPath, self.location.origin).href;
 
   event.waitUntil(
     self.clients
@@ -53,17 +54,17 @@ self.addEventListener("notificationclick", (event) => {
       .then((windowClients) => {
         // If there's an existing open tab for Caloria, focus it and navigate
         for (const client of windowClients) {
-          if (client.url && "focus" in client) {
+          if (client.url && client.url.startsWith(self.location.origin) && "focus" in client) {
             client.focus();
             if ("navigate" in client) {
-              return client.navigate(targetUrl);
+              return client.navigate(fullTargetUrl);
             }
             return client;
           }
         }
         // Otherwise, open a new window
         if (self.clients.openWindow) {
-          return self.clients.openWindow(targetUrl);
+          return self.clients.openWindow(fullTargetUrl);
         }
       })
   );

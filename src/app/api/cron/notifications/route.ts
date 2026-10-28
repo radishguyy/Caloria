@@ -6,7 +6,7 @@ import {
   coopMembers,
   pushSubscriptions,
 } from "@/db/schema";
-import { eq, and, sql, inArray } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { sendNotificationToUser } from "@/lib/server/push-service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,20 +15,31 @@ export async function GET(request: NextRequest) {
     // 1. Cron Security Authorization check
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
+    const secretParam = request.nextUrl.searchParams.get("secret");
 
     if (
       cronSecret &&
       authHeader !== `Bearer ${cronSecret}` &&
-      request.headers.get("x-cron-secret") !== cronSecret
+      request.headers.get("x-cron-secret") !== cronSecret &&
+      secretParam !== cronSecret
     ) {
       return NextResponse.json({ error: "Unauthorized cron request" }, { status: 401 });
     }
 
-    // Current local time (WIB UTC+7) or server time
+    // Current local time in Indonesia (WIB UTC+7)
     const now = new Date();
-    // Use Indonesia timezone (Asia/Jakarta, UTC+7)
-    const jakartaHours = (now.getUTCHours() + 7) % 24;
-    const todayStr = new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const jakartaDate = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    const jakartaHours = jakartaDate.getUTCHours();
+    const todayStr = jakartaDate.toISOString().split("T")[0];
+
+    // Optional query overrides for testing
+    const forceSlot = request.nextUrl.searchParams.get("slot") as
+      | "breakfast"
+      | "lunch"
+      | "dinner"
+      | null;
+    const forceEvening = request.nextUrl.searchParams.get("evening") === "true";
+    const forceReengagement = request.nextUrl.searchParams.get("reengagement") === "true";
 
     const stats = {
       mealtimeSent: 0,
@@ -39,25 +50,25 @@ export async function GET(request: NextRequest) {
 
     // =========================================================================
     // A. SCENARIO 1: Mealtime Food Log Reminder
-    // Sarapan: 07:00 - 09:00 (peak ~08:00)
-    // Makan Siang: 12:00 - 14:00 (peak ~12:30)
-    // Makan Malam: 18:30 - 20:30 (peak ~19:00)
+    // Sarapan: 07:00 - 09:59 (peak ~08:00)
+    // Makan Siang: 12:00 - 14:59 (peak ~12:30)
+    // Makan Malam: 18:00 - 20:59 (peak ~19:00)
     // =========================================================================
     const isBreakfastTime = jakartaHours >= 7 && jakartaHours <= 9;
     const isLunchTime = jakartaHours >= 12 && jakartaHours <= 14;
     const isDinnerTime = jakartaHours >= 18 && jakartaHours <= 20;
 
-    let currentMealSlot: "breakfast" | "lunch" | "dinner" | null = null;
-    if (isBreakfastTime) currentMealSlot = "breakfast";
-    else if (isLunchTime) currentMealSlot = "lunch";
-    else if (isDinnerTime) currentMealSlot = "dinner";
+    let currentMealSlot: "breakfast" | "lunch" | "dinner" | null = forceSlot || null;
+    if (!currentMealSlot) {
+      if (isBreakfastTime) currentMealSlot = "breakfast";
+      else if (isLunchTime) currentMealSlot = "lunch";
+      else if (isDinnerTime) currentMealSlot = "dinner";
+    }
 
     if (currentMealSlot) {
-      // Find all users who have active push subscriptions
       const subscribedUsers = await getSubscribedUserIds();
 
       for (const userId of subscribedUsers) {
-        // Check if user has already logged this specific meal slot today
         const hasLoggedThisMeal = await userLoggedMealSlot(userId, todayStr, currentMealSlot);
         if (!hasLoggedThisMeal) {
           await sendNotificationToUser(userId, {
@@ -72,9 +83,11 @@ export async function GET(request: NextRequest) {
     }
 
     // =========================================================================
-    // B. SCENARIO 3 & 4: 10 PM Streak Savers (Runs between 21:30 - 22:59)
+    // B. SCENARIO 3 & 4: 10 PM Streak Savers (Runs between 21:00 - 23:59 WIB)
     // =========================================================================
-    if (jakartaHours >= 21 && jakartaHours <= 23) {
+    const isEveningWindow = (jakartaHours >= 21 && jakartaHours <= 23) || forceEvening;
+
+    if (isEveningWindow) {
       const subscribedUsers = await getSubscribedUserIds();
 
       for (const userId of subscribedUsers) {
@@ -94,15 +107,13 @@ export async function GET(request: NextRequest) {
         }
 
         // SCENARIO 4: Co-op Social Streak Saver (Friend Missed Log)
-        // If current user is in co-op groups, find any friend who hasn't logged today
         const friendsMissingLogs = await getTeammatesWithoutLogsToday(userId, todayStr);
-        if (friendsMissingLogs.length > 0) {
-          const friendName = friendsMissingLogs[0].name;
+        for (const friend of friendsMissingLogs) {
           await sendNotificationToUser(userId, {
             title: "Social streak kalian dalam bahaya! 🤝🔥",
-            body: `${friendName} belum nyatet makan hari ini. Colek dia sekarang biar streak party kalian tetap aman!`,
-            url: "/social/coop",
-            tag: `streak-saver-coop-${todayStr}`,
+            body: `${friend.name} belum nyatet makan hari ini. Colek dia sekarang biar streak party kalian tetap aman!`,
+            url: "/social",
+            tag: `streak-saver-coop-${friend.id}-${todayStr}`,
           });
           stats.streakSaver10PmFriendSent++;
         }
@@ -111,25 +122,29 @@ export async function GET(request: NextRequest) {
 
     // =========================================================================
     // C. SCENARIO 5: Re-engagement / Broken Streak Recovery
-    // Cadence: Day 2, Day 5, Day 7, Day 14 after broken streak
+    // Cadence: Day 2, Day 5, Day 7, Day 14 after streak break
     // =========================================================================
     const subscribedUsers = await getSubscribedUserIds();
     for (const userId of subscribedUsers) {
       const userProfile = await getUserProfile(userId);
       if (!userProfile) continue;
 
-      // Condition: streak dropped to 0, and user hasn't completed any logs today
+      // Condition: streak is 0, and user has not logged anything today
       if (userProfile.currentStreakDays === 0) {
-        const daysSinceUpdate = getDaysDifference(new Date(userProfile.updatedAt), now);
-        // Dispatch only on days 2, 5, 7, or 14
-        if ([2, 5, 7, 14].includes(daysSinceUpdate)) {
-          await sendNotificationToUser(userId, {
-            title: "Pet kamu kangen berat... 🥺🐾",
-            body: "Streak boleh reset, tapi petualanganmu belum selesai. Yuk balik lagi dan mulai kebiasaan sehat bareng hari ini!",
-            url: "/dashboard",
-            tag: `re-engagement-day-${daysSinceUpdate}`,
-          });
-          stats.reengagementSent++;
+        const hasLoggedToday = await userHasAnyLogsToday(userId, todayStr);
+        if (!hasLoggedToday) {
+          const daysSinceBreak = await getDaysSinceLastLogOrCreation(userId, userProfile.createdAt);
+
+          // Dispatch only on cadence days: Day 2, Day 5, Day 7, Day 14 (or forced)
+          if ([2, 5, 7, 14].includes(daysSinceBreak) || forceReengagement) {
+            await sendNotificationToUser(userId, {
+              title: "Pet kamu kangen berat... 🥺🐾",
+              body: "Streak boleh reset, tapi petualanganmu belum selesai. Yuk balik lagi dan mulai kebiasaan sehat bareng hari ini!",
+              url: "/dashboard",
+              tag: `re-engagement-day-${daysSinceBreak}-${todayStr}`,
+            });
+            stats.reengagementSent++;
+          }
         }
       }
     }
@@ -141,6 +156,9 @@ export async function GET(request: NextRequest) {
       stats,
     });
   } catch (error: any) {
+    if (error?.digest?.startsWith?.("NEXT_")) {
+      throw error;
+    }
     console.error("[Cron Notifications Error]:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -263,6 +281,7 @@ async function getTeammatesWithoutLogsToday(
     if (groupIds.length === 0) return [];
 
     const result: Array<{ id: string; name: string }> = [];
+    const seenUserIds = new Set<string>();
 
     for (const gid of groupIds) {
       let mates: Array<{ userId: string }> = [];
@@ -282,6 +301,9 @@ async function getTeammatesWithoutLogsToday(
       }
 
       for (const m of mates) {
+        if (seenUserIds.has(m.userId)) continue;
+        seenUserIds.add(m.userId);
+
         const hasLog = await userHasAnyLogsToday(m.userId, todayStr);
         if (!hasLog) {
           const profile = await getUserProfile(m.userId);
@@ -299,7 +321,26 @@ async function getTeammatesWithoutLogsToday(
   }
 }
 
-function getDaysDifference(d1: Date, d2: Date): number {
-  const diffTime = Math.abs(d2.getTime() - d1.getTime());
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+async function getDaysSinceLastLogOrCreation(userId: string, createdAt: Date): Promise<number> {
+  const now = new Date();
+  try {
+    if (process.env.DATABASE_URL) {
+      const [lastLog] = await db
+        .select({ logDate: foodLogs.logDate })
+        .from(foodLogs)
+        .where(eq(foodLogs.userId, userId))
+        .orderBy(desc(foodLogs.logDate))
+        .limit(1);
+
+      if (lastLog?.logDate) {
+        const lastDate = new Date(lastLog.logDate);
+        return Math.floor(Math.abs(now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    }
+  } catch {
+    // fallback to profile createdAt
+  }
+
+  const profileDate = new Date(createdAt);
+  return Math.floor(Math.abs(now.getTime() - profileDate.getTime()) / (1000 * 60 * 60 * 24));
 }

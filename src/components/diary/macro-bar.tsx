@@ -9,9 +9,17 @@ import { cn } from "@/lib/utils";
 
 export function MacroBar() {
   const isHydrated = useHydrated();
-  const { targets, getConsumed, getCaloriesRemaining, selectedDate, setSelectedDate } = useFoodStore();
+  const {
+    targets,
+    getConsumed,
+    getCaloriesRemaining,
+    getDepkesEvaluation,
+    selectedDate,
+    setSelectedDate,
+  } = useFoodStore();
   const consumed = getConsumed();
   const caloriesRemaining = getCaloriesRemaining();
+  const depkes = getDepkesEvaluation();
   const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
 
   const caloriePercent = Math.min(
@@ -53,14 +61,27 @@ export function MacroBar() {
               </button>
             )}
           </div>
-          <div className="flex items-baseline gap-2 mt-1">
+          <div className="flex items-baseline gap-2 mt-1 flex-wrap">
             <span className="text-3xl font-extrabold tracking-tight text-text-primary font-heading">
               {consumed.calories}
             </span>
             <span className="text-text-muted text-sm font-medium">
               / {targets.calories} kcal
             </span>
+            {isHydrated && (
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill text-[11px] font-bold text-white shadow-2xs font-sans ml-1"
+                style={{ backgroundColor: depkes.colorHex }}
+              >
+                {depkes.badgeText}
+              </span>
+            )}
           </div>
+          {isHydrated && (
+            <p className="text-[11px] text-text-muted mt-1 font-sans">
+              {depkes.guidanceText}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-3">

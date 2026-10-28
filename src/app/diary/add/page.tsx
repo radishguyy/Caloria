@@ -119,15 +119,17 @@ function DiaryAddFoodContent() {
 
   const { feedPet, level, exp, stage, coins } = usePetStore();
 
-  const [activeMeal, setActiveMeal] = useState<MealTypeId>(() => {
-    if (mealParam) return mealParam;
-    if (typeof window === "undefined") return "breakfast";
-    const hours = new Date().getHours();
-    if (hours >= 11 && hours < 15) return "lunch";
-    if (hours >= 15 && hours < 18) return "snack";
-    if (hours >= 18 || hours < 5) return "dinner";
-    return "breakfast";
-  });
+  const [activeMeal, setActiveMeal] = useState<MealTypeId>(mealParam || "breakfast");
+
+  useEffect(() => {
+    if (!mealParam) {
+      const hours = new Date().getHours();
+      if (hours >= 11 && hours < 15) setActiveMeal("lunch");
+      else if (hours >= 15 && hours < 18) setActiveMeal("snack");
+      else if (hours >= 18 || hours < 5) setActiveMeal("dinner");
+      else setActiveMeal("breakfast");
+    }
+  }, [mealParam]);
   const [sourceTab, setSourceTab] = useState<
     "all" | "recent" | "frequent" | "saved" | "branded"
   >("all");
@@ -411,10 +413,9 @@ function DiaryAddFoodContent() {
       title: result.title,
       message: result.message,
       xpEarned: result.totalXp,
-      coinsEarned: result.coinsEarned,
     });
 
-    feedPet(result.totalBatchCalories, result.totalXp, result.coinsEarned);
+    feedPet(result.totalBatchCalories, result.totalXp, 0);
 
     setRewardResult(result);
     if (result.leveledUp) {
@@ -1031,12 +1032,11 @@ function DiaryAddFoodContent() {
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-[10px] text-neutral-10">Caloria Coins</span>
-                <p className="text-xl font-black text-accent-orange-dark font-heading flex items-center justify-center gap-1">
-                  <Coins className="h-4 w-4 text-accent-orange" />
-                  +{rewardResult.coinsEarned}
+                <span className="text-[10px] text-neutral-10">Total Kalori</span>
+                <p className="text-xl font-black text-accent-green font-heading flex items-center justify-center gap-1">
+                  +{rewardResult.totalBatchCalories}
                 </p>
-                <span className="text-[9px] text-neutral-10">Saldo Baru: {coins} Koin</span>
+                <span className="text-[9px] text-neutral-10">Kkal Tercatat</span>
               </div>
             </div>
 

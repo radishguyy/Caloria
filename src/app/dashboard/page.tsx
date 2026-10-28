@@ -18,6 +18,7 @@ import {
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
+import { QuestBoard } from "@/components/dashboard/QuestBoard";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { useSocialStore } from "@/store/use-social-store";
@@ -39,7 +40,9 @@ export default function DashboardPage() {
     addBatchLogs,
     getRecentFoods,
     getFrequentFoods,
+    getDepkesEvaluation,
   } = useFoodStore();
+  const depkesEval = getDepkesEvaluation();
   const { coins, feedPet, stage } = usePetStore();
   const { coopStreakDays, partyName, friends } = useSocialStore();
   const { toggleDrawer, getUnreadCount } = useNotificationStore();
@@ -106,7 +109,7 @@ export default function DashboardPage() {
     }));
 
     const feedback = addBatchLogs(logsToSave);
-    feedPet(totalCal, feedback.xpEarned, feedback.coinsEarned);
+    feedPet(totalCal, feedback.xpEarned, 0);
 
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
@@ -127,7 +130,7 @@ export default function DashboardPage() {
       loggedDate: new Date().toISOString().split("T")[0],
     });
 
-    feedPet(foodItem.calories, feedback.xpEarned, feedback.coinsEarned);
+    feedPet(foodItem.calories, feedback.xpEarned, 0);
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
@@ -197,8 +200,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Web Push Prompt Banner (After Pet Hatching / Stage >= 1) */}
-      {isPushSupported && !isPushSubscribed && !dismissedPushBanner && (
+      {/* Web Push Prompt Banner (After Pet Hatching / Stage >= 2) */}
+      {isHydrated && isPushSupported && !isPushSubscribed && !dismissedPushBanner && stage >= 2 && (
         <section className="rounded-card border-2 border-accent-green/30 bg-gradient-to-r from-accent-green/10 via-surface to-accent-yellow/15 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-navigation bg-accent-green text-text-inverse font-bold shadow-xs">
@@ -265,7 +268,7 @@ export default function DashboardPage() {
           </button>
 
           <Link
-            href="/social/coop"
+            href="/social"
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-navigation bg-accent-orange hover:bg-accent-orange-dark text-text-inverse text-xs font-bold transition-transform active:scale-95"
           >
             <Users className="h-3.5 w-3.5" />
@@ -358,13 +361,21 @@ export default function DashboardPage() {
 
           {/* Meal Breakdown Quick List */}
           <div className="rounded-card border border-border-divider bg-surface p-6 space-y-3.5 shadow-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-border-divider">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border-divider">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm font-bold text-text-primary">
                   {isSelectedToday
                     ? "Catatan Waktu Makan Hari Ini"
                     : `Catatan Waktu Makan (${formatDateDisplay(selectedDate, "short")})`}
                 </h3>
+                {isHydrated && (
+                  <span
+                    className="px-2.5 py-0.5 rounded-pill text-[10px] font-bold text-white shadow-2xs"
+                    style={{ backgroundColor: depkesEval.colorHex }}
+                  >
+                    {depkesEval.badgeText}
+                  </span>
+                )}
                 {!isSelectedToday && (
                   <button
                     onClick={() => setSelectedDate(getTodayKey())}
@@ -414,6 +425,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* 4. RPG Quest & Mission Board Widget */}
+      <QuestBoard />
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (

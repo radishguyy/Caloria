@@ -35,7 +35,7 @@ import {
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
 import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
-export type { CosmeticCategory };
+export type { CosmeticCategory, PetSpeciesId, MealTypeId };
 
 // Re-export Database Model Types
 export type {
@@ -100,6 +100,10 @@ export type GoalProgramType = "diet" | "bulking" | "maintenance";
 
 export interface UserGoalPlan {
   goalType: GoalProgramType;
+  goalPath?: "lose_weight" | "gain_muscle" | "maintain_weight";
+  currentLevel?: number;
+  currentWeek?: number;
+  streakConsecutiveLogs?: number;
   currentWeightKg: number;
   targetWeightKg: number;
   heightCm: number;
@@ -107,7 +111,7 @@ export interface UserGoalPlan {
   age: number;
   activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
   bmiScore: number;
-  bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese";
+  bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese" | "Obese I" | "Obese II";
   totalProjectedDays: number;
   currentDayNumber: number;
   dailyMarginKcal: number; // e.g. -500 for diet, +400 for bulking, 0 for maintenance
@@ -279,10 +283,13 @@ export interface WeightLogEntry {
 // Notification Center
 export interface AppNotification {
   id: string;
-  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement";
+  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement" | "friend_request";
   title: string;
   message: string;
   timestamp: string;
   isRead: boolean;
   actionUrl?: string;
 }
+
+export * from "./social";
+
