@@ -119,15 +119,17 @@ function DiaryAddFoodContent() {
 
   const { feedPet, level, exp, stage, coins } = usePetStore();
 
-  const [activeMeal, setActiveMeal] = useState<MealTypeId>(() => {
-    if (mealParam) return mealParam;
-    if (typeof window === "undefined") return "breakfast";
-    const hours = new Date().getHours();
-    if (hours >= 11 && hours < 15) return "lunch";
-    if (hours >= 15 && hours < 18) return "snack";
-    if (hours >= 18 || hours < 5) return "dinner";
-    return "breakfast";
-  });
+  const [activeMeal, setActiveMeal] = useState<MealTypeId>(mealParam || "breakfast");
+
+  useEffect(() => {
+    if (!mealParam) {
+      const hours = new Date().getHours();
+      if (hours >= 11 && hours < 15) setActiveMeal("lunch");
+      else if (hours >= 15 && hours < 18) setActiveMeal("snack");
+      else if (hours >= 18 || hours < 5) setActiveMeal("dinner");
+      else setActiveMeal("breakfast");
+    }
+  }, [mealParam]);
   const [sourceTab, setSourceTab] = useState<
     "all" | "recent" | "frequent" | "saved" | "branded"
   >("all");
