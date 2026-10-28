@@ -197,8 +197,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Web Push Prompt Banner (After Pet Hatching / Stage >= 1) */}
-      {isPushSupported && !isPushSubscribed && !dismissedPushBanner && (
+      {/* Web Push Prompt Banner (After Pet Hatching / Stage >= 2) */}
+      {isHydrated && isPushSupported && !isPushSubscribed && !dismissedPushBanner && stage >= 2 && (
         <section className="rounded-card border-2 border-accent-green/30 bg-gradient-to-r from-accent-green/10 via-surface to-accent-yellow/15 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-navigation bg-accent-green text-text-inverse font-bold shadow-xs">

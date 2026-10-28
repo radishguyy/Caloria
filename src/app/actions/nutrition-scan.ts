@@ -11,6 +11,7 @@ import {
   profiles,
 } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
+import { triggerFriendLoggedNotification } from "@/lib/server/push-service";
 
 export interface LogScannedNutritionInput {
   foodName: string;
@@ -190,7 +191,12 @@ export async function logScannedNutritionAction(
       })
       .where(eq(pets.userId, userId));
 
-    // 5. Revalidate paths
+    // 5. Trigger Peer Pressure notification to co-op teammates
+    triggerFriendLoggedNotification(userId).catch((err) => {
+      console.warn("[logScannedNutritionAction] Failed to trigger friend event notification:", err.message);
+    });
+
+    // 6. Revalidate paths
     revalidatePath("/diary");
     revalidatePath("/dashboard");
 

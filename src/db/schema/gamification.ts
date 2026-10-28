@@ -51,27 +51,7 @@ export const userBadges = pgTable(
   ]
 );
 
-// 15. Push Subscriptions Table (Web Push Notifications)
-export const pushSubscriptions = pgTable(
-  "push_subscriptions",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .references(() => profiles.id, { onDelete: "cascade" })
-      .notNull(),
-    endpoint: text("endpoint").unique().notNull(),
-    p256dh: text("p256dh").notNull(),
-    auth: text("auth").notNull(),
-    userAgent: text("user_agent"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [index("push_subscriptions_user_id_idx").on(table.userId)]
-);
+export { pushSubscriptions } from "./push-subscriptions";
 
 // 16. Notifications Table (In-App Notification Center)
 export const notifications = pgTable(
