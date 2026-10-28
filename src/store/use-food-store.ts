@@ -10,9 +10,25 @@ import {
   DailyNutritionSummary,
   DailyComplianceStatus,
 } from "@/types";
-import { DEFAULT_NUTRITION_TARGETS, MealTypeId } from "@/lib/constants";
+import { MealTypeId } from "@/lib/constants";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { formatDateKey, subDays } from "@/lib/date-utils";
+import {
+  calculateClinicalBenchmarks,
+  calculateIMT,
+  evaluateDepkesIntake,
+  type ClinicalNutritionBenchmarks,
+  type DepkesComplianceCode,
+  type DepkesComplianceResult,
+} from "@/lib/nutrition/calculations";
+import {
+  getDynamicQuestTargets,
+  goalPathToGoalType,
+  goalTypeToGoalPath,
+  type DailyQuestPlan,
+  type GoalPath,
+} from "@/lib/gamification/quest-engine";
+import { usePetStore } from "@/store/use-pet-store";
 
 export interface NutritionFeedback {
   type: "success" | "warning" | "info";
@@ -22,7 +38,7 @@ export interface NutritionFeedback {
   coinsEarned: number;
 }
 
-interface FoodStoreState {
+export interface FoodStoreState {
   selectedDate: string;
   logs: ExtendedFoodLog[];
   customFoods: CustomFoodItem[];
@@ -32,10 +48,27 @@ interface FoodStoreState {
   searchQuery: string;
   latestFeedback: NutritionFeedback | null;
 
+  // Clinical & RPG Quest States
+  depkesStatus: DepkesComplianceCode;
+  waterLoggedMl: number;
+  completedMissions: string[];
+
   // Actions
   setSelectedDate: (date: string) => void;
   setTargets: (targets: Partial<MacroTargets>) => void;
   setGoalPlan: (plan: Partial<UserGoalPlan>) => void;
+  setQuestProgression: (params: {
+    goalPath?: GoalPath;
+    currentLevel?: number;
+    currentWeek?: number;
+  }) => void;
+  addWater: (amountMl: number) => void;
+  setWaterLoggedMl: (amountMl: number) => void;
+  toggleMissionComplete: (
+    missionId: string,
+    xpReward?: number,
+    coinReward?: number
+  ) => boolean;
   addLog: (log: Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">) => NutritionFeedback;
   addBatchLogs: (
     logs: Array<Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">>,
@@ -57,6 +90,9 @@ interface FoodStoreState {
   getLogsByDate: (dateString: string) => ExtendedFoodLog[];
   getDailySummary: (dateString: string) => DailyNutritionSummary;
   getDailySummariesForDates: (dateStrings: string[]) => Record<string, DailyNutritionSummary>;
+  getQuestPlan: () => DailyQuestPlan;
+  getDepkesEvaluation: (date?: string) => DepkesComplianceResult;
+  getClinicalBenchmarks: () => ClinicalNutritionBenchmarks;
 }
 
 const getTodayFormatted = () => {
@@ -461,6 +497,49 @@ const createInitialLogs = (): ExtendedFoodLog[] => {
   ];
 };
 
+const INITIAL_GOAL_PLAN: UserGoalPlan = {
+  goalType: "diet",
+  goalPath: "lose_weight",
+  currentLevel: 2,
+  currentWeek: 1,
+  streakConsecutiveLogs: 7,
+  currentWeightKg: 76,
+  targetWeightKg: 70,
+  heightCm: 183,
+  gender: "male",
+  age: 20,
+  activityLevel: "moderate",
+  bmiScore: 22.69,
+  bmiCategory: "Normal",
+  totalProjectedDays: 98,
+  currentDayNumber: 12,
+  dailyMarginKcal: -100,
+  startDate: "2026-10-01",
+};
+
+const computeTargetsFromPlan = (plan: UserGoalPlan): MacroTargets => {
+  const goalPath = plan.goalPath || goalTypeToGoalPath(plan.goalType);
+  const { calorieTarget, macroTargets } = getDynamicQuestTargets({
+    weightKg: plan.currentWeightKg,
+    heightCm: plan.heightCm,
+    age: plan.age,
+    gender: plan.gender,
+    goalPath,
+    currentLevel: plan.currentLevel || 1,
+    currentWeek: plan.currentWeek || 1,
+  });
+
+  return {
+    calories: Math.round(calorieTarget),
+    protein: Math.round(macroTargets.proteinGrams),
+    carbs: Math.round(macroTargets.carbGrams),
+    fat: Math.round(macroTargets.fatGrams),
+    fiber: macroTargets.fiberGrams ?? 28,
+    sugar: macroTargets.sugarGramsMax ?? 50,
+    waterMl: 1500,
+  };
+};
+
 export const useFoodStore = create<FoodStoreState>()(
   persist(
     (set, get) => ({
@@ -486,29 +565,14 @@ export const useFoodStore = create<FoodStoreState>()(
           createdAt: "2026-10-20T08:00:00Z",
         },
       ],
-      targets: {
-        ...DEFAULT_NUTRITION_TARGETS,
-        fiber: 28,
-        sugar: 45,
-      },
-      goalPlan: {
-        goalType: "diet",
-        currentWeightKg: 75,
-        targetWeightKg: 68,
-        heightCm: 172,
-        gender: "male",
-        age: 24,
-        activityLevel: "moderate",
-        bmiScore: 25.4,
-        bmiCategory: "Overweight",
-        totalProjectedDays: 98,
-        currentDayNumber: 12,
-        dailyMarginKcal: -500,
-        startDate: "2026-10-01",
-      },
+      targets: computeTargetsFromPlan(INITIAL_GOAL_PLAN),
+      goalPlan: INITIAL_GOAL_PLAN,
       isLoading: false,
       searchQuery: "",
       latestFeedback: null,
+      depkesStatus: "defisit_berat",
+      waterLoggedMl: 750,
+      completedMissions: [],
 
       setSelectedDate: (date: string) => set({ selectedDate: date }),
 
@@ -518,9 +582,105 @@ export const useFoodStore = create<FoodStoreState>()(
         })),
 
       setGoalPlan: (newPlan: Partial<UserGoalPlan>) =>
-        set((state) => ({
-          goalPlan: { ...state.goalPlan, ...newPlan },
-        })),
+        set((state) => {
+          const updatedPlan: UserGoalPlan = {
+            ...state.goalPlan,
+            ...newPlan,
+          };
+          if (newPlan.goalPath && !newPlan.goalType) {
+            updatedPlan.goalType = goalPathToGoalType(newPlan.goalPath);
+          } else if (newPlan.goalType && !newPlan.goalPath) {
+            updatedPlan.goalPath = goalTypeToGoalPath(newPlan.goalType);
+          }
+
+          const imtEval = calculateIMT(updatedPlan.currentWeightKg, updatedPlan.heightCm);
+          updatedPlan.bmiScore = imtEval.imt;
+          updatedPlan.bmiCategory = imtEval.category;
+
+          const questPlan = getDynamicQuestTargets({
+            weightKg: updatedPlan.currentWeightKg,
+            heightCm: updatedPlan.heightCm,
+            age: updatedPlan.age,
+            gender: updatedPlan.gender,
+            goalPath: updatedPlan.goalPath || goalTypeToGoalPath(updatedPlan.goalType),
+            currentLevel: updatedPlan.currentLevel || 1,
+            currentWeek: updatedPlan.currentWeek || 1,
+          });
+          updatedPlan.dailyMarginKcal = questPlan.calorieOffset;
+
+          const nextTargets = computeTargetsFromPlan(updatedPlan);
+          const consumed = get().getConsumed();
+          const depkes = evaluateDepkesIntake(consumed.calories, nextTargets.calories);
+
+          return {
+            goalPlan: updatedPlan,
+            targets: nextTargets,
+            depkesStatus: depkes.code,
+          };
+        }),
+
+      setQuestProgression: ({ goalPath, currentLevel, currentWeek }) => {
+        const currentPlan = get().goalPlan;
+        const resolvedPath =
+          goalPath ?? currentPlan.goalPath ?? goalTypeToGoalPath(currentPlan.goalType);
+        const resolvedLevel = currentLevel ?? currentPlan.currentLevel ?? 1;
+        const resolvedWeek = currentWeek ?? currentPlan.currentWeek ?? 1;
+
+        get().setGoalPlan({
+          goalPath: resolvedPath,
+          goalType: goalPathToGoalType(resolvedPath),
+          currentLevel: resolvedLevel,
+          currentWeek: resolvedWeek,
+        });
+      },
+
+      addWater: (amountMl: number) => {
+        const nextWater = Math.max(0, Math.min(4000, get().waterLoggedMl + amountMl));
+        get().setWaterLoggedMl(nextWater);
+      },
+
+      setWaterLoggedMl: (amountMl: number) => {
+        const clamped = Math.max(0, Math.min(4000, amountMl));
+        const questPlan = get().getQuestPlan();
+        const waterMission = questPlan.sideMissions.find((m) => m.type === "water");
+        const currentCompleted = get().completedMissions;
+
+        let nextCompleted = [...currentCompleted];
+        if (waterMission) {
+          const isAlreadyDone = currentCompleted.includes(waterMission.id);
+          if (clamped >= waterMission.targetValue && !isAlreadyDone) {
+            nextCompleted.push(waterMission.id);
+            usePetStore.getState().gainExp(waterMission.xpReward ?? 25);
+            usePetStore.getState().addCoins(waterMission.coinReward ?? 10);
+          } else if (clamped < waterMission.targetValue && isAlreadyDone) {
+            nextCompleted = nextCompleted.filter((id) => id !== waterMission.id);
+          }
+        }
+
+        set({
+          waterLoggedMl: clamped,
+          completedMissions: nextCompleted,
+        });
+      },
+
+      toggleMissionComplete: (missionId: string, xpReward = 30, coinReward = 15) => {
+        const current = get().completedMissions;
+        const exists = current.includes(missionId);
+
+        if (exists) {
+          set({
+            completedMissions: current.filter((id) => id !== missionId),
+          });
+          return false;
+        } else {
+          set({
+            completedMissions: [...current, missionId],
+          });
+          usePetStore.getState().gainExp(xpReward);
+          usePetStore.getState().addCoins(coinReward);
+          return true;
+        }
+      },
 
       addLog: (logInput) => {
         const newLog: ExtendedFoodLog = {
@@ -587,7 +747,8 @@ export const useFoodStore = create<FoodStoreState>()(
           };
         }
 
-        set({ latestFeedback: feedback });
+        const depkes = evaluateDepkesIntake(consumed.calories, targets.calories);
+        set({ latestFeedback: feedback, depkesStatus: depkes.code });
         return feedback;
       },
 
@@ -614,7 +775,9 @@ export const useFoodStore = create<FoodStoreState>()(
           coinsEarned: 10 + Math.max(0, logInputs.length - 1) * 4,
         };
 
-        set({ latestFeedback: feedback });
+        const consumed = get().getConsumed();
+        const depkes = evaluateDepkesIntake(consumed.calories, get().targets.calories);
+        set({ latestFeedback: feedback, depkesStatus: depkes.code });
         return feedback;
       },
 
@@ -630,10 +793,14 @@ export const useFoodStore = create<FoodStoreState>()(
         return newFood;
       },
 
-      removeLog: (id: string) =>
+      removeLog: (id: string) => {
         set((state) => ({
           logs: state.logs.filter((item) => item.id !== id),
-        })),
+        }));
+        const consumed = get().getConsumed();
+        const depkes = evaluateDepkesIntake(consumed.calories, get().targets.calories);
+        set({ depkesStatus: depkes.code });
+      },
 
       setLogs: (logs: ExtendedFoodLog[]) => set({ logs }),
 
@@ -825,9 +992,40 @@ export const useFoodStore = create<FoodStoreState>()(
           (log) => log.loggedDate === targetDateStr && log.mealType === mealType
         );
       },
+
+      getQuestPlan: (): DailyQuestPlan => {
+        const { goalPlan } = get();
+        const goalPath = goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
+        return getDynamicQuestTargets({
+          weightKg: goalPlan.currentWeightKg,
+          heightCm: goalPlan.heightCm,
+          age: goalPlan.age,
+          gender: goalPlan.gender,
+          goalPath,
+          currentLevel: goalPlan.currentLevel || 1,
+          currentWeek: goalPlan.currentWeek || 1,
+        });
+      },
+
+      getDepkesEvaluation: (targetDate?: string): DepkesComplianceResult => {
+        const consumed = get().getConsumed(targetDate);
+        const { targets } = get();
+        return evaluateDepkesIntake(consumed.calories, targets.calories);
+      },
+
+      getClinicalBenchmarks: (): ClinicalNutritionBenchmarks => {
+        const { goalPlan } = get();
+        return calculateClinicalBenchmarks({
+          gender: goalPlan.gender,
+          age: goalPlan.age,
+          weightKg: goalPlan.currentWeightKg,
+          heightCm: goalPlan.heightCm,
+        });
+      },
     }),
     {
       name: "caloria-food-storage",
+      version: 2,
     }
   )
 );

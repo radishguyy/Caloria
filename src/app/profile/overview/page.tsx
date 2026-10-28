@@ -16,6 +16,7 @@ import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
+import { NutritionStatsCard } from "@/components/profile/NutritionStatsCard";
 import { calculateBmi } from "@/lib/nutrition-calculator";
 
 export default function ProfileOverviewPage() {
@@ -175,6 +176,9 @@ export default function ProfileOverviewPage() {
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
+
+      {/* Clinical Biometrics & Health Benchmark Card */}
+      <NutritionStatsCard />
 
       {/* Status Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">

@@ -279,3 +279,4 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
     </div>
   );
 }
+

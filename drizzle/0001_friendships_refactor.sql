@@ -26,3 +26,4 @@ ALTER TABLE "friendships" ADD CONSTRAINT "friendships_sender_id_profiles_id_fk" 
 ALTER TABLE "friendships" ADD CONSTRAINT "friendships_receiver_id_profiles_id_fk" FOREIGN KEY ("receiver_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "friendships_sender_id_idx" ON "friendships" ("sender_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "friendships_receiver_id_idx" ON "friendships" ("receiver_id");
+

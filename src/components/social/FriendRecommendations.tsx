@@ -166,3 +166,4 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
     </section>
   );
 }
+

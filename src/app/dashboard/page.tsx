@@ -18,6 +18,7 @@ import {
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
+import { QuestBoard } from "@/components/dashboard/QuestBoard";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { useSocialStore } from "@/store/use-social-store";
@@ -39,7 +40,9 @@ export default function DashboardPage() {
     addBatchLogs,
     getRecentFoods,
     getFrequentFoods,
+    getDepkesEvaluation,
   } = useFoodStore();
+  const depkesEval = getDepkesEvaluation();
   const { coins, feedPet, stage } = usePetStore();
   const { coopStreakDays, partyName, friends } = useSocialStore();
   const { toggleDrawer, getUnreadCount } = useNotificationStore();
@@ -358,13 +361,21 @@ export default function DashboardPage() {
 
           {/* Meal Breakdown Quick List */}
           <div className="rounded-card border border-border-divider bg-surface p-6 space-y-3.5 shadow-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-border-divider">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border-divider">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm font-bold text-text-primary">
                   {isSelectedToday
                     ? "Catatan Waktu Makan Hari Ini"
                     : `Catatan Waktu Makan (${formatDateDisplay(selectedDate, "short")})`}
                 </h3>
+                {isHydrated && (
+                  <span
+                    className="px-2.5 py-0.5 rounded-pill text-[10px] font-bold text-white shadow-2xs"
+                    style={{ backgroundColor: depkesEval.colorHex }}
+                  >
+                    {depkesEval.badgeText}
+                  </span>
+                )}
                 {!isSelectedToday && (
                   <button
                     onClick={() => setSelectedDate(getTodayKey())}
@@ -414,6 +425,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* 4. RPG Quest & Mission Board Widget */}
+      <QuestBoard />
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (

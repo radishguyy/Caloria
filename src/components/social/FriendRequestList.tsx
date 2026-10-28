@@ -258,3 +258,4 @@ export function FriendRequestList({ className, onAcceptSuccess }: FriendRequestL
     </section>
   );
 }
+

@@ -270,3 +270,4 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
     </section>
   );
 }
+
