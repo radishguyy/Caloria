@@ -8,6 +8,13 @@
       "when": 1792865355298,
       "tag": "0000_bright_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793200435398,
+      "tag": "0001_coin_transactions",
+      "breakpoints": true
     }
   ]
 }

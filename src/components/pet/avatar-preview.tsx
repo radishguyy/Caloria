@@ -1,32 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Sparkles,
-  Heart,
-  Smile,
-  Moon,
-  Utensils,
-  Maximize2,
-  Minimize2,
-  X,
-} from "lucide-react";
+import { Check, HandHeart, Heart, Lamp, Maximize2, X } from "lucide-react";
 import { AvatarRenderer } from "./avatar-renderer";
 import {
   CharacterColorPalette,
   CharacterId,
 } from "@/lib/character-assets/types";
-import {
-  getAccessoryDefinition,
-  getCharacterDefinition,
-} from "@/lib/character-assets/catalog";
 import { PetAnimationState } from "@/types";
 import { cn } from "@/lib/utils";
 
 export interface AvatarPreviewProps {
+  nickname: string;
   characterId: CharacterId;
-  name: string;
   colors?: Partial<CharacterColorPalette>;
   earsVariant?: CharacterId;
   tailVariant?: CharacterId;
@@ -39,103 +26,173 @@ export interface AvatarPreviewProps {
     skin?: string | null;
     room?: string | null;
   };
-  onUnequipSlot?: (slot: "head" | "glasses" | "body" | "held" | "skin" | "room") => void;
   isDirty?: boolean;
+  changedCategoryCount?: number;
+  onSave?: () => void;
+  onCancel?: () => void;
   className?: string;
 }
 
 export function AvatarPreview({
+  nickname,
   characterId,
-  name,
   colors,
   earsVariant,
   tailVariant,
   faceVariant,
   equipped,
-  onUnequipSlot,
   isDirty = false,
+  changedCategoryCount = 0,
+  onSave,
+  onCancel,
   className,
 }: AvatarPreviewProps) {
-  const [previewSize, setPreviewSize] = useState<"standard" | "large">("standard");
-  const [animationState, setAnimationState] = useState<PetAnimationState>("idle");
-  const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
+  const [animationState, setAnimationState] =
+    useState<PetAnimationState>("idle");
+  const [floatingHearts, setFloatingHearts] = useState<
+    { id: number; x: number }[]
+  >([]);
+  const [isNativeFullscreen, setIsNativeFullscreen] = useState(false);
+  const [isFallbackFullscreen, setIsFallbackFullscreen] = useState(false);
 
-  const charDef = getCharacterDefinition(characterId);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const petTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handlePetClick = () => {
-    if (animationState === "sleeping") return;
+  const isFullscreenView = isNativeFullscreen || isFallbackFullscreen;
+  const isSleeping = animationState === "sleeping";
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsNativeFullscreen(Boolean(document.fullscreenElement));
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (petTimerRef.current) clearTimeout(petTimerRef.current);
+      if (heartTimerRef.current) clearTimeout(heartTimerRef.current);
+    };
+  }, []);
+
+  const exitFullscreen = useCallback(() => {
+    setIsFallbackFullscreen(false);
+    if (
+      document.fullscreenElement &&
+      typeof document.exitFullscreen === "function"
+    ) {
+      void document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+
+  // Lock page scroll and wire Esc while the fullscreen view is open.
+  useEffect(() => {
+    if (!isFullscreenView) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") exitFullscreen();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFullscreenView, exitFullscreen]);
+
+  const toggleFullscreen = async () => {
+    if (isFullscreenView) {
+      exitFullscreen();
+      return;
+    }
+
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    if (typeof stage.requestFullscreen === "function") {
+      try {
+        await stage.requestFullscreen();
+        return;
+      } catch {
+        // Fall through to the CSS overlay (e.g. iOS Safari).
+      }
+    }
+
+    setIsFallbackFullscreen(true);
+  };
+
+  const handlePet = () => {
     setAnimationState("happy");
+
     const newHeart = { id: Date.now(), x: (Math.random() - 0.5) * 60 };
     setFloatingHearts((prev) => [...prev, newHeart]);
-    setTimeout(() => {
-      setFloatingHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
+
+    if (heartTimerRef.current) clearTimeout(heartTimerRef.current);
+    if (petTimerRef.current) clearTimeout(petTimerRef.current);
+
+    heartTimerRef.current = setTimeout(() => {
+      setFloatingHearts((prev) =>
+        prev.filter((heart) => heart.id !== newHeart.id),
+      );
     }, 1200);
-    setTimeout(() => {
+
+    petTimerRef.current = setTimeout(() => {
       setAnimationState("idle");
     }, 1400);
   };
 
-  const equippedSlots: {
-    slot: "head" | "glasses" | "body" | "held" | "skin" | "room";
-    label: string;
-    itemId?: string | null;
-  }[] = [
-    { slot: "head", label: "Topi", itemId: equipped.head },
-    { slot: "glasses", label: "Kacamata", itemId: equipped.glasses },
-    { slot: "body", label: "Pakaian", itemId: equipped.body },
-    { slot: "held", label: "Bawaan", itemId: equipped.held },
-  ];
+  const toggleSleep = () => {
+    if (petTimerRef.current) clearTimeout(petTimerRef.current);
+    setAnimationState((prev) => (prev === "sleeping" ? "idle" : "sleeping"));
+  };
 
   return (
     <div
+      ref={stageRef}
       className={cn(
-        "rounded-card border border-border-divider bg-surface p-5 sm:p-6 shadow-xs flex flex-col items-center relative overflow-hidden",
-        className
+        "flex flex-col border border-border-divider bg-surface shadow-xs",
+        isFullscreenView
+          ? "fixed inset-0 z-50 h-[100dvh] w-screen rounded-none border-0 p-4 sm:p-8"
+          : "relative rounded-card p-5 sm:p-6",
+        className,
       )}
     >
-      {/* Top Meta Bar */}
-      <div className="w-full flex items-center justify-between pb-3 border-b border-border-divider text-xs">
-        <div className="flex items-center gap-2">
-          <span className="font-extrabold text-text-primary text-sm font-heading">
-            {name || charDef.defaultNickname}
-          </span>
-          <span className="px-2 py-0.5 rounded-pill text-[10px] font-bold bg-accent-green/15 text-text-primary">
-            {charDef.speciesLabel}
-          </span>
-        </div>
+      {/* Header: nickname + fullscreen toggle */}
+      <div className="flex w-full items-center justify-between gap-3 border-b border-border-divider pb-3">
+        <h2 className="min-w-0 truncate text-2xl font-bold text-text-primary font-heading">
+          {nickname}
+        </h2>
 
-        <div className="flex items-center gap-2">
-          {isDirty && (
-            <span className="px-2 py-0.5 rounded-pill text-[10px] font-bold bg-accent-orange text-text-inverse animate-pulse">
-              Draft Belum Disimpan
-            </span>
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
+          title={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
+          className="shrink-0 rounded-navigation border border-border-default bg-surface p-2 text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary shadow-2xs"
+        >
+          {isFullscreenView ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <Maximize2 className="h-4 w-4" />
           )}
-
-          <button
-            type="button"
-            onClick={() =>
-              setPreviewSize((prev) => (prev === "standard" ? "large" : "standard"))
-            }
-            className="p-1.5 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle text-text-muted hover:text-text-primary transition-colors"
-            title={previewSize === "standard" ? "Perbesar Tampilan" : "Perkecil Tampilan"}
-          >
-            {previewSize === "standard" ? (
-              <Maximize2 className="h-3.5 w-3.5" />
-            ) : (
-              <Minimize2 className="h-3.5 w-3.5" />
-            )}
-          </button>
-        </div>
+        </button>
       </div>
 
-      {/* Main Avatar Stage */}
+      {/* Character stage */}
       <div
         className={cn(
-          "relative flex items-center justify-center my-3 select-none transition-all duration-300 w-full",
-          previewSize === "standard" ? "h-64 sm:h-72" : "h-80 sm:h-96"
+          "relative flex w-full select-none items-center justify-center",
+          isFullscreenView ? "min-h-0 flex-1 py-2" : "my-3 h-64 sm:h-72",
         )}
       >
-        {/* Floating Heart Particles */}
         <AnimatePresence>
           {floatingHearts.map((heart) => (
             <motion.div
@@ -144,34 +201,30 @@ export function AvatarPreview({
               animate={{ opacity: 0, y: -70, scale: 1.3 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1.1, ease: "easeOut" }}
-              className="absolute top-1/4 pointer-events-none z-30 text-macro-fat"
+              className="pointer-events-none absolute top-1/4 z-30 text-macro-fat"
             >
               <Heart className="h-7 w-7 fill-macro-fat" />
             </motion.div>
           ))}
         </AnimatePresence>
 
-        {/* Ambient Halo Glow */}
+        {/* Ambient halo glow */}
         <div
-          className="absolute inset-8 rounded-pill blur-3xl opacity-20 pointer-events-none transition-colors duration-500"
+          className="pointer-events-none absolute inset-8 rounded-card opacity-20 blur-3xl transition-colors duration-500"
           style={{
-            backgroundColor:
-              colors?.primary || charDef.defaultColors.primary || "#FF6B5B",
+            backgroundColor: colors?.primary || "var(--color-accent-orange)",
           }}
         />
 
-        {/* Interactive Character Motion */}
         <motion.div
-          onClick={handlePetClick}
-          className="relative flex items-center justify-center cursor-pointer transition-transform h-full max-h-full aspect-[128/160]"
+          onClick={handlePet}
+          className="relative flex h-full max-h-full max-w-full cursor-pointer items-center justify-center aspect-[128/160]"
           animate={
-            animationState === "eating"
-              ? { scale: [1, 1.1, 0.96, 1.06, 1], y: [0, -6, 2, -3, 0] }
-              : animationState === "happy"
+            animationState === "happy"
               ? { y: [0, -16, 0, -8, 0], rotate: [0, -4, 4, -2, 0] }
               : animationState === "sleeping"
-              ? { y: [0, 4, 0], scale: [1, 0.98, 1] }
-              : { y: [0, -5, 0] }
+                ? { y: [0, 4, 0], scale: [1, 0.98, 1] }
+                : { y: [0, -5, 0] }
           }
           transition={{
             duration: animationState === "idle" ? 3.2 : 1.2,
@@ -192,106 +245,72 @@ export function AvatarPreview({
             faceVariant={faceVariant}
             animationState={animationState}
             equipped={equipped}
-            className="w-full h-full drop-shadow-md"
+            className="h-full w-full drop-shadow-md"
           />
         </motion.div>
       </div>
 
-      {/* Animation Pose Test Controls */}
-      <div className="w-full flex items-center justify-center gap-1.5 py-1 text-xs">
-        <span className="text-[11px] font-semibold text-text-muted mr-1">
-          Uji Animasi:
-        </span>
-        <button
-          type="button"
-          onClick={() => setAnimationState("idle")}
-          className={cn(
-            "px-2.5 py-1 rounded-pill text-[11px] font-semibold border transition-colors flex items-center gap-1",
-            animationState === "idle"
-              ? "bg-accent-green text-text-inverse border-accent-green"
-              : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface"
-          )}
-        >
-          <Sparkles className="h-3 w-3" />
-          <span>Idle</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setAnimationState("happy")}
-          className={cn(
-            "px-2.5 py-1 rounded-pill text-[11px] font-semibold border transition-colors flex items-center gap-1",
-            animationState === "happy"
-              ? "bg-accent-orange text-text-inverse border-accent-orange"
-              : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface"
-          )}
-        >
-          <Smile className="h-3 w-3" />
-          <span>Happy</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setAnimationState("eating")}
-          className={cn(
-            "px-2.5 py-1 rounded-pill text-[11px] font-semibold border transition-colors flex items-center gap-1",
-            animationState === "eating"
-              ? "bg-macro-protein text-text-inverse border-macro-protein"
-              : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface"
-          )}
-        >
-          <Utensils className="h-3 w-3" />
-          <span>Makan</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setAnimationState("sleeping")}
-          className={cn(
-            "px-2.5 py-1 rounded-pill text-[11px] font-semibold border transition-colors flex items-center gap-1",
-            animationState === "sleeping"
-              ? "bg-accent-yellow text-text-primary border-accent-yellow font-bold"
-              : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface"
-          )}
-        >
-          <Moon className="h-3 w-3" />
-          <span>Tidur</span>
-        </button>
-      </div>
+      {/* Bottom row: pet controls (left), draft actions (right) */}
+      <div className="mt-3 flex w-full items-center justify-between gap-3 border-t border-border-divider pt-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handlePet}
+            aria-label="Elus Calpal"
+            title="Elus"
+            className="flex h-10 w-10 items-center justify-center rounded-navigation border border-border-default bg-surface text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary shadow-2xs"
+          >
+            <HandHeart className="h-5 w-5" />
+          </button>
 
-      {/* Equipped Accessories Summary Bar with 1-click Unequip */}
-      <div className="w-full grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-border-divider text-[11px]">
-        {equippedSlots.map(({ slot, label, itemId }) => {
-          const acc = getAccessoryDefinition(itemId);
-          const hasItem = Boolean(acc);
+          <button
+            type="button"
+            onClick={toggleSleep}
+            aria-label="Tidurkan Calpal"
+            aria-pressed={isSleeping}
+            title="Tidurkan"
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-navigation border transition-colors shadow-2xs",
+              isSleeping
+                ? "border-accent-orange bg-accent-yellow text-text-primary"
+                : "border-border-default bg-surface text-text-muted hover:bg-surface-subtle hover:text-text-primary",
+            )}
+          >
+            <Lamp className="h-5 w-5" />
+          </button>
+        </div>
 
-          return (
-            <div
-              key={slot}
-              className={cn(
-                "flex items-center justify-between px-2.5 py-1.5 rounded-input border transition-colors",
-                hasItem
-                  ? "bg-accent-yellow/40 border-accent-orange/30 text-text-primary"
-                  : "bg-surface-subtle border-border-divider text-text-muted"
-              )}
-            >
-              <div className="truncate max-w-[110px]">
-                <span className="text-[10px] text-text-muted mr-1">{label}:</span>
-                <span className="font-bold">
-                  {acc ? acc.name : "Kosong"}
-                </span>
-              </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={!isDirty}
+            aria-label="Batalkan perubahan"
+            title="Batalkan perubahan"
+            className="flex h-10 w-10 items-center justify-center rounded-navigation border border-border-default bg-surface text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40 shadow-2xs"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
-              {hasItem && onUnequipSlot && (
-                <button
-                  type="button"
-                  onClick={() => onUnequipSlot(slot)}
-                  className="p-1 rounded-pill text-text-muted hover:text-accent-orange hover:bg-surface transition-colors"
-                  title={`Lepas ${label}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-          );
-        })}
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!isDirty}
+            aria-label="Simpan perubahan"
+            title="Simpan perubahan"
+            className="relative flex h-10 w-10 items-center justify-center rounded-navigation bg-accent-green text-text-inverse transition-colors hover:bg-accent-green/90 disabled:cursor-not-allowed disabled:opacity-40 shadow-2xs"
+          >
+            <Check className="h-5 w-5 stroke-[2.5]" />
+            {isDirty && changedCategoryCount > 0 && (
+              <span
+                aria-hidden="true"
+                className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-[6px] bg-accent-orange px-1 text-[10px] font-bold leading-none text-text-inverse ring-2 ring-surface"
+              >
+                {changedCategoryCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

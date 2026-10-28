@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
+import { SessionProvider } from "@/components/shared/session-provider";
 
 const openRunde = localFont({
   src: [
@@ -46,10 +47,12 @@ export default function RootLayout({
       className={`h-full antialiased ${openRunde.variable} ${secuela.variable}`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        <Navbar />
-        <main className="flex-1 pb-24 lg:pb-12">{children}</main>
-        <BottomNav />
-        <NotificationDrawer />
+        <SessionProvider>
+          <Navbar />
+          <main className="flex-1 pb-24 lg:pb-12">{children}</main>
+          <BottomNav />
+          <NotificationDrawer />
+        </SessionProvider>
       </body>
     </html>
   );

@@ -30,11 +30,16 @@ interface PetStoreState {
   faceVariant?: CharacterId;
 
   // Actions
-  feedPet: (caloriesFed?: number, xpReward?: number, coinReward?: number) => void;
+  feedPet: (
+    caloriesFed?: number,
+    xpReward?: number,
+    coinReward?: number,
+  ) => void;
   petInteract: () => void;
   toggleSleep: () => void;
   gainExp: (amount: number) => void;
   addCoins: (amount: number) => void;
+  setCoins: (amount: number) => void;
   setAnimationState: (state: PetAnimationState) => void;
   setPetName: (name: string) => void;
   setSpecies: (species: PetSpeciesId) => void;
@@ -74,7 +79,7 @@ export const usePetStore = create<PetStoreState>()(
       getExpNeededForNextLevel: () => {
         const { level } = get();
         return Math.round(
-          PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, level - 1)
+          PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, level - 1),
         );
       },
 
@@ -84,17 +89,20 @@ export const usePetStore = create<PetStoreState>()(
         return {
           ...charDef.defaultColors,
           ...Object.fromEntries(
-            Object.entries(customColors || {}).filter(([, v]) => Boolean(v))
+            Object.entries(customColors || {}).filter(([, v]) => Boolean(v)),
           ),
         };
       },
 
       feedPet: (caloriesFed = 300, xpReward = 25, coinReward = 10) => {
         const current = get();
-        const hungerGain = Math.min(30, Math.max(10, Math.round(caloriesFed / 25)));
+        const hungerGain = Math.min(
+          30,
+          Math.max(10, Math.round(caloriesFed / 25)),
+        );
         const newHunger = Math.min(
           PET_CONFIG.MAX_HUNGER,
-          current.hunger + hungerGain
+          current.hunger + hungerGain,
         );
 
         set({
@@ -117,7 +125,7 @@ export const usePetStore = create<PetStoreState>()(
         const current = get();
         const newHappiness = Math.min(
           PET_CONFIG.MAX_HAPPINESS,
-          current.happiness + 15
+          current.happiness + 15,
         );
 
         set({
@@ -146,7 +154,8 @@ export const usePetStore = create<PetStoreState>()(
           let newStage = state.stage;
 
           const expNeeded = Math.round(
-            PET_CONFIG.EXP_BASE * Math.pow(PET_CONFIG.EXP_MULTIPLIER, newLevel - 1)
+            PET_CONFIG.EXP_BASE *
+              Math.pow(PET_CONFIG.EXP_MULTIPLIER, newLevel - 1),
           );
 
           if (newExp >= expNeeded) {
@@ -154,9 +163,12 @@ export const usePetStore = create<PetStoreState>()(
             newExp = newExp - expNeeded;
 
             // Stage evolution check
-            if (newLevel >= 30) newStage = 5; // Mythic
-            else if (newLevel >= 15) newStage = 4; // Adult
-            else if (newLevel >= 7) newStage = 3; // Juvenile
+            if (newLevel >= 30)
+              newStage = 5; // Mythic
+            else if (newLevel >= 15)
+              newStage = 4; // Adult
+            else if (newLevel >= 7)
+              newStage = 3; // Juvenile
             else if (newLevel >= 3) newStage = 2; // Hatchling
           }
 
@@ -170,6 +182,8 @@ export const usePetStore = create<PetStoreState>()(
 
       addCoins: (amount: number) =>
         set((state) => ({ coins: Math.max(0, state.coins + amount) })),
+
+      setCoins: (amount: number) => set({ coins: Math.max(0, amount) }),
 
       setAnimationState: (animationState: PetAnimationState) =>
         set({ animationState }),
@@ -221,6 +235,6 @@ export const usePetStore = create<PetStoreState>()(
     }),
     {
       name: "caloria-pet-storage",
-    }
-  )
+    },
+  ),
 );

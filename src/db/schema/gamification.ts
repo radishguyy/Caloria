@@ -73,7 +73,35 @@ export const pushSubscriptions = pgTable(
   (table) => [index("push_subscriptions_user_id_idx").on(table.userId)]
 );
 
-// 16. Notifications Table (In-App Notification Center)
+// 17. Coin Transaction Ledger (for idempotent reward claims)
+export const coinTransactions = pgTable(
+  "coin_transactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+    amount: integer("amount").notNull(),
+    reward_type: varchar("reward_type", { length: 50 }).notNull(),
+    reward_id: varchar("reward_id", { length: 100 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("coin_transactions_user_id_type_id_unique").on(
+      table.userId,
+      table.reward_type,
+      table.reward_id
+    ),
+    index("coin_transactions_user_id_idx").on(table.userId),
+  ]
+);
+
+export type CoinTransaction = typeof coinTransactions.$inferSelect;
+export type NewCoinTransaction = typeof coinTransactions.$inferInsert;
+
+// 18. Notifications Table (In-App Notification Center)
 export const notifications = pgTable(
   "notifications",
   {
