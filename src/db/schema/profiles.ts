@@ -24,13 +24,13 @@ export const profiles = pgTable("profiles", {
   avatarUrl: text("avatar_url"),
   goal: goalTypeEnum("goal").default("maintenance").notNull(),
   goalPath: text("goal_path")
-    .$type<"lose_weight" | "gain_muscle" | "maintain_weight" | string>()
+    .$type<"lose_weight" | "gain_muscle" | "maintain_weight">()
     .default("lose_weight")
     .notNull(),
   currentLevel: integer("current_level").default(1).notNull(),
   currentWeek: integer("current_week").default(1).notNull(),
   streakConsecutiveLogs: integer("streak_consecutive_logs").default(0).notNull(),
-  gender: text("gender").$type<"male" | "female" | string>(),
+  gender: varchar("gender", { length: 20 }),
   birthDate: date("birth_date"),
   age: integer("age"),
   weightKg: numeric("weight_kg", { precision: 5, scale: 2 }),

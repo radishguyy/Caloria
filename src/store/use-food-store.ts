@@ -1026,6 +1026,26 @@ export const useFoodStore = create<FoodStoreState>()(
     {
       name: "caloria-food-storage",
       version: 2,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2 || !persistedState) {
+          return {
+            ...persistedState,
+            goalPlan: {
+              ...INITIAL_GOAL_PLAN,
+              ...(persistedState?.goalPlan || {}),
+              goalPath:
+                persistedState?.goalPlan?.goalPath ||
+                goalTypeToGoalPath(persistedState?.goalPlan?.goalType),
+              currentLevel: persistedState?.goalPlan?.currentLevel || 1,
+              currentWeek: persistedState?.goalPlan?.currentWeek || 1,
+            },
+            depkesStatus: persistedState?.depkesStatus || "defisit_berat",
+            waterLoggedMl: persistedState?.waterLoggedMl ?? 750,
+            completedMissions: persistedState?.completedMissions || [],
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );

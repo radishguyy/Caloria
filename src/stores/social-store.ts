@@ -556,6 +556,18 @@ export const useSocialStore = create<SocialStoreState>()(
     {
       name: "caloria-social-storage",
       version: 2,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2 || !persistedState) {
+          return {
+            ...persistedState,
+            friends: persistedState?.friends || INITIAL_FRIENDS,
+            pendingRequests: persistedState?.pendingRequests || INITIAL_REQUESTS,
+            recommendations:
+              persistedState?.recommendations || INITIAL_RECOMMENDATIONS.slice(0, 3),
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );
