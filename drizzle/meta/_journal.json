@@ -8,6 +8,13 @@
       "when": 1792865355298,
       "tag": "0000_bright_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0001_friendships_refactor",
+      "breakpoints": true
     }
   ]
 }

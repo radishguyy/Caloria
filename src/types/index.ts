@@ -35,7 +35,7 @@ import {
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
 import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
-export type { CosmeticCategory };
+export type { CosmeticCategory, PetSpeciesId, MealTypeId };
 
 // Re-export Database Model Types
 export type {
@@ -279,10 +279,13 @@ export interface WeightLogEntry {
 // Notification Center
 export interface AppNotification {
   id: string;
-  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement";
+  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement" | "friend_request";
   title: string;
   message: string;
   timestamp: string;
   isRead: boolean;
   actionUrl?: string;
 }
+
+export * from "./social";
+

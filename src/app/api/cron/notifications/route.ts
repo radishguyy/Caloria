@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
           await sendNotificationToUser(userId, {
             title: "Social streak kalian dalam bahaya! 🤝🔥",
             body: `${friend.name} belum nyatet makan hari ini. Colek dia sekarang biar streak party kalian tetap aman!`,
-            url: "/social/coop",
+            url: "/social",
             tag: `streak-saver-coop-${friend.id}-${todayStr}`,
           });
           stats.streakSaver10PmFriendSent++;

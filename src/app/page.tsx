@@ -199,7 +199,7 @@ export default function LandingPage() {
                 Ikat streak bersama squad teman. Angka streak bertambah hanya jika semua anggota memenuhi misi makan sebelum hari berganti. Teman belum makan? Tekan tombol Senggol!
               </p>
               <Link
-                href="/social/coop"
+                href="/social"
                 className="inline-flex items-center gap-1 text-xs font-bold text-text-primary hover:underline pt-1"
               >
                 <span>Pelajari Co-op Streak</span>

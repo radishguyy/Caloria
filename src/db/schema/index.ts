@@ -1,8 +1,10 @@
 // Re-export all enums, tables, and relations
 export * from "./enums";
+export * from "./users";
 export * from "./profiles";
 export * from "./pets-plaza";
 export * from "./nutrition";
+export * from "./friendships";
 export * from "./social";
 export * from "./gamification";
 export * from "./push-subscriptions";

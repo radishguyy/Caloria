@@ -9,37 +9,10 @@ import {
   unique,
   index,
 } from "drizzle-orm/pg-core";
-import { friendshipStatusEnum } from "./enums";
 import { profiles } from "./profiles";
 
-// 9. Friendships Table
-export const friendships = pgTable(
-  "friendships",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    requesterId: uuid("requester_id")
-      .references(() => profiles.id, { onDelete: "cascade" })
-      .notNull(),
-    addresseeId: uuid("addressee_id")
-      .references(() => profiles.id, { onDelete: "cascade" })
-      .notNull(),
-    status: friendshipStatusEnum("status").default("pending").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    unique("friendships_requester_id_addressee_id_unique").on(
-      table.requesterId,
-      table.addresseeId
-    ),
-    index("friendships_requester_id_idx").on(table.requesterId),
-    index("friendships_addressee_id_idx").on(table.addresseeId),
-  ]
-);
+// 9. Friendships Table (re-exported from friendships.ts)
+export { friendships } from "./friendships";
 
 // 10. Co-op Groups Table
 export const coopGroups = pgTable(

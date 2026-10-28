@@ -31,7 +31,7 @@ export function Navbar() {
     { href: "/dashboard", label: "Dashboard", icon: Sparkles },
     { href: "/diary", label: "Food Diary", icon: UtensilsCrossed },
     { href: "/pet-customization/wardrobe", label: "Pet Wardrobe", icon: Award },
-    { href: "/social/coop", label: "Co-op Streak", icon: Users },
+    { href: "/social", label: "Sosial & Co-op", icon: Users },
   ];
 
   const isLinkActive = (href: string) => {
@@ -98,7 +98,7 @@ export function Navbar() {
 
           {/* Co-op Streak Badge */}
           <Link
-            href="/social/coop"
+            href="/social"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-semibold border border-accent-orange/30 bg-accent-orange/10 text-accent-orange-dark hover:bg-accent-orange/20 transition-colors"
           >
             <Flame className="h-3.5 w-3.5 fill-accent-orange text-accent-orange" />

@@ -265,7 +265,7 @@ export default function DashboardPage() {
           </button>
 
           <Link
-            href="/social/coop"
+            href="/social"
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-navigation bg-accent-orange hover:bg-accent-orange-dark text-text-inverse text-xs font-bold transition-transform active:scale-95"
           >
             <Users className="h-3.5 w-3.5" />
