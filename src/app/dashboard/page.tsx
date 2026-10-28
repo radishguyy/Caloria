@@ -109,7 +109,7 @@ export default function DashboardPage() {
     }));
 
     const feedback = addBatchLogs(logsToSave);
-    feedPet(totalCal, feedback.xpEarned, feedback.coinsEarned);
+    feedPet(totalCal, feedback.xpEarned, 0);
 
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
@@ -130,7 +130,7 @@ export default function DashboardPage() {
       loggedDate: new Date().toISOString().split("T")[0],
     });
 
-    feedPet(foodItem.calories, feedback.xpEarned, feedback.coinsEarned);
+    feedPet(foodItem.calories, feedback.xpEarned, 0);
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };

@@ -19,17 +19,6 @@ import {
   userBadges,
   pushSubscriptions,
   notifications,
-} from "./gamification";
-
-import { profiles, weightLogs } from "./profiles";
-import { plazaItems, userWardrobe, pets } from "./pets-plaza";
-import { foods, foodLogs, dailyNutritionSummaries } from "./nutrition";
-import { friendships, coopGroups, coopMembers, pokeLogs } from "./social";
-import {
-  badges,
-  userBadges,
-  pushSubscriptions,
-  notifications,
   coinTransactions,
 } from "./gamification";
 

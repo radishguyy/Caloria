@@ -413,10 +413,9 @@ function DiaryAddFoodContent() {
       title: result.title,
       message: result.message,
       xpEarned: result.totalXp,
-      coinsEarned: result.coinsEarned,
     });
 
-    feedPet(result.totalBatchCalories, result.totalXp, result.coinsEarned);
+    feedPet(result.totalBatchCalories, result.totalXp, 0);
 
     setRewardResult(result);
     if (result.leveledUp) {
@@ -1033,12 +1032,11 @@ function DiaryAddFoodContent() {
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-[10px] text-neutral-10">Caloria Coins</span>
-                <p className="text-xl font-black text-accent-orange-dark font-heading flex items-center justify-center gap-1">
-                  <Coins className="h-4 w-4 text-accent-orange" />
-                  +{rewardResult.coinsEarned}
+                <span className="text-[10px] text-neutral-10">Total Kalori</span>
+                <p className="text-xl font-black text-accent-green font-heading flex items-center justify-center gap-1">
+                  +{rewardResult.totalBatchCalories}
                 </p>
-                <span className="text-[9px] text-neutral-10">Saldo Baru: {coins} Koin</span>
+                <span className="text-[9px] text-neutral-10">Kkal Tercatat</span>
               </div>
             </div>
 

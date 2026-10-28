@@ -40,6 +40,7 @@ export interface SocialStoreState {
   simulateFriendLog: (friendId: string) => void;
   clearPokeToast: () => void;
   simulateIncomingRequest: (name: string, username: string) => void;
+  setStreak: (days: number) => void;
 }
 
 function getAuthHeaders(): HeadersInit {
@@ -300,6 +301,11 @@ export const useSocialStore = create<SocialStoreState>()(
       },
 
       clearPokeToast: () => set({ activePokeToast: null }),
+      setStreak: (days: number) =>
+        set((state) => ({
+          coopStreakDays: days,
+          highestCoopStreak: Math.max(state.highestCoopStreak, days),
+        })),
 
       simulateIncomingRequest: (name: string, username: string) => {
         const clean = username.trim().replace(/^@/, "");
