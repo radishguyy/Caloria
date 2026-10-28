@@ -79,6 +79,9 @@ export default function ProfileSettingsPage() {
     }
     await logoutAction();
     logout();
+    try {
+      localStorage.removeItem("caloria-auth-storage");
+    } catch {}
     window.location.href = "/login";
   };
 
