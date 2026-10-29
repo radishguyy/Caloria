@@ -26,7 +26,7 @@ interface FriendListProps {
 
 export function FriendList({ className, onOpenAddModal }: FriendListProps) {
   const isHydrated = useHydrated();
-  const { friends, pokeFriend, simulateFriendLog } = useSocialStore();
+  const { friends, pokeFriend } = useSocialStore();
   const { addNotification } = useNotificationStore();
   const [filter, setFilter] = useState<"all" | "pending_log" | "completed">("all");
 
@@ -236,31 +236,18 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
                         Target Selesai!
                       </span>
                     ) : (
-                      <>
-                        {/* Interactive testing simulator */}
-                        <button
-                          type="button"
-                          onClick={() => simulateFriendLog(friend.id || friend.userId)}
-                          title="Simulasikan teman mencatat makan"
-                          className="text-[10px] text-text-muted hover:text-text-primary underline px-1 py-1 font-sans"
-                        >
-                          Simulasi Log
-                        </button>
-
-                        {/* SENGGOL / POKE BUTTON */}
-                        <button
-                          type="button"
-                          onClick={() => handlePoke(friend)}
-                          className="button-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold font-sans cursor-pointer active:scale-95"
-                          style={{
-                            backgroundColor: "#FF9233",
-                            color: "#FFFFFF",
-                          }}
-                        >
+                      <button
+                        type="button"
+                        onClick={() => handlePoke(friend)}
+                        className="button-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold font-sans cursor-pointer active:scale-95"
+                        style={{
+                          backgroundColor: "#FF9233",
+                          color: "#FFFFFF",
+                        }}
+                      >
                           <Send className="h-3.5 w-3.5" />
                           <span>Senggol</span>
                         </button>
-                      </>
                     )}
                   </div>
                 </div>

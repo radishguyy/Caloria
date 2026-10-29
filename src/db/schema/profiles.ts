@@ -19,7 +19,7 @@ export const profiles = pgTable("profiles", {
   id: uuid("id")
     .primaryKey()
     .references(() => authUsers.id, { onDelete: "cascade" }),
-  username: varchar("username", { length: 50 }).unique().notNull(),
+  username: text("username").unique().notNull(),
   fullName: varchar("full_name", { length: 100 }),
   avatarUrl: text("avatar_url"),
   goal: goalTypeEnum("goal").default("maintenance").notNull(),
@@ -29,8 +29,9 @@ export const profiles = pgTable("profiles", {
     .notNull(),
   currentLevel: integer("current_level").default(1).notNull(),
   currentWeek: integer("current_week").default(1).notNull(),
+  streakCount: integer("streak_count").default(0).notNull(),
   streakConsecutiveLogs: integer("streak_consecutive_logs").default(0).notNull(),
-  gender: varchar("gender", { length: 20 }),
+  gender: text("gender").notNull().default("male"),
   birthDate: date("birth_date"),
   age: integer("age"),
   weightKg: numeric("weight_kg", { precision: 5, scale: 2 }),
@@ -51,6 +52,7 @@ export const profiles = pgTable("profiles", {
   caloriaCoins: integer("caloria_coins").default(0).notNull(),
   currentStreakDays: integer("current_streak_days").default(0).notNull(),
   longestStreakDays: integer("longest_streak_days").default(0).notNull(),
+  lastLoggedDate: date("last_logged_date"),
   isOnboardingCompleted: boolean("is_onboarding_completed")
     .default(false)
     .notNull(),
@@ -88,3 +90,7 @@ export const weightLogs = pgTable(
   ]
 );
 
+export type Profile = typeof profiles.$inferSelect;
+export type NewProfile = typeof profiles.$inferInsert;
+export type WeightLog = typeof weightLogs.$inferSelect;
+export type NewWeightLog = typeof weightLogs.$inferInsert;

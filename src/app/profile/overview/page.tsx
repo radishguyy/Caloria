@@ -9,6 +9,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { calculateBmi } from "@/lib/nutrition-calculator";
 import { WeightChart } from "@/components/profile/weight-chart";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { saveWeightLogAction } from "@/app/actions/profile";
 import {
   BmiCategory,
   formatLogDate,
@@ -62,20 +63,29 @@ export default function ProfileOverviewPage() {
     ? Math.min(100, Math.max(0, (overview.currentDay / Math.max(overview.totalProgramDays, 1)) * 100))
     : 0;
 
-  const handleSaveWeight = (e: React.FormEvent) => {
+  const handleSaveWeight = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWeight || newWeight <= 0) return;
 
-    addWeightLog(newWeight, newNotes);
+    const savedWeight = newWeight;
+    const savedNotes = newNotes;
+
+    addWeightLog(savedWeight, savedNotes);
 
     setGoalPlan({
-      currentWeightKg: newWeight,
+      currentWeightKg: savedWeight,
       bmiScore: currentBmi.score,
       bmiCategory: currentBmi.category,
     });
 
     setModalOpen(false);
     setNewNotes("");
+
+    try {
+      await saveWeightLogAction(savedWeight, savedNotes);
+    } catch (err) {
+      console.error("[ProfileOverview] Failed to persist weight log to Supabase:", err);
+    }
   };
 
   return (

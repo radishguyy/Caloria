@@ -10,7 +10,7 @@ import { useWeightStore } from "@/store/use-weight-store";
 import { calculateBmi } from "@/lib/nutrition-calculator";
 import { formatDateKey, parseDateKey, subDays } from "@/lib/date-utils";
 
-export const USE_DUMMY_PROFILE_DATA = true;
+export const USE_DUMMY_PROFILE_DATA = false;
 
 export type BmiCategory =
   | "Underweight"

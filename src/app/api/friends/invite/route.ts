@@ -87,13 +87,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (resolvedTargetId?.startsWith("rec-user-")) {
-      return NextResponse.json({
-        success: true,
-        message: "Permintaan pertemanan berhasil dikirim!",
-      });
-    }
-
     if (!process.env.DATABASE_URL || !db || !currentUserId) {
       return NextResponse.json(
         { success: false, message: "Database tidak terhubung atau pengguna belum terotentikasi." },

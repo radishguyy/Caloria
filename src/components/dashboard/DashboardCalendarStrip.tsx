@@ -97,12 +97,8 @@ export function DashboardCalendarStrip({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-xs sm:text-sm font-bold text-text-primary font-heading">
-                Jurnal Mingguan
+                Kalender sehat kamu
               </h3>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-orange/15 text-accent-orange-dark text-[10px] font-bold">
-                <Flame className="h-3 w-3 fill-accent-orange text-accent-orange" />
-                <span>{coopStreakDays} Hari Streak</span>
-              </div>
             </div>
             <p className="text-[11px] text-text-muted hidden sm:block">
               {weekDays.length > 0 &&

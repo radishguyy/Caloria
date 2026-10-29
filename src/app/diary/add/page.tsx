@@ -36,7 +36,7 @@ import {
 import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import { ReviewScanModal } from "@/components/diary/ReviewScanModal";
 import { CreateCustomFoodModal } from "@/components/diary/CreateCustomFoodModal";
-import { batchLogFoodsAction } from "@/app/actions/diary";
+import { batchLogFoodsAction, searchFoodsAction } from "@/app/actions/diary";
 import {
   toastFoodStaged,
   toastMealsCommitted,
@@ -166,10 +166,34 @@ function DiaryAddFoodContent() {
     return getHistoricalMealLogs(activeMeal, 1);
   }, [activeMeal, getHistoricalMealLogs]);
 
-  // Combined Catalog (Static + User Custom)
+  const [dbCatalogItems, setDbCatalogItems] = useState<FoodCatalogItem[]>([]);
+  const [isSearchingDb, setIsSearchingDb] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const fetchDbFoods = async () => {
+      setIsSearchingDb(true);
+      const res = await searchFoodsAction(searchQuery);
+      if (active && res.success && res.data && res.data.length > 0) {
+        setDbCatalogItems(res.data);
+      }
+      if (active) setIsSearchingDb(false);
+    };
+
+    const timer = setTimeout(() => {
+      fetchDbFoods();
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  // Combined Catalog from PostgreSQL database query & user custom foods
   const allCatalogItems = useMemo(() => {
-    return [...customFoods, ...FOOD_CATALOG];
-  }, [customFoods]);
+    return dbCatalogItems.length > 0 ? dbCatalogItems : customFoods;
+  }, [dbCatalogItems, customFoods]);
 
   // Handle OCR File Change
   const handleLabelFileChange = async (

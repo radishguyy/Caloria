@@ -16,7 +16,6 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
     partyCode,
     sendFriendRequestByUsername,
     joinPartyByCode,
-    simulateIncomingRequest,
   } = useSocialStore();
 
   const [activeTab, setActiveTab] = useState<"search" | "code">("search");
@@ -192,22 +191,7 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              {/* Quick Demo Simulator button */}
-              <button
-                type="button"
-                onClick={() => {
-                  simulateIncomingRequest("Randi Putra", "randi_fit");
-                  setStatusMsg({
-                    type: "success",
-                    text: "Simulasi: @randi_fit mengirimkan permintaan pertemanan ke kamu!",
-                  });
-                }}
-                className="text-[11px] text-text-muted underline hover:text-text-primary font-sans"
-              >
-                ⚡ Tes Undangan Masuk
-              </button>
-
+            <div className="flex items-center justify-end pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting || !usernameInput.trim()}

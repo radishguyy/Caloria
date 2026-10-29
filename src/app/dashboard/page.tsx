@@ -20,10 +20,10 @@ import {
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
-import { QuestBoard } from "@/components/dashboard/QuestBoard";
+import { QuestWidget } from "@/components/shared/QuestWidget";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
-import { useSocialStore, DEFAULT_INITIAL_FRIENDS } from "@/stores/social-store";
+import { useSocialStore } from "@/stores/social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
@@ -32,6 +32,7 @@ import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReminderStackStore } from "@/store/use-reminder-stack-store";
+import { batchLogFoodsAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
 
 const PUSH_REMINDER_DISMISS_KEY = "caloria-dismissed-push-reminder";
@@ -146,8 +147,7 @@ export default function DashboardPage() {
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
-  const activeFriends =
-    friends && friends.length > 0 ? friends : DEFAULT_INITIAL_FRIENDS;
+  const activeFriends = friends || [];
   const pendingFriends = activeFriends.filter((f) => !f.dailyGoalMet);
   const unreadNotifications = (notifications || []).filter((n) => !n.isRead);
   const activeInAppNotif = unreadNotifications[0];
@@ -419,11 +419,30 @@ export default function DashboardPage() {
     const feedback = addBatchLogs(logsToSave);
     feedPet(totalCal, feedback.xpEarned);
 
+    batchLogFoodsAction(
+      logsToSave.map((l) => ({
+        name: l.name,
+        mealType: l.mealType,
+        servingSize: l.servingSize,
+        servingUnit: l.servingUnit,
+        calories: l.calories,
+        proteinG: l.proteinG,
+        carbsG: l.carbsG,
+        fatG: l.fatG,
+        fiberG: l.fiberG,
+        sugarG: l.sugarG,
+      })),
+      todayStr
+    ).catch((err) =>
+      console.error("[Dashboard] Batch quick log sync error:", err)
+    );
+
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
 
   const handleQuickAdd = (foodItem: (typeof FOOD_CATALOG)[0]) => {
+    const todayStr = new Date().toISOString().split("T")[0];
     const feedback = addLog({
       name: foodItem.name,
       mealType: selectedQuickMeal,
@@ -435,10 +454,31 @@ export default function DashboardPage() {
       sugarG: foodItem.sugarG,
       servingSize: 1,
       servingUnit: foodItem.servingUnit,
-      loggedDate: new Date().toISOString().split("T")[0],
+      loggedDate: todayStr,
     });
 
     feedPet(foodItem.calories, feedback.xpEarned);
+
+    batchLogFoodsAction(
+      [
+        {
+          name: foodItem.name,
+          mealType: selectedQuickMeal,
+          servingSize: 1,
+          servingUnit: foodItem.servingUnit,
+          calories: foodItem.calories,
+          proteinG: foodItem.proteinG,
+          carbsG: foodItem.carbsG,
+          fatG: foodItem.fatG,
+          fiberG: foodItem.fiberG,
+          sugarG: foodItem.sugarG,
+        },
+      ],
+      todayStr
+    ).catch((err) =>
+      console.error("[Dashboard] Quick add sync error:", err)
+    );
+
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
@@ -482,6 +522,8 @@ export default function DashboardPage() {
         {/* Right Column: Daily Nutrition Target + Catat Makanan */}
         <div className="lg:col-span-6 flex flex-col gap-3">
             <MacroBar />
+            {/* 2. Unified Nutrition Summary & Calendar Strip */}
+          <DashboardCalendarStrip />
           <button
             type="button"
             onClick={() => setQuickLogModalOpen(true)}
@@ -495,8 +537,7 @@ export default function DashboardPage() {
 
 
 
-      {/* 2. Unified Nutrition Summary & Calendar Strip */}
-        <DashboardCalendarStrip />
+
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
@@ -670,8 +711,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 4. RPG Quest & Mission Board Widget */}
-      <QuestBoard />
+      {/* 4. RPG Quest & Mission Board Summary Widget */}
+      <QuestWidget />
     </div>
   );
 }

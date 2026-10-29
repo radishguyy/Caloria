@@ -1,17 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, ilike, or, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
   foodLogs,
+  mealLogs,
   dailyNutritionSummaries,
+  userMissionEvaluations,
   foods,
   pets,
   profiles,
 } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { triggerFriendLoggedNotification } from "@/lib/server/push-service";
+import { FoodCatalogItem } from "@/types";
 
 export interface LogFoodItemInput {
   name: string;
@@ -36,8 +39,106 @@ export interface DiaryActionResult {
 }
 
 /**
- * Batch log multiple food items directly to PostgreSQL `food_logs` table,
- * update today's `daily_nutrition_summaries`, and award pet XP.
+ * Searches the master `foods` table in PostgreSQL using dynamic `ilike` query.
+ */
+export async function searchFoodsAction(query?: string): Promise<{ success: boolean; data: FoodCatalogItem[] }> {
+  try {
+    const trimmed = query?.trim() || "";
+    let foodRows;
+
+    if (!trimmed) {
+      foodRows = await db
+        .select()
+        .from(foods)
+        .where(eq(foods.isVerified, true))
+        .limit(40);
+    } else {
+      foodRows = await db
+        .select()
+        .from(foods)
+        .where(ilike(foods.name, `%${trimmed}%`))
+        .limit(40);
+    }
+
+    const items: FoodCatalogItem[] = foodRows.map((f) => ({
+      id: f.id,
+      name: f.name,
+      category: f.brand ? `Branded / ${f.brand}` : "Makanan Umum",
+      calories: Math.round(Number(f.calories || f.caloriesKcal || 0)),
+      proteinG: Math.round(Number(f.protein || f.proteinG || 0) * 10) / 10,
+      carbsG: Math.round(Number(f.carbs || f.carbsG || 0) * 10) / 10,
+      fatG: Math.round(Number(f.fat || f.fatG || 0) * 10) / 10,
+      fiberG: Math.round(Number(f.fiber || f.fiberG || 0) * 10) / 10,
+      sugarG: Math.round(Number(f.sugar || f.sugarG || 0) * 10) / 10,
+      defaultServingSize: Number(f.servingSize || f.servingSizeDefault || 1),
+      servingUnit: f.servingUnit || "porsi",
+      gramsPerUnit: Number(f.servingSize || f.servingSizeDefault || 100),
+      brandOrSource: f.brand || undefined,
+    }));
+
+    return { success: true, data: items };
+  } catch (error) {
+    console.error("[searchFoodsAction Error]:", error);
+    return { success: false, data: [] };
+  }
+}
+
+/**
+ * Allows user to create a custom food item in `foods` table.
+ */
+export async function createCustomFoodAction(input: {
+  name: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG?: number;
+  sugarG?: number;
+  servingSize?: number;
+  servingUnit?: string;
+  brand?: string;
+}) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const [newFood] = await db
+      .insert(foods)
+      .values({
+        name: input.name,
+        brand: input.brand || null,
+        servingSize: String(input.servingSize || 100),
+        servingSizeDefault: String(input.servingSize || 100),
+        servingUnit: input.servingUnit || "porsi",
+        calories: String(input.calories),
+        caloriesKcal: String(input.calories),
+        protein: String(input.proteinG),
+        proteinG: String(input.proteinG),
+        carbs: String(input.carbsG),
+        carbsG: String(input.carbsG),
+        fat: String(input.fatG),
+        fatG: String(input.fatG),
+        fiber: String(input.fiberG || 0),
+        fiberG: String(input.fiberG || 0),
+        sugar: String(input.sugarG || 0),
+        sugarG: String(input.sugarG || 0),
+        isVerified: false,
+        createdByUserId: user?.id || null,
+      })
+      .returning();
+
+    return { success: true, food: newFood };
+  } catch (error: any) {
+    console.error("[createCustomFoodAction Error]:", error);
+    return { success: false, error: error?.message || "Gagal membuat makanan kustom." };
+  }
+}
+
+/**
+ * Batch log multiple food items directly to PostgreSQL `food_logs` & `meal_logs` tables,
+ * update today's `daily_nutrition_summaries` & `user_mission_evaluations`, and award pet stats.
  */
 export async function batchLogFoodsAction(
   items: LogFoodItemInput[],
@@ -105,18 +206,31 @@ export async function batchLogFoodsAction(
       };
     });
 
-    // 1. Insert into `food_logs`
+    // 1. Insert into `food_logs` and `meal_logs`
     const inserted = await db.insert(foodLogs).values(rowsToInsert).returning({ id: foodLogs.id });
     const logIds = inserted.map((r) => r.id);
 
+    try {
+      const mealRows = items.map((item) => ({
+        userId,
+        foodId: item.foodId || null,
+        loggedDate: targetDate,
+        mealType: (item.mealTime || item.mealType || "snack") as string,
+        servings: String(item.servingSize || 1),
+        calculatedCalories: String(item.calories || 0),
+        calculatedProtein: String(item.proteinG || 0),
+        calculatedCarbs: String(item.carbsG || 0),
+        calculatedFat: String(item.fatG || 0),
+        customFoodName: item.name,
+      }));
+      await db.insert(mealLogs).values(mealRows);
+    } catch (e) {
+      console.warn("meal_logs mirror insert notice:", e);
+    }
+
     // 2. Fetch user target macros from `profiles`
     const [userProfile] = await db
-      .select({
-        targetCaloriesKcal: profiles.targetCaloriesKcal,
-        targetProteinG: profiles.targetProteinG,
-        targetCarbsG: profiles.targetCarbsG,
-        targetFatG: profiles.targetFatG,
-      })
+      .select()
       .from(profiles)
       .where(eq(profiles.id, userId))
       .limit(1);
@@ -157,22 +271,83 @@ export async function batchLogFoodsAction(
         },
       });
 
-    // 4. Increment Pet XP
+    // 4. Upsert into `user_mission_evaluations`
+    const isCalorieTargetMet = sumCalories >= targetCalories * 0.8 && sumCalories <= targetCalories * 1.15;
+    try {
+      await db
+        .insert(userMissionEvaluations)
+        .values({
+          userId,
+          evaluationDate: targetDate,
+          totalCalories: String(sumCalories),
+          totalProtein: String(sumProtein),
+          totalCarbs: String(sumCarbs),
+          totalFat: String(sumFat),
+          isMacroCompliant: isCalorieTargetMet,
+          isCalorieTargetMet,
+          passedDay: isCalorieTargetMet,
+          xpEarned: sumXp,
+          coinsEarned: 10,
+        })
+        .onConflictDoUpdate({
+          target: [
+            userMissionEvaluations.userId,
+            userMissionEvaluations.evaluationDate,
+          ],
+          set: {
+            totalCalories: sql`${userMissionEvaluations.totalCalories} + ${String(sumCalories)}::numeric`,
+            totalProtein: sql`${userMissionEvaluations.totalProtein} + ${String(sumProtein)}::numeric`,
+            totalCarbs: sql`${userMissionEvaluations.totalCarbs} + ${String(sumCarbs)}::numeric`,
+            totalFat: sql`${userMissionEvaluations.totalFat} + ${String(sumFat)}::numeric`,
+            xpEarned: sql`${userMissionEvaluations.xpEarned} + ${sumXp}`,
+            updatedAt: new Date(),
+          },
+        });
+    } catch (e) {
+      console.warn("user_mission_evaluations notice:", e);
+    }
+
+    // 5. Update Pet XP, Exp, Hunger, Coins
     await db
       .update(pets)
       .set({
         currentXp: sql`${pets.currentXp} + ${sumXp}`,
+        exp: sql`${pets.exp} + ${sumXp}`,
+        hunger: sql`LEAST(100, ${pets.hunger} + 25)`,
+        coins: sql`${pets.coins} + 10`,
         updatedAt: new Date(),
       })
       .where(eq(pets.userId, userId));
 
-    // 5. Trigger Peer Pressure notification to co-op teammates who haven't logged today
+    // 6. Update Profile streak & last_logged_date
+    const prevLoggedDate = userProfile?.lastLoggedDate;
+    const isNewDay = prevLoggedDate !== targetDate;
+    await db
+      .update(profiles)
+      .set({
+        lastLoggedDate: targetDate,
+        caloriaCoins: sql`${profiles.caloriaCoins} + 10`,
+        currentStreakDays: isNewDay
+          ? sql`${profiles.currentStreakDays} + 1`
+          : profiles.currentStreakDays,
+        streakCount: isNewDay
+          ? sql`${profiles.streakCount} + 1`
+          : profiles.streakCount,
+        streakConsecutiveLogs: isNewDay
+          ? sql`${profiles.streakConsecutiveLogs} + 1`
+          : profiles.streakConsecutiveLogs,
+        updatedAt: new Date(),
+      })
+      .where(eq(profiles.id, userId));
+
+    // 7. Trigger Peer Pressure notification
     triggerFriendLoggedNotification(userId).catch((err) => {
-      console.warn("[batchLogFoodsAction] Failed to trigger friend event notification:", err.message);
+      console.warn("[batchLogFoodsAction] Friend event trigger notice:", err.message);
     });
 
     revalidatePath("/diary");
     revalidatePath("/dashboard");
+    revalidatePath("/diary/archive");
 
     return {
       success: true,
@@ -202,7 +377,6 @@ export async function deleteFoodLogAction(logId: string): Promise<{ success: boo
       return { success: false, error: "Unauthorized" };
     }
 
-    // Find the log first to know what macros to subtract
     const [targetLog] = await db
       .select()
       .from(foodLogs)
@@ -213,10 +387,8 @@ export async function deleteFoodLogAction(logId: string): Promise<{ success: boo
       return { success: false, error: "Catatan makanan tidak ditemukan." };
     }
 
-    // Delete log
     await db.delete(foodLogs).where(eq(foodLogs.id, logId));
 
-    // Decrement from summary
     await db
       .update(dailyNutritionSummaries)
       .set({
@@ -235,6 +407,7 @@ export async function deleteFoodLogAction(logId: string): Promise<{ success: boo
 
     revalidatePath("/diary");
     revalidatePath("/dashboard");
+    revalidatePath("/diary/archive");
 
     return { success: true };
   } catch (error) {
@@ -273,3 +446,52 @@ export async function fetchUserDiaryLogsAction(dateStr: string) {
   }
 }
 
+/**
+ * Fetches user aggregated daily nutrition summaries for a date range (for Archive view).
+ */
+export async function fetchUserArchiveSummariesAction(startDate: string, endDate: string) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, data: {} };
+    }
+
+    const summaries = await db
+      .select()
+      .from(dailyNutritionSummaries)
+      .where(
+        and(
+          eq(dailyNutritionSummaries.userId, user.id),
+          gte(dailyNutritionSummaries.summaryDate, startDate),
+          lte(dailyNutritionSummaries.summaryDate, endDate)
+        )
+      );
+
+    const map: Record<string, any> = {};
+    for (const s of summaries) {
+      map[s.summaryDate] = {
+        date: s.summaryDate,
+        totalCalories: Number(s.totalCalories),
+        totalProtein: Number(s.totalProtein),
+        totalCarbs: Number(s.totalCarbs),
+        totalFat: Number(s.totalFat),
+        calorieTarget: s.targetCalories,
+        proteinTarget: Number(s.targetProtein),
+        carbsTarget: Number(s.targetCarbs),
+        fatTarget: Number(s.targetFat),
+        isCalorieTargetMet: s.isCalorieTargetMet,
+        isMacroBalanced: s.isMacroBalanced,
+        baseXpTotal: s.baseXpTotal,
+      };
+    }
+
+    return { success: true, data: map };
+  } catch (error) {
+    console.error("[fetchUserArchiveSummariesAction Error]:", error);
+    return { success: false, data: {} };
+  }
+}

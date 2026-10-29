@@ -117,8 +117,10 @@ export async function registerAction(formData: {
             userId,
             name: "Egg Starter",
             species: "egg_starter",
-            stage: 1,
+            characterId: "egg_starter",
+            stage: "hatchling",
             level: 1,
+            exp: 0,
             currentXp: 0,
             nextLevelXp: 100,
           })
