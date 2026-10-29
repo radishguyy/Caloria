@@ -306,6 +306,25 @@ export const useSocialStore = create<SocialStoreState>()(
     {
       name: "caloria-social-storage",
       version: 5,
+      migrate: (persistedState: any, version: number) => {
+        if (!persistedState || version < 5) {
+          return {
+            friends: [],
+            pendingRequests: [],
+            recommendations: [],
+            isLoading: false,
+            error: null,
+            partyName: "Squad Co-op",
+            partyCode: "CAL-COOP",
+            coopStreakDays: 0,
+            highestCoopStreak: 0,
+            pokeHistory: [],
+            activePokeToast: null,
+            ...persistedState,
+          };
+        }
+        return persistedState;
+      },
     },
   ),
 );
