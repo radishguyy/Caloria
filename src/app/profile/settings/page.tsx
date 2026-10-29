@@ -9,6 +9,7 @@ import {
   LogOut,
   ShieldCheck,
   Smartphone,
+  Mail,
 } from "lucide-react";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -132,6 +133,36 @@ export default function ProfileSettingsPage() {
                 className={cn(
                   "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
                   isSubscribed ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Email Notification Toggle Card */}
+        <div className="rounded-card border border-border-divider bg-surface p-6 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                <Mail className="h-4 w-4 text-accent-green" />
+                <span>Notifikasi via Email</span>
+              </h3>
+              <p className="text-xs text-text-muted">
+                Terima ringkasan jam makan, alert streak 10 malam, dan pemberitahuan co-op langsung ke inbox {user?.email ? <span className="font-semibold text-text-primary font-mono">({user.email})</span> : "email kamu"}.
+              </p>
+            </div>
+
+            <button
+              onClick={() => handleToggle("emailNotificationsEnabled")}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-pill border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
+                settings.emailNotificationsEnabled ? "bg-accent-green" : "bg-border-default"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
+                  settings.emailNotificationsEnabled ? "translate-x-5" : "translate-x-0"
                 )}
               />
             </button>

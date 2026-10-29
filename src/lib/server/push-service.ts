@@ -8,6 +8,7 @@ import {
   foodLogs,
 } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
+import { sendEmailNotificationToUser } from "@/lib/server/email-service";
 
 export interface NotificationPayload {
   title: string;
@@ -16,6 +17,7 @@ export interface NotificationPayload {
   badge?: string;
   url?: string;
   tag?: string;
+  actionText?: string;
 }
 
 export type PushNotificationPayload = NotificationPayload;
@@ -44,114 +46,142 @@ function ensureVapidDetails() {
 }
 
 /**
- * Dispatches a push notification to all registered subscriptions of a user.
+ * Dispatches a notification to all registered subscriptions of a user,
+ * and simultaneously sends an email notification.
  * Automatically prunes invalid, expired, or revoked subscriptions (HTTP 404 / 410).
  */
 export async function sendNotificationToUser(
   userId: string,
-  payload: NotificationPayload
-): Promise<{ success: boolean; sentCount: number; prunedCount: number }> {
+  payload: NotificationPayload,
+  options: { sendPush?: boolean; sendEmail?: boolean } = { sendPush: true, sendEmail: true }
+): Promise<{ success: boolean; sentCount: number; prunedCount: number; emailSent: boolean }> {
   ensureVapidDetails();
 
-  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-    return { success: false, sentCount: 0, prunedCount: 0 };
-  }
+  const shouldSendPush = options.sendPush !== false;
+  const shouldSendEmail = options.sendEmail !== false;
 
-  // 1. Fetch user's subscriptions (via Drizzle with Supabase REST fallback)
-  let subscriptions: Array<{ id: string; endpoint: string; p256dh: string; auth: string }> = [];
-
-  try {
-    if (process.env.DATABASE_URL) {
-      subscriptions = await db
-        .select({
-          id: pushSubscriptions.id,
-          endpoint: pushSubscriptions.endpoint,
-          p256dh: pushSubscriptions.p256dh,
-          auth: pushSubscriptions.auth,
-        })
-        .from(pushSubscriptions)
-        .where(eq(pushSubscriptions.userId, userId));
-    } else {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("push_subscriptions")
-        .select("id, endpoint, p256dh, auth")
-        .eq("user_id", userId);
-      subscriptions = data || [];
-    }
-  } catch (err) {
-    console.warn("[PushService] Failed to query subscriptions via Drizzle, using Supabase client fallback:", err);
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("push_subscriptions")
-        .select("id, endpoint, p256dh, auth")
-        .eq("user_id", userId);
-      subscriptions = data || [];
-    } catch (fallbackErr) {
-      console.error("[PushService] Failed to query subscriptions:", fallbackErr);
-      return { success: false, sentCount: 0, prunedCount: 0 };
-    }
-  }
-
-  if (subscriptions.length === 0) {
-    return { success: true, sentCount: 0, prunedCount: 0 };
-  }
-
-  const notificationString = JSON.stringify({
-    title: payload.title,
-    body: payload.body,
-    icon: payload.icon || "/icons/icon-192x192.png",
-    badge: payload.badge || "/icons/icon-192x192.png",
-    url: payload.url || "/dashboard",
-    tag: payload.tag || "caloria-notification",
-  });
-
+  let emailSent = false;
   let sentCount = 0;
   let prunedCount = 0;
 
-  await Promise.all(
-    subscriptions.map(async (sub) => {
-      const pushConfig = {
-        endpoint: sub.endpoint,
-        keys: {
-          p256dh: sub.p256dh,
-          auth: sub.auth,
-        },
-      };
+  // Run Email notification dispatch in parallel if enabled
+  const emailPromise = shouldSendEmail
+    ? sendEmailNotificationToUser(userId, {
+        title: payload.title,
+        body: payload.body,
+        url: payload.url,
+        actionText: payload.actionText,
+      })
+        .then((res) => {
+          emailSent = !!res.success;
+        })
+        .catch((err) => {
+          console.warn(`[PushService] Failed to send email to user ${userId}:`, err);
+        })
+    : Promise.resolve();
 
-      try {
-        await webpush.sendNotification(pushConfig, notificationString);
-        sentCount++;
-      } catch (error: any) {
-        const statusCode = error?.statusCode || error?.status;
-        // Automatic Pruning: HTTP 404 (Not Found) or 410 (Gone / Unsubscribed)
-        if (statusCode === 404 || statusCode === 410) {
-          console.log(`[PushService] Pruning expired subscription: ${sub.endpoint}`);
-          prunedCount++;
-          try {
-            if (process.env.DATABASE_URL) {
-              await db
-                .delete(pushSubscriptions)
-                .where(eq(pushSubscriptions.id, sub.id));
-            } else {
-              const supabase = await createClient();
-              await supabase
-                .from("push_subscriptions")
-                .delete()
-                .eq("id", sub.id);
-            }
-          } catch (deleteErr) {
-            console.error("[PushService] Error pruning subscription:", deleteErr);
-          }
-        } else {
-          console.warn(`[PushService] Failed to send push to ${sub.endpoint}:`, error?.message || error);
-        }
+  // Web Push Dispatch
+  const pushPromise = (async () => {
+    if (!shouldSendPush) return;
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      return;
+    }
+
+    // 1. Fetch user's subscriptions (via Drizzle with Supabase REST fallback)
+    let subscriptions: Array<{ id: string; endpoint: string; p256dh: string; auth: string }> = [];
+
+    try {
+      if (process.env.DATABASE_URL) {
+        subscriptions = await db
+          .select({
+            id: pushSubscriptions.id,
+            endpoint: pushSubscriptions.endpoint,
+            p256dh: pushSubscriptions.p256dh,
+            auth: pushSubscriptions.auth,
+          })
+          .from(pushSubscriptions)
+          .where(eq(pushSubscriptions.userId, userId));
+      } else {
+        const supabase = await createClient();
+        const { data } = await supabase
+          .from("push_subscriptions")
+          .select("id, endpoint, p256dh, auth")
+          .eq("user_id", userId);
+        subscriptions = data || [];
       }
-    })
-  );
+    } catch (err) {
+      console.warn("[PushService] Failed to query subscriptions via Drizzle, using Supabase client fallback:", err);
+      try {
+        const supabase = await createClient();
+        const { data } = await supabase
+          .from("push_subscriptions")
+          .select("id, endpoint, p256dh, auth")
+          .eq("user_id", userId);
+        subscriptions = data || [];
+      } catch (fallbackErr) {
+        console.error("[PushService] Failed to query subscriptions:", fallbackErr);
+        return;
+      }
+    }
 
-  return { success: true, sentCount, prunedCount };
+    if (subscriptions.length === 0) {
+      return;
+    }
+
+    const notificationString = JSON.stringify({
+      title: payload.title,
+      body: payload.body,
+      icon: payload.icon || "/icons/icon-192x192.png",
+      badge: payload.badge || "/icons/icon-192x192.png",
+      url: payload.url || "/dashboard",
+      tag: payload.tag || "caloria-notification",
+    });
+
+    await Promise.all(
+      subscriptions.map(async (sub) => {
+        const pushConfig = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+          },
+        };
+
+        try {
+          await webpush.sendNotification(pushConfig, notificationString);
+          sentCount++;
+        } catch (error: any) {
+          const statusCode = error?.statusCode || error?.status;
+          // Automatic Pruning: HTTP 404 (Not Found) or 410 (Gone / Unsubscribed)
+          if (statusCode === 404 || statusCode === 410) {
+            console.log(`[PushService] Pruning expired subscription: ${sub.endpoint}`);
+            prunedCount++;
+            try {
+              if (process.env.DATABASE_URL) {
+                await db
+                  .delete(pushSubscriptions)
+                  .where(eq(pushSubscriptions.id, sub.id));
+              } else {
+                const supabase = await createClient();
+                await supabase
+                  .from("push_subscriptions")
+                  .delete()
+                  .eq("id", sub.id);
+              }
+            } catch (deleteErr) {
+              console.error("[PushService] Error pruning subscription:", deleteErr);
+            }
+          } else {
+            console.warn(`[PushService] Failed to send push to ${sub.endpoint}:`, error?.message || error);
+          }
+        }
+      })
+    );
+  })();
+
+  await Promise.allSettled([pushPromise, emailPromise]);
+
+  return { success: sentCount > 0 || emailSent, sentCount, prunedCount, emailSent };
 }
 
 /**
