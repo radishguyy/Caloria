@@ -183,3 +183,4 @@ console.log("  TEST: Missions evaluated automatically from calories & food logs"
 }
 
 console.log("\n=== ALL QUEST PROGRESSION TESTS PASSED! ===\n");
+
