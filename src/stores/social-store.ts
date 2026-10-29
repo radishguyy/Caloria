@@ -90,6 +90,51 @@ export const DEFAULT_INITIAL_FRIENDS: Friend[] = [
   },
 ];
 
+export const DEFAULT_INITIAL_RECOMMENDATIONS: FriendRecommendation[] = [
+  {
+    id: "rec-user-1",
+    username: "dimas_runs",
+    fullName: "Dimas Anggara",
+    avatarUrl: null,
+    petName: "Leafy",
+    petSpecies: "bloomie",
+    petLevel: 4,
+    petStage: "Hatchling",
+    mutualTag: "🔥 5-day streak",
+    calorieTarget: 2200,
+    streakDays: 5,
+    goalType: "maintenance",
+  },
+  {
+    id: "rec-user-2",
+    username: "siti_balance",
+    fullName: "Siti Rahma",
+    avatarUrl: null,
+    petName: "Aqua",
+    petSpecies: "droplet",
+    petLevel: 5,
+    petStage: "Juvenile",
+    mutualTag: "🎯 Target Seimbang",
+    calorieTarget: 1800,
+    streakDays: 9,
+    goalType: "diet",
+  },
+  {
+    id: "rec-user-3",
+    username: "kevin_lift",
+    fullName: "Kevin Wijaya",
+    avatarUrl: null,
+    petName: "Pyro",
+    petSpecies: "flameling",
+    petLevel: 6,
+    petStage: "Juvenile",
+    mutualTag: "💪 Fokus Protein",
+    calorieTarget: 2600,
+    streakDays: 12,
+    goalType: "bulking",
+  },
+];
+
 function getAuthHeaders(): HeadersInit {
   const currentUserId = useAuthStore.getState().user?.id;
   const headers: HeadersInit = {
@@ -106,7 +151,7 @@ export const useSocialStore = create<SocialStoreState>()(
     (set, get) => ({
       friends: DEFAULT_INITIAL_FRIENDS,
       pendingRequests: [],
-      recommendations: [],
+      recommendations: DEFAULT_INITIAL_RECOMMENDATIONS,
       isLoading: false,
       error: null,
 
@@ -150,8 +195,12 @@ export const useSocialStore = create<SocialStoreState>()(
           if (recsRes && recsRes.ok) {
             const data = await recsRes.json();
             if (data.success && Array.isArray(data.recommendations)) {
+              const loadedRecs =
+                data.recommendations.length > 0
+                  ? data.recommendations.slice(0, 3)
+                  : DEFAULT_INITIAL_RECOMMENDATIONS;
               set({
-                recommendations: data.recommendations.slice(0, 3),
+                recommendations: loadedRecs,
               });
             }
           }
@@ -180,6 +229,11 @@ export const useSocialStore = create<SocialStoreState>()(
               success: true,
               message:
                 data.message || "Permintaan pertemanan berhasil dikirim!",
+            };
+          } else if (targetUserId.startsWith("rec-user-")) {
+            return {
+              success: true,
+              message: "Permintaan pertemanan berhasil dikirim!",
             };
           } else {
             return {
