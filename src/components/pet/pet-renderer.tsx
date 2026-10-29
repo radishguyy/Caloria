@@ -16,12 +16,15 @@ interface PetRendererProps {
   interactive?: boolean;
   size?: "sm" | "md" | "lg";
   dialogMessage?: string | null;
+  /** When true, render squircle status indicators below level instead of bars/controls (dashboard mode). */
+  statusIndicators?: boolean;
 }
 
 export function PetRenderer({
   interactive = true,
   size = "md",
   dialogMessage = null,
+  statusIndicators = false,
 }: PetRendererProps) {
   const isHydrated = useHydrated();
 
@@ -115,7 +118,7 @@ export function PetRenderer({
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-2 px-3.5 py-1.5 rounded-button bg-accent-yellow/60 border border-accent-green/25 shadow-xs text-xs font-medium text-text-primary text-center max-w-xs relative"
+            className="mb-2 px-3.5 py-1.5 rounded-button bg-accent-yellow/60 border border-accent-green/25 shadow-xs text-xs font-bold text-text-primary text-center max-w-xs relative"
           >
             <span>{dialogMessage}</span>
             <div className="w-2.5 h-2.5 bg-accent-yellow/60 border-b border-r border-accent-green/25 rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
@@ -200,84 +203,174 @@ export function PetRenderer({
       </div>
 
       {/* Pet Header Information */}
-      <div className="mt-3 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <h3 className="text-lg font-bold tracking-tight text-text-primary">{name}</h3>
-          <span className="px-2.5 py-0.5 rounded-pill text-xs font-bold bg-accent-orange text-text-inverse">
-            Lv. {level}
-          </span>
-        </div>
-        <p className="text-xs text-text-muted mt-0.5">
-          {speciesInfo.name} ({charDef.speciesLabel}) • Tahap {stage}{" "}
-          {roomItem && !roomItem.isDefaultFree && `(${roomItem.name})`}
-        </p>
+      <div className="mt-3 w-full text-center">
+        {statusIndicators ? (
+          <h3 className="text-center text-3xl font-black leading-none tracking-tight text-text-primary">
+            {name}
+            <sup className="ml-1 align-super text-sm font-bold tracking-normal text-accent-orange-dark">
+              Lv. {level}
+            </sup>
+          </h3>
+        ) : (
+          <div className="flex items-center justify-center gap-2">
+            <h3 className="text-lg font-bold tracking-tight text-text-primary">{name}</h3>
+            <span className="px-2.5 py-0.5 rounded-pill text-xs font-bold bg-accent-orange text-text-inverse">
+              Lv. {level}
+            </span>
+          </div>
+        )}
+
+        {statusIndicators ? null : (
+          <p className="text-xs text-text-muted mt-0.5">
+            {speciesInfo.name} ({charDef.speciesLabel}) • Tahap {stage}{" "}
+            {roomItem && !roomItem.isDefaultFree && `(${roomItem.name})`}
+          </p>
+        )}
       </div>
 
-      {/* Status Progress Bars */}
-      <div className="w-full max-w-xs space-y-2.5 mt-4">
-        {/* EXP Progress */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-text-muted font-medium">
-            <span className="flex items-center gap-1 text-text-primary font-semibold">
-              <Sparkles className="h-3 w-3 text-accent-green" />
-              EXP
-            </span>
-            <span>
-              {exp} / {expNeeded} ({expPercent}%)
-            </span>
-          </div>
-          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
-            <div
-              className="h-full bg-accent-green transition-all duration-500"
-              style={{ width: `${expPercent}%` }}
-            />
-          </div>
-        </div>
+      {/* Squircle Status Indicators (Dashboard Mode) */}
+      {statusIndicators && (
+        <div className="mx-auto mt-4 grid w-full max-w-[11.5rem] grid-cols-3 gap-2.5">
+          {/* Makan */}
+          <button
+            onClick={() => feedPet(300, 25, 0)}
+            disabled={animationState === "sleeping"}
+            className="flex flex-col items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50"
+          >
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border-divider bg-surface-subtle">
+              <div
+                className="absolute inset-x-0 bottom-0 bg-accent-orange transition-[height] duration-500"
+                style={{ height: `${hunger}%` }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Utensils
+                  className={cn(
+                    "h-4 w-4 transition-colors duration-300",
+                    hunger >= 100 ? "text-text-inverse" : "text-accent-orange-dark"
+                  )}
+                />
+              </div>
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-wide text-text-muted">Makan</span>
+          </button>
 
-        {/* Hunger Bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-text-muted font-medium">
-            <span className="flex items-center gap-1 text-text-primary font-semibold">
-              <Utensils className="h-3 w-3 text-accent-green" />
-              Kenyang
-            </span>
-            <span>{hunger}%</span>
-          </div>
-          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
-            <div
-              className={cn(
-                "h-full transition-all duration-500",
-                hunger < 30
-                  ? "bg-macro-fat"
-                  : hunger < 60
-                  ? "bg-accent-orange"
-                  : "bg-accent-green"
-              )}
-              style={{ width: `${hunger}%` }}
-            />
-          </div>
-        </div>
+          {/* Elus */}
+          <button
+            onClick={handlePetClick}
+            disabled={animationState === "sleeping"}
+            className="flex flex-col items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50"
+          >
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border-divider bg-surface-subtle">
+              <div
+                className={cn(
+                  "absolute inset-x-0 bottom-0 transition-[height,background-color] duration-500",
+                  expPercent >= 100 ? "bg-accent-green" : "bg-accent-green-light"
+                )}
+                style={{ height: `${expPercent}%` }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Heart
+                  className={cn(
+                    "h-4 w-4 transition-colors duration-300",
+                    expPercent >= 100 ? "text-text-inverse" : "text-accent-green"
+                  )}
+                />
+              </div>
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-wide text-text-muted">Elus</span>
+          </button>
 
-        {/* Happiness Bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-text-muted font-medium">
-            <span className="flex items-center gap-1 text-text-primary font-semibold">
-              <Heart className="h-3 w-3 text-macro-fat" />
-              Kebahagiaan
-            </span>
-            <span>{happiness}%</span>
+          {/* Tidur */}
+          <button
+            onClick={toggleSleep}
+            className="flex flex-col items-center gap-1.5 transition-transform active:scale-95"
+          >
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border-divider bg-surface-subtle">
+              <div
+                className="absolute inset-x-0 bottom-0 bg-accent-yellow transition-[height] duration-500"
+                style={{ height: animationState === "sleeping" ? "100%" : "0%" }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Moon
+                  className={cn(
+                    "h-4 w-4 transition-colors duration-300",
+                    animationState === "sleeping" ? "text-text-primary" : "text-text-muted"
+                  )}
+                />
+              </div>
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-wide text-text-muted">Tidur</span>
+          </button>
+        </div>
+      )}
+
+      {/* Status Progress Bars (Default Mode) */}
+      {!statusIndicators && (
+        <div className="w-full max-w-xs space-y-2.5 mt-4">
+          {/* EXP Progress */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-text-muted font-medium">
+              <span className="flex items-center gap-1 text-text-primary font-semibold">
+                <Sparkles className="h-3 w-3 text-accent-green" />
+                EXP
+              </span>
+              <span>
+                {exp} / {expNeeded} ({expPercent}%)
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
+              <div
+                className="h-full bg-accent-green transition-all duration-500"
+                style={{ width: `${expPercent}%` }}
+              />
+            </div>
           </div>
-          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
-            <div
-              className="h-full bg-accent-green-light transition-all duration-500"
-              style={{ width: `${happiness}%` }}
-            />
+
+          {/* Hunger Bar */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-text-muted font-medium">
+              <span className="flex items-center gap-1 text-text-primary font-semibold">
+                <Utensils className="h-3 w-3 text-accent-green" />
+                Kenyang
+              </span>
+              <span>{hunger}%</span>
+            </div>
+            <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all duration-500",
+                  hunger < 30
+                    ? "bg-macro-fat"
+                    : hunger < 60
+                    ? "bg-accent-orange"
+                    : "bg-accent-green"
+                )}
+                style={{ width: `${hunger}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Happiness Bar */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-text-muted font-medium">
+              <span className="flex items-center gap-1 text-text-primary font-semibold">
+                <Heart className="h-3 w-3 text-macro-fat" />
+                Kebahagiaan
+              </span>
+              <span>{happiness}%</span>
+            </div>
+            <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
+              <div
+                className="h-full bg-accent-green-light transition-all duration-500"
+                style={{ width: `${happiness}%` }}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Interactive Controls */}
-      {interactive && (
+      {!statusIndicators && interactive && (
         <div className="flex items-center gap-3 mt-5">
           <button
             onClick={() => feedPet(250)}
