@@ -30,6 +30,8 @@ export const pets = pgTable(
     hunger: integer("hunger").default(100).notNull(),
     happiness: integer("happiness").default(100).notNull(),
     coins: integer("coins").default(0).notNull(),
+    lastFedAt: timestamp("last_fed_at", { withTimezone: true }).defaultNow().notNull(),
+    moodStatus: text("mood_status").default("happy").notNull(), // 'happy' | 'neutral' | 'complaining'
     customColors: jsonb("custom_colors").$type<Record<string, string>>().default({}),
     equippedHatId: uuid("equipped_hat_id"),
     equippedOutfitId: uuid("equipped_outfit_id"),

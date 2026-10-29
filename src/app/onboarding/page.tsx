@@ -18,6 +18,7 @@ export default function OnboardingRootPage() {
       "/onboarding/goal",
       "/onboarding/profile-calculator",
       "/onboarding/projection",
+      "/onboarding/nutrition-plan",
       "/onboarding/adopt-pet",
     ];
     const targetRoute = stepRoutes[activeOnboardingStep - 1] || "/onboarding/goal";

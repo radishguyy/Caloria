@@ -2,26 +2,63 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   Sparkles,
   Calendar,
   Flame,
-  Beef,
-  Wheat,
-  Droplets,
-  ShieldAlert,
+  Scale,
+  ShieldCheck,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  Lock,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { generateNutritionPlan } from "@/lib/nutrition-calculator";
 
+function AnimatedCounter({ targetValue }: { targetValue: number }) {
+  const [count, setCount] = useMemo(() => {
+    // initial state placeholder handled via react state below
+    return [0, () => {}];
+  }, []);
+
+  return <AnimatedCounterInternal targetValue={targetValue} />;
+}
+
+import { useState, useEffect } from "react";
+
+function AnimatedCounterInternal({ targetValue }: { targetValue: number }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime: number | null = null;
+    const duration = 1200; // 1.2s smooth animation
+
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * targetValue));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    const animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [targetValue]);
+
+  return <span>{count}</span>;
+}
+
 export default function OnboardingProjectionPage() {
   const router = useRouter();
-  const { goalPlan, setGoalPlan, setTargets } = useFoodStore();
+  const { goalPlan, setGoalPlan } = useFoodStore();
   const { setOnboardingStep } = useAuthStore();
 
   const plan = useMemo(() => {
@@ -37,16 +74,6 @@ export default function OnboardingProjectionPage() {
   }, [goalPlan]);
 
   const handleNext = () => {
-    setTargets({
-      calories: plan.dailyCalories,
-      protein: plan.proteinG,
-      carbs: plan.carbsG,
-      fat: plan.fatG,
-      fiber: plan.fiberG,
-      sugar: plan.sugarG,
-      waterMl: plan.waterMl,
-    });
-
     setGoalPlan({
       totalProjectedDays: plan.projectedDays,
       currentDayNumber: 1,
@@ -57,158 +84,174 @@ export default function OnboardingProjectionPage() {
     });
 
     setOnboardingStep(4);
-    router.push("/onboarding/adopt-pet");
+    router.push("/onboarding/nutrition-plan");
   };
 
-  const weightDiff = Math.abs(goalPlan.currentWeightKg - goalPlan.targetWeightKg);
+  const weightDiff = Math.abs(
+    (goalPlan.currentWeightKg || 75) - (goalPlan.targetWeightKg || 68)
+  );
+
+  const isHydrated = useHydrated();
+  const [estimatedDateString, setEstimatedDateString] = useState("...");
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const d = new Date();
+    d.setDate(d.getDate() + plan.projectedDays);
+    setEstimatedDateString(
+      d.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    );
+  }, [isHydrated, plan.projectedDays]);
+
+  const GoalIcon =
+    goalPlan.goalType === "bulking"
+      ? TrendingUp
+      : goalPlan.goalType === "maintenance"
+      ? Minus
+      : TrendingDown;
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-8 sm:py-12 space-y-6">
+    <div className="container mx-auto max-w-2xl px-4 py-6 sm:py-10 space-y-5">
       <OnboardingStepper currentStep={3} />
 
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary font-heading">
-          Langkah 3: Proyeksi Waktu Pencapaian Misi
+      <div className="text-center space-y-1.5">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary font-heading">
+          Langkah 3: Proyeksi Target Tercapai
         </h1>
         <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
-          Berdasarkan margin kalori yang aman, berikut adalah estimasi jumlah hari menuju target berat badan dan rincian target makronutrisi harianmu.
+          Estimasi durasi program misi kesehatanmu berdasarkan ritme metabolisme dan margin energi harian yang aman.
         </p>
       </div>
 
-      {/* Projection Hero Card (Pale Yellow Surface) */}
-      <div className="hero-card border border-accent-green/25 p-6 sm:p-8 space-y-4 shadow-xs">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-primary">
-          <Sparkles className="h-4 w-4 text-accent-green" />
-          <span>Hasil Proyeksi Waktu (N Days)</span>
+      {/* Main Clean & Compact Projection Card */}
+      <div className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 space-y-4 shadow-xs">
+        {/* Animated Days Counter Banner */}
+        <div className="hero-card border border-accent-green/30 p-5 sm:p-6 text-center space-y-3 relative overflow-hidden">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface/80 border border-accent-green/30 text-xs font-bold text-accent-green-dark">
+            <Sparkles className="w-3.5 h-3.5 text-accent-green animate-pulse" />
+            <span>Estimasi Waktu Perjalanan Misi</span>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-4xl sm:text-5xl font-black text-text-primary font-heading tracking-tight flex items-baseline justify-center gap-2">
+              <span className="text-accent-green-dark dark:text-accent-green tabular-nums">
+                <AnimatedCounterInternal targetValue={plan.projectedDays} />
+              </span>
+              <span className="text-xl sm:text-2xl font-bold text-text-muted">
+                Hari
+              </span>
+            </div>
+            <p className="text-xs text-text-muted flex items-center justify-center gap-1.5 pt-0.5">
+              <Calendar className="w-3.5 h-3.5 text-accent-orange" />
+              <span>
+                Target diperkirakan tercapai sekitar:{" "}
+                <strong className="text-text-primary">
+                  {estimatedDateString}
+                </strong>
+              </span>
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <p className="text-base sm:text-lg font-bold text-text-primary leading-snug">
-            Status BMI Anda:{" "}
-            <span className="text-accent-orange-dark">
-              {plan.bmi.score} ({plan.bmi.category})
-            </span>
-            . Untuk mencapai target{" "}
-            {goalPlan.goalType === "diet"
-              ? "Diet"
-              : goalPlan.goalType === "bulking"
-              ? "Bulking"
-              : "Maintenance"}{" "}
-            dari <strong>{goalPlan.currentWeightKg} kg</strong> ke{" "}
-            <strong>{goalPlan.targetWeightKg} kg</strong> dengan margin{" "}
-            <strong>
-              {plan.dailyMarginKcal > 0
-                ? `+${plan.dailyMarginKcal}`
-                : plan.dailyMarginKcal}{" "}
-              kkal/hari
-            </strong>
-            :
-          </p>
-
-          <div className="p-4 rounded-button bg-surface border border-border-default flex items-center justify-between gap-4 shadow-2xs">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-navigation bg-accent-green text-text-inverse flex items-center justify-center font-bold">
-                <Calendar className="h-6 w-6" />
+        {/* 2x2 Clean Compact Grid of Projection Parameters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Target Berat & Selisih */}
+          <div className="flex items-center justify-between p-3 rounded-navigation bg-surface-subtle border border-border-default">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-accent-green/15 text-accent-green flex items-center justify-center shrink-0">
+                <Scale className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-text-muted">Diproyeksikan Tercapai Dalam</p>
-                <h3 className="text-2xl font-black text-text-primary font-heading">
-                  {plan.projectedDays} Hari
-                </h3>
+                <span className="text-[11px] text-text-muted block">
+                  Perubahan Berat
+                </span>
+                <span className="text-xs sm:text-sm font-extrabold text-text-primary">
+                  {goalPlan.currentWeightKg || 75} kg &rarr;{" "}
+                  {goalPlan.targetWeightKg || 68} kg
+                </span>
               </div>
             </div>
+            <span className="px-2 py-0.5 rounded-pill bg-surface border border-border-default text-[11px] font-bold text-accent-green-dark shrink-0">
+              {weightDiff} kg
+            </span>
+          </div>
 
-            <div className="text-right text-xs">
-              <span className="text-text-muted">Selisih Target:</span>
-              <p className="font-bold text-text-primary">{weightDiff} kg</p>
+          {/* Program Goal Type */}
+          <div className="flex items-center justify-between p-3 rounded-navigation bg-surface-subtle border border-border-default">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-accent-orange/15 text-accent-orange-dark flex items-center justify-center shrink-0">
+                <GoalIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[11px] text-text-muted block">
+                  Fokus Program
+                </span>
+                <span className="text-xs sm:text-sm font-extrabold text-text-primary capitalize">
+                  {goalPlan.goalType === "diet"
+                    ? "Weight Loss (Defisit)"
+                    : goalPlan.goalType === "bulking"
+                    ? "Muscle Gain (Surplus)"
+                    : "Maintenance Seimbang"}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <p className="text-[11px] text-neutral-10 italic flex items-center gap-1.5 pt-1">
-          <ShieldAlert className="h-3.5 w-3.5 text-accent-orange shrink-0" />
-          <span>
-            Proyeksi dihitung berdasarkan standar biologis 1 kg lemak tubuh &asymp; 7.700 kkal dengan margin defisit/surplus aman.
-          </span>
-        </p>
-      </div>
-
-      {/* Recommended Daily Macronutrients Target Card */}
-      <div className="rounded-card border border-border-divider bg-surface p-6 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
-            <Flame className="h-4 w-4 text-accent-green fill-accent-green" />
-            <span>Target Gizi Harian Caloria:</span>
-          </h3>
-          <span className="px-3 py-1 rounded-pill text-xs font-black bg-accent-green/15 text-text-primary">
-            {plan.dailyCalories} kcal / hari
-          </span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          {/* Protein */}
-          <div className="p-3.5 rounded-button bg-macro-protein/10 border border-macro-protein/20 text-center space-y-1">
-            <div className="flex items-center justify-center gap-1 text-xs font-bold text-macro-protein">
-              <Beef className="h-3.5 w-3.5" />
-              <span>Protein</span>
+          {/* Daily Calorie Margin */}
+          <div className="flex items-center justify-between p-3 rounded-navigation bg-surface-subtle border border-border-default">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-accent-yellow text-text-primary flex items-center justify-center shrink-0">
+                <Flame className="w-4 h-4 text-accent-orange-dark" />
+              </div>
+              <div>
+                <span className="text-[11px] text-text-muted block">
+                  Margin Kalori Harian
+                </span>
+                <span className="text-xs sm:text-sm font-extrabold text-text-primary">
+                  {plan.dailyMarginKcal > 0
+                    ? `+${plan.dailyMarginKcal}`
+                    : plan.dailyMarginKcal}{" "}
+                  kkal / hari
+                </span>
+              </div>
             </div>
-            <p className="text-xl font-extrabold text-foreground font-heading">
-              {plan.proteinG}g
-            </p>
-            <p className="text-[10px] text-text-muted">Otot & Pemulihan</p>
           </div>
 
-          {/* Carbs */}
-          <div className="p-3.5 rounded-button bg-accent-yellow/50 border border-accent-orange/25 text-center space-y-1">
-            <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-orange-dark">
-              <Wheat className="h-3.5 w-3.5" />
-              <span>Karbo</span>
+          {/* Biological Standard Indicator */}
+          <div className="flex items-center justify-between p-3 rounded-navigation bg-surface-subtle border border-border-default">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-macro-protein/15 text-macro-protein flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[11px] text-text-muted block">
+                  Standar Keamanan
+                </span>
+                <span className="text-xs sm:text-sm font-extrabold text-text-primary">
+                  1 kg lemak &asymp; 7.700 kkal
+                </span>
+              </div>
             </div>
-            <p className="text-xl font-extrabold text-foreground font-heading">
-              {plan.carbsG}g
-            </p>
-            <p className="text-[10px] text-text-muted">Energi Utama</p>
-          </div>
-
-          {/* Fat */}
-          <div className="p-3.5 rounded-button bg-macro-fat/10 border border-macro-fat/20 text-center space-y-1">
-            <div className="flex items-center justify-center gap-1 text-xs font-bold text-macro-fat">
-              <Droplets className="h-3.5 w-3.5" />
-              <span>Lemak</span>
-            </div>
-            <p className="text-xl font-extrabold text-foreground font-heading">
-              {plan.fatG}g
-            </p>
-            <p className="text-[10px] text-text-muted">Hormon Sehat</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
-          <div className="flex items-center justify-between p-2.5 rounded-input bg-surface-subtle border border-border-divider">
-            <span className="text-text-muted">Target Serat:</span>
-            <span className="font-bold text-text-primary">{plan.fiberG} gram</span>
-          </div>
-          <div className="flex items-center justify-between p-2.5 rounded-input bg-surface-subtle border border-border-divider">
-            <span className="text-text-muted">Batas Gula:</span>
-            <span className="font-bold text-macro-sugar">&lt; {plan.sugarG} gram</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2">
-        <Link
-          href="/onboarding/profile-calculator"
-          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-button border border-border-default bg-surface text-xs font-bold hover:bg-accent-green-light text-text-primary transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Kembali</span>
-        </Link>
+      {/* Navigation Buttons: Profile step is locked, user cannot go back */}
+      <div className="flex items-center justify-between pt-1">
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-button bg-surface-subtle border border-border-default text-xs font-semibold text-text-muted select-none">
+          <Lock className="w-3.5 h-3.5 text-accent-orange" />
+          <span>Profil Fisik Terkunci</span>
+        </div>
 
         <button
           onClick={handleNext}
-          className="button-primary inline-flex items-center gap-2 px-8 py-3.5 text-sm"
+          className="button-primary inline-flex items-center gap-2 px-6 py-3 text-xs sm:text-sm"
         >
-          <span>Lanjut: Adopsi Virtual Pet</span>
+          <span>Lanjut: Target Gizi Harian</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>

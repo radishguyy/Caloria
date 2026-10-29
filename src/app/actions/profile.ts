@@ -17,6 +17,7 @@ import {
 } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { DEFAULT_FREE_ITEM_IDS } from "@/lib/cosmetics-catalog";
+import { evaluatePetCondition } from "@/lib/pet/decay-evaluator";
 
 /**
  * Returns the authenticated user's profile data for client-side rendering.
@@ -242,6 +243,35 @@ export async function fetchAppInitialDataAction() {
       .orderBy(desc(foodLogs.createdAt))
       .limit(100);
 
+    let petExp = pet?.exp || pet?.currentXp || 0;
+    let petMood = pet?.moodStatus || "happy";
+    const petLastFed = pet?.lastFedAt || pet?.createdAt || new Date();
+
+    if (pet) {
+      const condition = evaluatePetCondition({
+        lastFedAt: petLastFed,
+        exp: petExp,
+        level: pet.level || 1,
+        moodStatus: petMood,
+      });
+
+      if (condition.isComplaining) {
+        petMood = "complaining";
+        petExp = condition.adjustedExp;
+        if (pet.moodStatus !== "complaining" || pet.exp !== condition.adjustedExp) {
+          db.update(pets)
+            .set({
+              moodStatus: "complaining",
+              exp: condition.adjustedExp,
+              currentXp: condition.adjustedExp,
+              updatedAt: new Date(),
+            })
+            .where(eq(pets.id, pet.id))
+            .catch((e) => console.warn("[fetchAppInitialDataAction] pet decay update warning:", e));
+        }
+      }
+    }
+
     return {
       authenticated: true,
       user: {
@@ -270,6 +300,7 @@ export async function fetchAppInitialDataAction() {
             targetCarbsG: Number(profile.targetCarbsG) || 250,
             targetFatG: Number(profile.targetFatG) || 55,
             caloriaCoins: profile.caloriaCoins || 0,
+            lastLoginClaimDate: profile.lastLoginClaimDate || null,
             projectedDays: profile.projectedDays || 90,
           }
         : null,
@@ -279,10 +310,15 @@ export async function fetchAppInitialDataAction() {
             species: (pet.species || pet.characterId || "flameling") as any,
             stage: pet.stage === "juvenile" ? 2 : 1,
             level: pet.level || 1,
-            exp: pet.exp || pet.currentXp || 0,
+            exp: petExp,
             hunger: pet.hunger ?? 100,
             happiness: pet.happiness ?? 100,
             coins: profile?.caloriaCoins ?? pet.coins ?? 0,
+            lastFedAt:
+              petLastFed instanceof Date
+                ? petLastFed.toISOString()
+                : new Date(petLastFed).toISOString(),
+            moodStatus: petMood as "happy" | "neutral" | "complaining",
             customColors: (pet.customColors as any) || {},
           }
         : null,

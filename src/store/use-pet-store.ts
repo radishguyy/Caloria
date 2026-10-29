@@ -10,6 +10,7 @@ import {
   CHARACTER_COLOR_PALETTES,
   getCharacterDefinition,
 } from "@/lib/character-assets/catalog";
+import { evaluatePetCondition, PetConditionResult } from "@/lib/pet/decay-evaluator";
 
 interface PetStoreState {
   name: string;
@@ -22,6 +23,8 @@ interface PetStoreState {
   happiness: number;
   health: number;
   animationState: PetAnimationState;
+  lastFedAt: string;
+  moodStatus: "happy" | "neutral" | "complaining";
 
   // Modular Character Customization State
   customColors: Partial<CharacterColorPalette>;
@@ -35,6 +38,8 @@ interface PetStoreState {
     xpReward?: number,
     coinReward?: number,
   ) => void;
+  feedWithCoins: (cost?: number) => { success: boolean; error?: string };
+  checkAndApplyDecay: () => PetConditionResult;
   petInteract: () => void;
   toggleSleep: () => void;
   gainExp: (amount: number) => void;
@@ -72,6 +77,8 @@ export const usePetStore = create<PetStoreState>()(
       happiness: 100,
       health: 100,
       animationState: "idle",
+      lastFedAt: "2026-10-30T00:00:00.000Z",
+      moodStatus: "happy",
       customColors: {},
       earsVariant: undefined,
       tailVariant: undefined,
@@ -112,6 +119,8 @@ export const usePetStore = create<PetStoreState>()(
           hunger: newHunger,
           coins: current.coins + coinReward,
           animationState: "eating",
+          lastFedAt: new Date().toISOString(),
+          moodStatus: "happy",
         });
 
         get().gainExp(xpReward);
@@ -122,6 +131,65 @@ export const usePetStore = create<PetStoreState>()(
             set({ animationState: "idle" });
           }, 1800);
         }, 1500);
+      },
+
+      feedWithCoins: (cost = 5) => {
+        const current = get();
+        if (current.coins < cost) {
+          return { success: false, error: "INSUFFICIENT_COINS" };
+        }
+
+        const newCoins = current.coins - cost;
+        const newHunger = Math.min(
+          PET_CONFIG.MAX_HUNGER,
+          current.hunger + 30,
+        );
+        const newHappiness = Math.min(
+          PET_CONFIG.MAX_HAPPINESS,
+          current.happiness + 20,
+        );
+        const nowIso = new Date().toISOString();
+
+        set({
+          coins: newCoins,
+          hunger: newHunger,
+          happiness: newHappiness,
+          lastFedAt: nowIso,
+          moodStatus: "happy",
+          animationState: "eating",
+        });
+
+        setTimeout(() => {
+          set({ animationState: "happy" });
+          setTimeout(() => {
+            set({ animationState: "idle" });
+          }, 1800);
+        }, 1500);
+
+        return { success: true };
+      },
+
+      checkAndApplyDecay: () => {
+        const { lastFedAt, exp, level, moodStatus } = get();
+        const evaluation = evaluatePetCondition({
+          lastFedAt,
+          exp,
+          level,
+          moodStatus,
+        });
+
+        if (evaluation.isComplaining) {
+          set({
+            moodStatus: "complaining",
+            exp: evaluation.adjustedExp,
+          });
+        } else if (moodStatus === "complaining") {
+          set({
+            moodStatus: "happy",
+          });
+        }
+
+        return evaluation;
       },
 
       petInteract: () => {

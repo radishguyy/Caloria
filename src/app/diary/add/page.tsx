@@ -446,7 +446,7 @@ function DiaryAddFoodContent() {
       xpEarned: result.totalXp,
     });
 
-    feedPet(result.totalBatchCalories, result.totalXp, 0);
+    feedPet(result.totalBatchCalories, result.totalXp, 10);
     toastMealsCommitted(result.totalXp, 10);
 
     setRewardResult(result);

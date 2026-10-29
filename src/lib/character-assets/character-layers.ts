@@ -529,7 +529,7 @@ export const CHARACTER_SVG_LAYERS: Record<CharacterId, CharacterSvgLayers> = {
  * Dynamic animation state facial overlays (sleeping, eating, happy) that preserve
  * the character's chibi style when interacting in PetRenderer.
  */
-export const ANIMATION_STATE_FACE_OVERLAYS: Record<"sleeping" | "eating" | "happy", string> = {
+export const ANIMATION_STATE_FACE_OVERLAYS: Record<"sleeping" | "eating" | "happy" | "complaining", string> = {
   sleeping: `<g data-layer="face-sleeping">
   <ellipse cx="34" cy="79" rx="6" ry="3.8" fill="var(--char-blush, #FF8FA3)" opacity="0.65" />
   <ellipse cx="94" cy="79" rx="6" ry="3.8" fill="var(--char-blush, #FF8FA3)" opacity="0.65" />
@@ -555,6 +555,26 @@ export const ANIMATION_STATE_FACE_OVERLAYS: Record<"sleeping" | "eating" | "happ
   <path d="M 36 69 Q 46 57 56 69" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="4" stroke-linecap="round" />
   <path d="M 72 69 Q 82 57 92 69" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="4" stroke-linecap="round" />
   <path d="M 52 78 Q 64 92 76 78 Z" fill="#FB7185" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linejoin="round" />
+</g>`,
+  complaining: `<g data-layer="face-complaining">
+  <!-- Sluggish, weary, droopy eyes (half-lidded, weary downcast glance, NO blush) -->
+  <ellipse cx="46" cy="71" rx="9" ry="6" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.2" />
+  <path d="M 37 70 C 37 66, 55 66, 55 70 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="2.6" />
+  <ellipse cx="46" cy="73" rx="4.5" ry="3.5" fill="var(--char-eye, #231F20)" />
+  <circle cx="44.5" cy="71.5" r="1.3" fill="#FFFFFF" />
+  <path d="M 38 64 Q 46 62 54 66" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linecap="round" />
+
+  <ellipse cx="82" cy="71" rx="9" ry="6" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.2" />
+  <path d="M 73 70 C 73 66, 91 66, 91 70 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="2.6" />
+  <ellipse cx="82" cy="73" rx="4.5" ry="3.5" fill="var(--char-eye, #231F20)" />
+  <circle cx="80.5" cy="71.5" r="1.3" fill="#FFFFFF" />
+  <path d="M 90 64 Q 82 62 74 66" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linecap="round" />
+
+  <!-- Pouting / Complaining Droopy Mouth -->
+  <ellipse cx="64" cy="76" rx="2.8" ry="2" fill="var(--char-nose, #231F20)" />
+  <path d="M 57 85 Q 64 80 71 85" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" />
+  <!-- Weary Sweat Droplet -->
+  <path d="M 97 73 C 97 71, 99.5 68, 99.5 68 C 99.5 68, 102 71, 102 73 C 102 74.8, 100.8 76, 99.5 76 C 98.2 76, 97 74.8, 97 73 Z" fill="#60A5FA" opacity="0.9" />
 </g>`,
 };
 

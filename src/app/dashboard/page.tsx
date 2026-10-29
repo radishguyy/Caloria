@@ -18,6 +18,7 @@ import {
   Flame,
 } from "lucide-react";
 import { PetRenderer } from "@/components/pet/pet-renderer";
+import { PetShowcase } from "@/components/dashboard/PetShowcase";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
 import { QuestWidget } from "@/components/shared/QuestWidget";
@@ -509,15 +510,8 @@ export default function DashboardPage() {
 
       {/* CalPal (Virtual Pet) + Daily Nutrition Target Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left Column: CalPal Container */}
-        <div className="lg:col-span-6 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-4">
-          <PetRenderer
-            interactive={true}
-            size="md"
-            dialogMessage={isHydrated ? getPetDialogMessages() : null}
-            statusIndicators={true}
-          />
-        </div>
+        {/* Left Column: CalPal Container (PetShowcase) */}
+        <PetShowcase className="lg:col-span-6" />
 
         {/* Right Column: Daily Nutrition Target + Catat Makanan */}
         <div className="lg:col-span-6 flex flex-col gap-3">

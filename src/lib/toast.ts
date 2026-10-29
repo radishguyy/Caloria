@@ -164,3 +164,27 @@ export function toastPetPetted(exp: number = 10) {
     `Kebahagiaan bertambah & +${exp} EXP didapatkan!`,
   );
 }
+
+export function toastFeedingSuccess() {
+  return toastSuccess(
+    "Nom nom! Calpal is full and happy! (-5 Coins) 🐾✨",
+    "Calpal kenyang, suasana hatinya kembali ceria!",
+  );
+}
+
+export function toastInsufficientCoins() {
+  return toastWarning(
+    "Not enough coins!",
+    "You need at least 5 coins to feed Calpal. Log food or claim daily login to earn coins.",
+  );
+}
+
+export function toastDailyLoginReward() {
+  return toastReward(
+    "+20 Daily Login Coins! 🪙",
+    0,
+    20,
+    "Welcome back! Koin harian berhasil diklaim.",
+  );
+}
+

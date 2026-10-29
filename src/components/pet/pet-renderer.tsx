@@ -18,7 +18,13 @@ import { CharacterSvg } from "@/components/pet/character-svg";
 import { getCharacterDefinition } from "@/lib/character-assets/catalog";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
-import { toastPetPetted, toastMealsCommitted } from "@/lib/toast";
+import {
+  toastPetPetted,
+  toastMealsCommitted,
+  toastFeedingSuccess,
+  toastInsufficientCoins,
+} from "@/lib/toast";
+import { feedPetAction } from "@/server/actions/pet-actions";
 
 interface PetRendererProps {
   interactive?: boolean;
@@ -42,14 +48,17 @@ export function PetRenderer({
     stage,
     level,
     exp,
+    coins,
     hunger,
     happiness,
     animationState,
+    moodStatus,
     customColors,
     earsVariant,
     tailVariant,
     faceVariant,
     feedPet,
+    feedWithCoins,
     petInteract,
     toggleSleep,
     getExpNeededForNextLevel,
@@ -234,6 +243,8 @@ export function PetRenderer({
             earsVariant={earsVariant}
             tailVariant={tailVariant}
             faceVariant={faceVariant}
+            animationState={animationState}
+            moodStatus={moodStatus}
             equipped={equipped}
             className="w-full h-full drop-shadow-lg"
           />
@@ -274,12 +285,23 @@ export function PetRenderer({
           <div className="grid grid-cols-3 gap-2.5">
             {/* Makan */}
             <button
-              onClick={() => {
-                feedPet(300, 25, 0);
-                toastMealsCommitted(25, 0);
+              onClick={async () => {
+                if (coins < 5) {
+                  toastInsufficientCoins();
+                  return;
+                }
+                const res = feedWithCoins(5);
+                if (res.success) {
+                  toastFeedingSuccess();
+                  try {
+                    await feedPetAction();
+                  } catch (e) {
+                    console.warn(e);
+                  }
+                }
               }}
               disabled={animationState === "sleeping"}
-              aria-label="Beri makan CalPal"
+              aria-label="Beri makan CalPal (5 Koin)"
               className="flex flex-col items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50"
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border-divider bg-surface-subtle">
@@ -458,12 +480,26 @@ export function PetRenderer({
       {!statusIndicators && interactive && (
         <div className="flex items-center gap-3 mt-5">
           <button
-            onClick={() => feedPet(250)}
+            onClick={async () => {
+              if (coins < 5) {
+                toastInsufficientCoins();
+                return;
+              }
+              const res = feedWithCoins(5);
+              if (res.success) {
+                toastFeedingSuccess();
+                try {
+                  await feedPetAction();
+                } catch (e) {
+                  console.warn(e);
+                }
+              }
+            }}
             disabled={animationState === "sleeping"}
             className="button-primary text-xs flex items-center gap-1.5 py-2 px-4 shadow-sm active:scale-95 transition-all disabled:opacity-50"
           >
             <Utensils className="h-4 w-4" />
-            <span>Makan (+EXP)</span>
+            <span>Makan (5 🪙)</span>
           </button>
           <button
             onClick={handlePetClick}

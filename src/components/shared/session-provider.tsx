@@ -10,6 +10,8 @@ import { useWeightStore } from "@/store/use-weight-store";
 import { useAchievementsStore } from "@/store/use-achievements-store";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAppInitialDataAction } from "@/app/actions/profile";
+import { claimDailyLoginRewardAction } from "@/server/actions/pet-actions";
+import { toastDailyLoginReward } from "@/lib/toast";
 
 async function hydrateStoresFromDatabase() {
   try {
@@ -64,8 +66,28 @@ async function hydrateStoresFromDatabase() {
         hunger: data.pet.hunger,
         happiness: data.pet.happiness,
         coins: data.pet.coins,
+        lastFedAt: data.pet.lastFedAt,
+        moodStatus: data.pet.moodStatus,
         customColors: data.pet.customColors,
       });
+    }
+
+    // Daily Login Reward Check (awarded on first session launch of the day)
+    try {
+      const todayKey = new Date().toISOString().split("T")[0];
+      const claimStorageKey = `caloria_daily_login_claimed_${todayKey}`;
+      if (typeof window !== "undefined" && !sessionStorage.getItem(claimStorageKey)) {
+        const rewardRes = await claimDailyLoginRewardAction();
+        if (rewardRes.success && !rewardRes.alreadyClaimed && rewardRes.rewardAmount) {
+          sessionStorage.setItem(claimStorageKey, "true");
+          if (rewardRes.newBalance !== undefined) {
+            usePetStore.getState().setCoins(rewardRes.newBalance);
+          }
+          toastDailyLoginReward();
+        }
+      }
+    } catch (loginRewardErr) {
+      console.warn("[SessionProvider] Daily login reward check notice:", loginRewardErr);
     }
 
     // 4. Hydrate Cosmetics & Wardrobe Store

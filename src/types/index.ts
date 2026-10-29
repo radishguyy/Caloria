@@ -212,7 +212,8 @@ export interface FoodItemInput {
 }
 
 // Pet Types
-export type PetAnimationState = "idle" | "eating" | "happy" | "sleeping" | "sad";
+export type PetAnimationState = "idle" | "eating" | "happy" | "sleeping" | "sad" | "complaining";
+export type PetMoodStatus = "happy" | "neutral" | "complaining";
 
 export interface EquippedCosmetics {
   head: string;

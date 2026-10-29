@@ -78,11 +78,11 @@ export default function OnboardingAdoptPetPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8 sm:py-12 space-y-6">
-      <OnboardingStepper currentStep={4} />
+      <OnboardingStepper currentStep={5} />
 
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary font-heading">
-          Langkah 4: Adopsi Virtual Pet Pertamamu
+          Langkah 5: Adopsi Virtual Pet Pertamamu
         </h1>
         <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
           Pilih salah satu dari 12 karakter pet chibi awal sebagai teman seperjalanan selama masa program misi nutrisimu dan berikan nama terbaik!

@@ -24,12 +24,15 @@ import {
   Trophy,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
+import { usePetStore } from "@/store/use-pet-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
   GOAL_PATH_LABELS,
   goalTypeToGoalPath,
   type QuestSideMission,
 } from "@/lib/gamification/quest-engine";
+import { claimLevelUpPromotionAction } from "@/server/actions/pet-actions";
+import { toastReward } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export default function QuestsPage() {
@@ -77,6 +80,32 @@ export default function QuestsPage() {
     goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
   const activeLevel = goalPlan.currentLevel || 1;
   const activeWeek = goalPlan.currentWeek || 1;
+  const { addCoins } = usePetStore();
+  const [isClaimingLevelUp, setIsClaimingLevelUp] = useState(false);
+  const [levelUpClaimed, setLevelUpClaimed] = useState(false);
+
+  const handleClaimLevelUpPromotion = async () => {
+    if (isClaimingLevelUp || levelUpClaimed) return;
+    setIsClaimingLevelUp(true);
+    try {
+      const nextLevel = (activeLevel || 1) + 1;
+      const res = await claimLevelUpPromotionAction(nextLevel);
+      if (res.success && res.coinsEarned) {
+        addCoins(res.coinsEarned);
+        setLevelUpClaimed(true);
+        toastReward(
+          "Promosi Naik Level Berhasil! 🏆✨",
+          0,
+          100,
+          "+100 Koin Caloria didapatkan atas konsistensi evaluasi mingguan!",
+        );
+      }
+    } catch (e) {
+      console.warn("Claim level up error:", e);
+    } finally {
+      setIsClaimingLevelUp(false);
+    }
+  };
 
   const availableLevels =
     activePath === "maintain_weight"
@@ -359,9 +388,25 @@ export default function QuestsPage() {
               💡 Level progression terikat pada konsistensi harian. Level berikutnya akan otomatis terbuka di akhir hari ke-7 jika kepatuhan harianmu mencapai minimal 75%.
             </p>
           ) : weeklyProgression.canAdvance ? (
-            <div className="p-3 rounded-navigation bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-xs text-emerald-800 font-bold font-sans">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <span>Selamat! Syarat 75% pekan ini terpenuhi. Level berikutnya telah terbuka!</span>
+            <div className="p-3.5 rounded-navigation bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-emerald-800 font-bold font-sans">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Selamat! Syarat 75% pekan ini terpenuhi. Level berikutnya telah terbuka!</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClaimLevelUpPromotion}
+                disabled={isClaimingLevelUp || levelUpClaimed}
+                className="button-primary px-3 py-1.5 text-xs text-text-inverse font-bold shrink-0 flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+              >
+                <span>
+                  {levelUpClaimed
+                    ? "Bonus Koin Diklaim ✓"
+                    : isClaimingLevelUp
+                      ? "Mengklaim..."
+                      : "Klaim Promosi Naik Level (+100 🪙)"}
+                </span>
+              </button>
             </div>
           ) : null}
         </div>
