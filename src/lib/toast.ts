@@ -69,6 +69,19 @@ export function toastWarning(
   });
 }
 
+export function toastError(
+  title: string,
+  description?: string,
+  options?: ToastOptions,
+) {
+  return toast.error(title, {
+    description,
+    duration: options?.duration ?? 4000,
+    className:
+      "!bg-surface !border-2 !border-rose-400 !rounded-2xl !shadow-md !font-sans !p-4 !text-rose-950",
+  });
+}
+
 // =========================================================================
 // Standardized Action Triggers
 // =========================================================================

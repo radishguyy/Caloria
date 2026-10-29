@@ -107,31 +107,5 @@ export const notifications = pgTable(
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 
-// 19. Weekly Recaps Table (AI Generated 7-day Nutrition & Quest Reflection)
-export const weeklyRecaps = pgTable(
-  "weekly_recaps",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .references(() => profiles.id, { onDelete: "cascade" })
-      .notNull(),
-    weekNumber: integer("week_number").notNull(),
-    evaluationDate: timestamp("evaluation_date", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    grade: varchar("grade", { length: 10 }).notNull(),
-    contentJson: jsonb("content_json").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    index("weekly_recaps_user_id_idx").on(table.userId),
-    unique("weekly_recaps_user_week_unique").on(table.userId, table.weekNumber),
-  ]
-);
-
-export type WeeklyRecap = typeof weeklyRecaps.$inferSelect;
-export type NewWeeklyRecap = typeof weeklyRecaps.$inferInsert;
 
 

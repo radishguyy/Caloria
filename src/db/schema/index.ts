@@ -8,6 +8,7 @@ export * from "./friendships";
 export * from "./social";
 export * from "./gamification";
 export * from "./push-subscriptions";
+export * from "./recaps";
 export * from "./relations";
 
 import { profiles, weightLogs } from "./profiles";
@@ -20,8 +21,8 @@ import {
   pushSubscriptions,
   notifications,
   coinTransactions,
-  weeklyRecaps,
 } from "./gamification";
+import { recaps } from "./recaps";
 
 // ==========================================
 // Inferred TypeScript Types ($inferSelect & $inferInsert)
@@ -85,7 +86,8 @@ export type NewNotificationRecord = typeof notifications.$inferInsert;
 export type CoinTransaction = typeof coinTransactions.$inferSelect;
 export type NewCoinTransaction = typeof coinTransactions.$inferInsert;
 
-export type WeeklyRecapRecord = typeof weeklyRecaps.$inferSelect;
-export type NewWeeklyRecapRecord = typeof weeklyRecaps.$inferInsert;
+// 6. Caloria Wrapped Story Recaps
+export type Recap = typeof recaps.$inferSelect;
+export type NewRecap = typeof recaps.$inferInsert;
 
 

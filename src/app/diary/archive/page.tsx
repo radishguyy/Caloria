@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { CalendarGrid } from "@/components/diary/archive/CalendarGrid";
 import { DailyArchiveDetail } from "@/components/diary/archive/DailyArchiveDetail";
+import { CaloriaWrappedShelf } from "@/components/diary/archive/CaloriaWrappedShelf";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
@@ -97,13 +98,6 @@ function DiaryArchiveContent() {
         {/* Quick Nav Shortcut */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <Link
-            href="/diary/archive/recap"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-navigation border border-[#FF9233]/40 bg-[#FCF8E3] hover:bg-amber-100 text-amber-900 text-xs font-bold transition-colors shadow-2xs"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-            <span>Rapor Mingguan AI</span>
-          </Link>
-          <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-text-primary text-xs font-bold transition-colors"
           >
@@ -119,6 +113,9 @@ function DiaryArchiveContent() {
           </Link>
         </div>
       </div>
+
+      {/* Caloria Wrapped Shelf: Time-Gated Story Recaps & Milestones */}
+      <CaloriaWrappedShelf />
 
       {/* Main Two-Column Grid: Calendar on Left, Inspector on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

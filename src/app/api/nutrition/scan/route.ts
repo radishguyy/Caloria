@@ -16,7 +16,7 @@ Strict Extraction Guidelines:
    - fiberG: Dietary Fiber (Serat Pangan) per serving (in grams). Default to 0 if not listed.
    - sugarG: Total Sugars (Gula) per serving (in grams). Default to 0 if not listed.
 4. Extract servingSize (numeric amount, e.g., 30) and servingUnit (e.g., "g", "ml", "oz", "keping", "bungkus").
-5. Extract servingsPerContainer (Jumlah Sajian Per Kemasan) as a number if visible, or null if not stated.
+5. Extract servingsPerContainer as a number. Carefully check for text like "Jumlah Sajian per Kemasan", "Sajian per kemasan", "Jumlah sajian dalam kemasan", "Servings Per Container", "Servings Per Pack", or "Servings approx". For example: if it says "2 sajian per kemasan", "sekitar 2.5", or "approx. 3 servings", extract the numeric value (e.g. 2, 2.5, 3). Set to null ONLY if completely absent.
 6. Infer foodName from any visible product title, branding, or packaging context. If only the nutrition table is visible without branding, provide a descriptive name (e.g., "Scanned Food Product").
 7. Set confidenceScore between 0.0 and 1.0 reflecting how legible and complete the nutrition label is in the image.`;
 
