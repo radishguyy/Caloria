@@ -21,6 +21,7 @@ import {
 import { AccessorySvgPreview } from "@/components/pet/character-svg";
 import { PurchaseModal } from "@/components/pet/purchase-modal";
 import { purchaseAccessoryAction } from "@/app/actions/pet-customization";
+import { toastShopPurchased } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export default function PetShopPage() {
@@ -67,6 +68,7 @@ export default function PetShopPage() {
           setCoins(serverResult.newCoins);
         }
         addOwnedItem(itemToBuy.id);
+        toastShopPurchased(itemToBuy.priceCoins);
         setPurchaseFeedback({
           success: true,
           message: serverResult.message,
@@ -77,6 +79,9 @@ export default function PetShopPage() {
           const clientResult = buyItem(itemToBuy.id, coins, (amount) => {
             addCoins(amount);
           });
+          if (clientResult.success) {
+            toastShopPurchased(itemToBuy.priceCoins);
+          }
           setPurchaseFeedback(clientResult);
         } else {
           setPurchaseFeedback({

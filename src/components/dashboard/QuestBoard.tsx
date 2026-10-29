@@ -30,6 +30,8 @@ import {
   type QuestSideMission,
 } from "@/lib/gamification/quest-engine";
 import { cn } from "@/lib/utils";
+import { WeeklyRecapModal } from "@/components/diary/WeeklyRecapModal";
+import type { WeeklyRecapContent } from "@/lib/server/weekly-recap";
 
 interface QuestBoardProps {
   className?: string;
@@ -51,6 +53,56 @@ export function QuestBoard({ className }: QuestBoardProps) {
   } = useFoodStore();
 
   const [rewardToast, setRewardToast] = useState<string | null>(null);
+  const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
+  const [recapData, setRecapData] = useState<WeeklyRecapContent | null>(null);
+  const [isRecapLoading, setIsRecapLoading] = useState(false);
+
+  const handleOpenRecap = async () => {
+    setIsRecapModalOpen(true);
+    if (recapData) return;
+    setIsRecapLoading(true);
+    try {
+      const res = await fetch("/api/recap/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weekNumber: weeklyProgression.activeStage.week || 1,
+          clientData: {
+            weekNumber: weeklyProgression.activeStage.week || 1,
+            daysLogged: weeklyProgression.currentWeekMetDays,
+            averageCalories: consumed.calories,
+            targetTee: questPlan.calorieTarget,
+            passedLevel:
+              weeklyProgression.canAdvance ||
+              weeklyProgression.currentWeekComplianceRate >= 75,
+            complianceRate: weeklyProgression.currentWeekComplianceRate,
+            goalPath: activePath,
+            macroComplianceDistribution: {
+              baikPercent: weeklyProgression.currentWeekComplianceRate,
+              lebihPercent: 0,
+              defisitPercent: Math.max(
+                0,
+                100 - weeklyProgression.currentWeekComplianceRate
+              ),
+            },
+            petStatus: {
+              name: "Calpal",
+              level: weeklyProgression.activeStage.level,
+              expGained: 150,
+            },
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.recap) {
+        setRecapData(data.recap);
+      }
+    } catch (err) {
+      console.error("Gagal memuat recap mingguan:", err);
+    } finally {
+      setIsRecapLoading(false);
+    }
+  };
 
   if (!isHydrated) {
     return (
@@ -151,6 +203,16 @@ export function QuestBoard({ className }: QuestBoardProps) {
 
         {/* Level & Week Selector (Controlled by start date & unlocked stages, Requirement 3) */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Rapor AI Calpal trigger button */}
+          <button
+            type="button"
+            onClick={handleOpenRecap}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-navigation text-xs font-bold bg-[#FCF8E3] hover:bg-amber-100 text-amber-900 border border-[#FF9233]/40 transition-colors cursor-pointer shadow-2xs"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+            <span>Rapor AI Calpal</span>
+          </button>
+
           {/* Level selector */}
           <div className="flex items-center gap-1 p-1 rounded-navigation bg-surface border border-border-divider">
             {availableLevels.map((lvl) => {
@@ -727,6 +789,27 @@ export function QuestBoard({ className }: QuestBoardProps) {
           </div>
         )}
       </div>
+      {/* Weekly Recap Modal */}
+      <WeeklyRecapModal
+        isOpen={isRecapModalOpen}
+        onClose={() => setIsRecapModalOpen(false)}
+        recap={recapData}
+        isLoading={isRecapLoading}
+        onAdvanceWeek={() => {
+          if (weeklyProgression.canAdvance) {
+            setQuestProgression({
+              currentLevel: weeklyProgression.activeStage.level,
+              currentWeek: (weeklyProgression.activeStage.week || 1) + 1,
+            });
+          }
+        }}
+        onRepeatWeek={() => {
+          setQuestProgression({
+            currentLevel: weeklyProgression.activeStage.level,
+            currentWeek: weeklyProgression.activeStage.week || 1,
+          });
+        }}
+      />
     </section>
   );
 }

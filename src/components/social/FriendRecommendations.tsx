@@ -6,6 +6,7 @@ import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { FriendRecommendation } from "@/types";
 import { useSocialStore } from "@/stores/social-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { toastFriendRequestSent } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 interface FriendRecommendationsProps {
@@ -42,6 +43,7 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
     setSendingIds((prev) => ({ ...prev, [rec.id]: true }));
     try {
       await sendFriendRequest(rec.id);
+      toastFriendRequestSent(rec.fullName || rec.username);
       setSentIds((prev) => ({ ...prev, [rec.id]: true }));
       // Briefly show "Terkirim", then remove card smoothly
       setTimeout(() => {

@@ -20,6 +20,7 @@ import {
   pushSubscriptions,
   notifications,
   coinTransactions,
+  weeklyRecaps,
 } from "./gamification";
 
 // ==========================================
@@ -83,4 +84,8 @@ export type NewNotificationRecord = typeof notifications.$inferInsert;
 
 export type CoinTransaction = typeof coinTransactions.$inferSelect;
 export type NewCoinTransaction = typeof coinTransactions.$inferInsert;
+
+export type WeeklyRecapRecord = typeof weeklyRecaps.$inferSelect;
+export type NewWeeklyRecapRecord = typeof weeklyRecaps.$inferInsert;
+
 
