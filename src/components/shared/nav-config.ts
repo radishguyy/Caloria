@@ -40,7 +40,7 @@ export const NAV_ITEMS: NavItem[] = [
     matchPrefixes: ["/pet-customization", "/pet"],
   },
   {
-    href: "/social/coop",
+    href: "/social",
     label: "Social",
     icon: Users,
     matchPrefixes: ["/social"],
