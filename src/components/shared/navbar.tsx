@@ -35,7 +35,7 @@ export function Navbar() {
   const logo = useRandomLogo();
   const pathname = usePathname();
   const hydrated = useHydrated();
-  const { isAuthenticated, onboardingCompleted, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
   const toggleDrawer = useNotificationStore((state) => state.toggleDrawer);
   const isDrawerOpen = useNotificationStore((state) => state.isDrawerOpen);
   const storedUnreadCount = useNotificationStore(
@@ -58,7 +58,6 @@ export function Navbar() {
   };
 
   const isAuthed = hydrated && isAuthenticated;
-  const isReady = isAuthed && onboardingCompleted;
   const unreadCount = hydrated ? storedUnreadCount : 0;
   const profileActive = isAuthed && pathname.startsWith("/profile");
   const settingsActive = pathname.startsWith("/profile/settings");
@@ -68,11 +67,14 @@ export function Navbar() {
     : "Masuk";
   const initials = isAuthed ? getInitials(user?.fullName, user?.username) : "";
 
-  // Hide navbar on public landing page, auth routes, onboarding, or when user has not completed onboarding
-  const isAuthRoute = pathname === "/login" || pathname === "/register" || pathname.startsWith("/forgot-password");
+  // Hide navbar on public landing page, auth routes, and onboarding wizard
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/forgot-password");
   const isOnboardingRoute = pathname.startsWith("/onboarding");
 
-  if (pathname === "/" || isAuthRoute || isOnboardingRoute || (hydrated && !isReady)) {
+  if (pathname === "/" || isAuthRoute || isOnboardingRoute) {
     return null;
   }
 

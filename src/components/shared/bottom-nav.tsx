@@ -4,22 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles, UtensilsCrossed, Award, Users, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/use-auth-store";
-import { useHydrated } from "@/hooks/use-hydrated";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const hydrated = useHydrated();
-  const { isAuthenticated, onboardingCompleted } = useAuthStore();
 
-  const isAuthed = hydrated && isAuthenticated;
-  const isReady = isAuthed && onboardingCompleted;
-
-  // Hide bottom nav on landing page, auth pages, onboarding, or if user is unauthenticated / onboarding incomplete
-  const isAuthRoute = pathname === "/login" || pathname === "/register" || pathname.startsWith("/forgot-password");
+  // Hide bottom nav on landing page, auth pages, and onboarding wizard
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/forgot-password");
   const isOnboardingRoute = pathname.startsWith("/onboarding");
 
-  if (pathname === "/" || isAuthRoute || isOnboardingRoute || (hydrated && !isReady)) {
+  if (pathname === "/" || isAuthRoute || isOnboardingRoute) {
     return null;
   }
 
