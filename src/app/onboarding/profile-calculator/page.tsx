@@ -186,14 +186,19 @@ function CompactStepper({
 export default function OnboardingProfileCalculatorPage() {
   const router = useRouter();
   const { goalPlan, setGoalPlan } = useFoodStore();
-  const { activeOnboardingStep, setOnboardingStep } = useAuthStore();
+  const { activeOnboardingStep, onboardingCompleted, setOnboardingStep } = useAuthStore();
 
-  // Guard: if user has already progressed to projection or further, lock and redirect forward
+  // Guard: if user has already finished onboarding, redirect to dashboard
   useEffect(() => {
+    if (onboardingCompleted) {
+      router.replace("/dashboard");
+      return;
+    }
+    // Guard: if user has already progressed to projection or further, lock and redirect forward
     if (activeOnboardingStep >= 3) {
       router.replace("/onboarding/projection");
     }
-  }, [activeOnboardingStep, router]);
+  }, [activeOnboardingStep, onboardingCompleted, router]);
 
   const [gender, setGender] = useState<Gender>(goalPlan.gender || "male");
   const [age, setAge] = useState<number>(goalPlan.age || 24);

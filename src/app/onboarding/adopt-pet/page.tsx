@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -24,8 +24,14 @@ import { cn } from "@/lib/utils";
 export default function OnboardingAdoptPetPage() {
   const router = useRouter();
   const { setSpecies, setPetName, name, species } = usePetStore();
-  const { completeOnboarding } = useAuthStore();
+  const { completeOnboarding, onboardingCompleted } = useAuthStore();
   const { goalPlan, targets } = useFoodStore();
+
+  useEffect(() => {
+    if (onboardingCompleted) {
+      router.replace("/dashboard");
+    }
+  }, [onboardingCompleted, router]);
 
   const [selectedSpecies, setSelectedSpecies] = useState<PetSpeciesId>(
     species || "flameling"

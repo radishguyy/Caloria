@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -22,7 +22,13 @@ import { generateNutritionPlan } from "@/lib/nutrition-calculator";
 export default function OnboardingNutritionPlanPage() {
   const router = useRouter();
   const { goalPlan, setTargets } = useFoodStore();
-  const { setOnboardingStep } = useAuthStore();
+  const { setOnboardingStep, onboardingCompleted } = useAuthStore();
+
+  useEffect(() => {
+    if (onboardingCompleted) {
+      router.replace("/dashboard");
+    }
+  }, [onboardingCompleted, router]);
 
   const plan = useMemo(() => {
     return generateNutritionPlan({

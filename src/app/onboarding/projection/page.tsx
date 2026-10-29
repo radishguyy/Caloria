@@ -59,7 +59,13 @@ function AnimatedCounterInternal({ targetValue }: { targetValue: number }) {
 export default function OnboardingProjectionPage() {
   const router = useRouter();
   const { goalPlan, setGoalPlan } = useFoodStore();
-  const { setOnboardingStep } = useAuthStore();
+  const { setOnboardingStep, onboardingCompleted } = useAuthStore();
+
+  useEffect(() => {
+    if (onboardingCompleted) {
+      router.replace("/dashboard");
+    }
+  }, [onboardingCompleted, router]);
 
   const plan = useMemo(() => {
     return generateNutritionPlan({
