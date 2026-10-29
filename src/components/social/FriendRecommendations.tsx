@@ -36,7 +36,23 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
   const visibleRecommendations = recommendations.slice(0, 3);
 
   if (visibleRecommendations.length === 0) {
-    return null;
+    return (
+      <section
+        aria-label="Rekomendasi Teman"
+        className={cn(
+          "rounded-card bg-surface p-5 border border-border-default shadow-xs space-y-2 text-center",
+          className
+        )}
+      >
+        <div className="flex items-center justify-center gap-2 text-text-muted text-xs font-bold font-sans">
+          <Sparkles className="h-4 w-4 text-accent-orange" />
+          <span>Semua rekomendasi teman telah ditinjau!</span>
+        </div>
+        <p className="text-xs text-text-muted font-sans">
+          Kamu juga bisa mengundang teman secara langsung dengan membagikan kode party atau tautan squad di atas.
+        </p>
+      </section>
+    );
   }
 
   const handleAdd = async (rec: FriendRecommendation) => {

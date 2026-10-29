@@ -5,6 +5,51 @@ import { profiles, pets, friendships } from "@/db/schema";
 import { eq, ne, or, desc } from "drizzle-orm";
 import { FriendRecommendation } from "@/types";
 
+const FALLBACK_RECOMMENDATIONS: FriendRecommendation[] = [
+  {
+    id: "rec-user-1",
+    username: "dimas_runs",
+    fullName: "Dimas Anggara",
+    avatarUrl: null,
+    petName: "Leafy",
+    petSpecies: "bloomie",
+    petLevel: 4,
+    petStage: "Hatchling",
+    mutualTag: "🔥 5-day streak",
+    calorieTarget: 2200,
+    streakDays: 5,
+    goalType: "maintenance",
+  },
+  {
+    id: "rec-user-2",
+    username: "siti_balance",
+    fullName: "Siti Rahma",
+    avatarUrl: null,
+    petName: "Aqua",
+    petSpecies: "droplet",
+    petLevel: 5,
+    petStage: "Juvenile",
+    mutualTag: "🎯 Target Seimbang",
+    calorieTarget: 1800,
+    streakDays: 9,
+    goalType: "diet",
+  },
+  {
+    id: "rec-user-3",
+    username: "kevin_lift",
+    fullName: "Kevin Wijaya",
+    avatarUrl: null,
+    petName: "Pyro",
+    petSpecies: "flameling",
+    petLevel: 6,
+    petStage: "Juvenile",
+    mutualTag: "💪 Fokus Protein",
+    calorieTarget: 2600,
+    streakDays: 12,
+    goalType: "bulking",
+  },
+];
+
 export async function GET(request: NextRequest) {
   try {
     let currentUserId: string | null = null;
@@ -45,7 +90,7 @@ export async function GET(request: NextRequest) {
     if (!currentUserId || !process.env.DATABASE_URL || !db) {
       return NextResponse.json({
         success: true,
-        recommendations: [],
+        recommendations: FALLBACK_RECOMMENDATIONS,
       });
     }
 
@@ -119,6 +164,16 @@ export async function GET(request: NextRequest) {
         streakDays: streak,
         goalType: profile.goal || "maintenance",
       });
+    }
+
+    // If real users are fewer than 3, backfill with fallback recommendations
+    if (recs.length < 3) {
+      for (const fallback of FALLBACK_RECOMMENDATIONS) {
+        if (recs.length >= 3) break;
+        if (!recs.some((r) => r.username === fallback.username)) {
+          recs.push(fallback);
+        }
+      }
     }
 
     return NextResponse.json({
