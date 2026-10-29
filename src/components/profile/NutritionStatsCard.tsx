@@ -9,6 +9,7 @@ import {
   SlidersHorizontal,
   Check,
   Sparkles,
+  AlertCircle,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -263,6 +264,14 @@ export function NutritionStatsCard({ className }: NutritionStatsCardProps) {
                 );
               })}
             </div>
+            {pathInput !== activeGoalPath && (
+              <div className="p-3 rounded-navigation bg-amber-50 border border-amber-300 text-amber-900 text-xs font-sans flex items-start gap-2 mt-2">
+                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Perhatian:</strong> Mengubah jalur quest akan <strong>mereset seluruh progres</strong> pada jalur sebelumnya (kembali ke Level 1 Minggu 1 dengan tanggal mulai hari ini).
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-1">

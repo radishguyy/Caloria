@@ -811,3 +811,484 @@ export function getDynamicQuestTargets(
     ],
   };
 }
+
+// =========================================================================
+// QUEST STAGES & WEEKLY PROGRESSION ENGINE (75% COMPLIANCE RULE)
+// =========================================================================
+
+export interface QuestStage {
+  stageIndex: number;
+  level: number;
+  week: number;
+  label: string;
+  title: string;
+}
+
+export const PATH_STAGES: Record<GoalPath, QuestStage[]> = {
+  lose_weight: [
+    { stageIndex: 0, level: 1, week: 1, label: "Lv.1", title: "Level 1: Catat Asupan & Baseline TEE" },
+    { stageIndex: 1, level: 2, week: 1, label: "Lv.2 Mg.1", title: "Level 2: Defisit -100 kkal (Minggu 1)" },
+    { stageIndex: 2, level: 2, week: 2, label: "Lv.2 Mg.2", title: "Level 2: Defisit -200 kkal (Minggu 2)" },
+    { stageIndex: 3, level: 2, week: 3, label: "Lv.2 Mg.3", title: "Level 2: Defisit -300 kkal (Minggu 3)" },
+    { stageIndex: 4, level: 2, week: 4, label: "Lv.2 Mg.4", title: "Level 2: Defisit -400 kkal (Minggu 4)" },
+    { stageIndex: 5, level: 3, week: 5, label: "Lv.3", title: "Level 3: Defisit Penuh -500 kkal" },
+    { stageIndex: 6, level: 4, week: 6, label: "Lv.4", title: "Level 4: Maintenance TEE Seimbang" },
+  ],
+  gain_muscle: [
+    { stageIndex: 0, level: 1, week: 1, label: "Lv.1", title: "Level 1: Catat Asupan & Baseline TEE" },
+    { stageIndex: 1, level: 2, week: 1, label: "Lv.2 Mg.1", title: "Level 2: Surplus +100 kkal (Minggu 1)" },
+    { stageIndex: 2, level: 2, week: 2, label: "Lv.2 Mg.2", title: "Level 2: Surplus +200 kkal (Minggu 2)" },
+    { stageIndex: 3, level: 2, week: 3, label: "Lv.2 Mg.3", title: "Level 2: Surplus +300 kkal (Minggu 3)" },
+    { stageIndex: 4, level: 2, week: 4, label: "Lv.2 Mg.4", title: "Level 2: Surplus +400 kkal (Minggu 4)" },
+    { stageIndex: 5, level: 2, week: 5, label: "Lv.2 Mg.5", title: "Level 2: Surplus +500 kkal (Minggu 5–8)" },
+    { stageIndex: 6, level: 3, week: 8, label: "Lv.3", title: "Level 3: Surplus Tinggi & Karbo Loading" },
+    { stageIndex: 7, level: 5, week: 9, label: "Lv.5", title: "Level 5: Maintenance Otot" },
+  ],
+  maintain_weight: [
+    { stageIndex: 0, level: 1, week: 1, label: "Lv.1", title: "Level 1: Keseimbangan Asupan TEE" },
+    { stageIndex: 1, level: 2, week: 2, label: "Lv.2", title: "Level 2: Hidrasi & Stabilitas Gizi" },
+  ],
+};
+
+export interface MissionAutoStatus {
+  isCompleted: boolean;
+  currentValue: number;
+  targetValue: number;
+  unit: string;
+  progressPercent: number;
+  progressLabel: string;
+  statusText: string;
+}
+
+export interface MissionEvaluationContext {
+  consumedCalories: number;
+  consumedProtein: number;
+  consumedCarbs: number;
+  consumedFat: number;
+  consumedFiber?: number;
+  consumedSugar?: number;
+  targetCalories: number;
+  dayLogsCount: number;
+  waterLoggedMl?: number;
+  consecutiveStreakDays?: number;
+}
+
+/**
+ * Pure evaluation function: determines whether a quest mission is fulfilled
+ * solely based on meals logged, calories and nutrients consumed (not a manual checkbox).
+ */
+export function evaluateMissionAutoStatus(
+  mission: QuestMainMission | QuestSideMission,
+  ctx: MissionEvaluationContext
+): MissionAutoStatus {
+  const {
+    consumedCalories,
+    consumedProtein,
+    consumedCarbs,
+    consumedFat,
+    consumedFiber = 0,
+    targetCalories,
+    dayLogsCount,
+    waterLoggedMl = 0,
+  } = ctx;
+
+  switch (mission.type) {
+    case "log_meals": {
+      const hasLogged = dayLogsCount > 0;
+      return {
+        isCompleted: hasLogged,
+        currentValue: dayLogsCount,
+        targetValue: mission.targetValue || 1,
+        unit: mission.unit,
+        progressPercent: hasLogged ? 100 : 0,
+        progressLabel: hasLogged
+          ? `${dayLogsCount} makanan dicatat hari ini`
+          : "Belum ada makanan dicatat",
+        statusText: hasLogged
+          ? "Target pencatatan makan harian terpenuhi!"
+          : "Catat menu makananmu di Diary",
+      };
+    }
+
+    case "calorie_deficit": {
+      const target = mission.targetValue || targetCalories;
+      const progressPercent = Math.min(
+        100,
+        Math.round((consumedCalories / Math.max(1, target)) * 100)
+      );
+      // Compliant deficit: user must have logged meals, intake between 75% and 105% of target
+      const isCompliant =
+        dayLogsCount > 0 &&
+        consumedCalories >= target * 0.75 &&
+        consumedCalories <= target * 1.05;
+
+      return {
+        isCompleted: isCompliant,
+        currentValue: consumedCalories,
+        targetValue: target,
+        unit: "kkal",
+        progressPercent,
+        progressLabel:
+          dayLogsCount > 0
+            ? `${Math.round(consumedCalories)} / ${Math.round(target)} kkal (${progressPercent}%)`
+            : `0 / ${Math.round(target)} kkal (Belum catat makan)`,
+        statusText:
+          dayLogsCount === 0
+            ? "Catat makananmu di Diary untuk mencapai target defisit"
+            : isCompliant
+            ? "Target defisit kalori tercapai!"
+            : consumedCalories > target * 1.05
+            ? "Melebihi target kalori defisit"
+            : "Asupan kalori belum mencukupi batas minimal defisit",
+      };
+    }
+
+    case "calorie_surplus": {
+      const target = mission.targetValue || targetCalories;
+      const progressPercent = Math.min(
+        100,
+        Math.round((consumedCalories / Math.max(1, target)) * 100)
+      );
+      // Compliant surplus: user must have logged meals, intake >= 90% and <= 115% of target
+      const isCompliant =
+        dayLogsCount > 0 &&
+        consumedCalories >= target * 0.9 &&
+        consumedCalories <= target * 1.15;
+
+      return {
+        isCompleted: isCompliant,
+        currentValue: consumedCalories,
+        targetValue: target,
+        unit: "kkal",
+        progressPercent,
+        progressLabel:
+          dayLogsCount > 0
+            ? `${Math.round(consumedCalories)} / ${Math.round(target)} kkal (${progressPercent}%)`
+            : `0 / ${Math.round(target)} kkal (Belum catat makan)`,
+        statusText:
+          dayLogsCount === 0
+            ? "Catat makananmu di Diary untuk mencapai target surplus"
+            : isCompliant
+            ? "Target surplus kalori tercapai!"
+            : consumedCalories < target * 0.9
+            ? "Asupan kalori masih kurang untuk surplus"
+            : "Asupan kalori melebihi batas surplus bersih",
+      };
+    }
+
+    case "macro_compliance": {
+      const target = mission.targetValue;
+      const unit = mission.unit;
+
+      if (unit.includes("protein") || mission.id.includes("protein")) {
+        const progressPercent = Math.min(
+          100,
+          Math.round((consumedProtein / Math.max(1, target)) * 100)
+        );
+        const isCompliant = dayLogsCount > 0 && consumedProtein >= target * 0.85;
+        return {
+          isCompleted: isCompliant,
+          currentValue: consumedProtein,
+          targetValue: target,
+          unit: "g",
+          progressPercent,
+          progressLabel:
+            dayLogsCount > 0
+              ? `${Math.round(consumedProtein)} / ${Math.round(target)}g protein (${progressPercent}%)`
+              : `0 / ${Math.round(target)}g protein`,
+          statusText:
+            dayLogsCount === 0
+              ? "Catat makananmu untuk memenuhi target protein"
+              : isCompliant
+              ? "Target protein harian tercapai!"
+              : "Asupan protein masih di bawah target",
+        };
+      }
+
+      if (unit.includes("serat") || mission.id.includes("serat")) {
+        const progressPercent = Math.min(
+          100,
+          Math.round((consumedFiber / Math.max(1, target)) * 100)
+        );
+        const isCompliant = dayLogsCount > 0 && consumedFiber >= target * 0.8;
+        return {
+          isCompleted: isCompliant,
+          currentValue: consumedFiber,
+          targetValue: target,
+          unit: "g",
+          progressPercent,
+          progressLabel:
+            dayLogsCount > 0
+              ? `${Math.round(consumedFiber)} / ${Math.round(target)}g serat (${progressPercent}%)`
+              : `0 / ${Math.round(target)}g serat`,
+          statusText:
+            dayLogsCount === 0
+              ? "Catat makananmu untuk memenuhi target serat"
+              : isCompliant
+              ? "Target serat harian tercapai!"
+              : "Perbanyak konsumsi sayur & buah",
+        };
+      }
+
+      // Maintenance calories compliance
+      const progressPercent = Math.min(
+        100,
+        Math.round((consumedCalories / Math.max(1, target)) * 100)
+      );
+      const isCompliant =
+        dayLogsCount > 0 &&
+        consumedCalories >= target * 0.85 &&
+        consumedCalories <= target * 1.15;
+      return {
+        isCompleted: isCompliant,
+        currentValue: consumedCalories,
+        targetValue: target,
+        unit: "kkal",
+        progressPercent,
+        progressLabel:
+          dayLogsCount > 0
+            ? `${Math.round(consumedCalories)} / ${Math.round(target)} kkal (${progressPercent}%)`
+            : `0 / ${Math.round(target)} kkal`,
+        statusText:
+          dayLogsCount === 0
+            ? "Catat makananmu untuk menjaga keseimbangan TEE"
+            : isCompliant
+            ? "Keseimbangan energi harian seimbang!"
+            : "Jaga asupan dalam rentang 85–115% TEE",
+      };
+    }
+
+    case "carb_loading": {
+      const target = mission.targetValue;
+      const progressPercent = Math.min(
+        100,
+        Math.round((consumedCarbs / Math.max(1, target)) * 100)
+      );
+      const isCompliant = dayLogsCount > 0 && consumedCarbs >= target;
+      return {
+        isCompleted: isCompliant,
+        currentValue: consumedCarbs,
+        targetValue: target,
+        unit: "g",
+        progressPercent,
+        progressLabel:
+          dayLogsCount > 0
+            ? `${Math.round(consumedCarbs)} / ${Math.round(target)}g karbo (${progressPercent}%)`
+            : `0 / ${Math.round(target)}g karbo`,
+        statusText: isCompliant
+          ? "Target karbohidrat loading terpenuhi!"
+          : "Konsumsi karbohidrat kompleks sebelum latihan",
+      };
+    }
+
+    case "water": {
+      const target = mission.targetValue || 1500;
+      const progressPercent = Math.min(
+        100,
+        Math.round((waterLoggedMl / Math.max(1, target)) * 100)
+      );
+      const isCompliant = waterLoggedMl >= target;
+      return {
+        isCompleted: isCompliant,
+        currentValue: waterLoggedMl,
+        targetValue: target,
+        unit: "ml",
+        progressPercent,
+        progressLabel: `${waterLoggedMl} / ${target} ml (${Math.round(waterLoggedMl / 250)} gelas)`,
+        statusText: isCompliant
+          ? "Target hidrasi 8 gelas terpenuhi!"
+          : "Minum air putih minimal 1500 ml hari ini",
+      };
+    }
+
+    default: {
+      return {
+        isCompleted: false,
+        currentValue: 0,
+        targetValue: mission.targetValue,
+        unit: mission.unit,
+        progressPercent: 0,
+        progressLabel: `Target: ${mission.targetValue} ${mission.unit}`,
+        statusText: "Aktivitas harian pendukung kebiasaan sehat",
+      };
+    }
+  }
+}
+
+export interface WeeklyProgressionResult {
+  activePath: GoalPath;
+  unlockedStages: QuestStage[];
+  activeStage: QuestStage;
+  selectedStage: QuestStage;
+  totalDaysElapsed: number;
+  currentCalendarWeek: number;
+  dayInCurrentWeek: number;
+  currentWeekMetDays: number;
+  currentWeekComplianceRate: number;
+  requiredDaysMet: number;
+  isRepeating: boolean;
+  repeatCount: number;
+  canAdvance: boolean;
+  advanceRequirementNotice: string;
+}
+
+export interface LogDateItem {
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG?: number;
+  sugarG?: number;
+  loggedDate: string;
+}
+
+/**
+ * Calculates level unlock and progression status based on registration / start date
+ * and the strict 75% weekly target requirement.
+ */
+export function calculateWeeklyProgression(params: {
+  startDate: string;
+  goalPath: GoalPath;
+  logs: LogDateItem[];
+  selectedLevel?: number;
+  selectedWeek?: number;
+  todayDateStr?: string;
+  targetCalories?: number;
+}): WeeklyProgressionResult {
+  const {
+    startDate,
+    goalPath,
+    logs,
+    selectedLevel,
+    selectedWeek,
+    todayDateStr = new Date().toISOString().split("T")[0],
+    targetCalories = 2000,
+  } = params;
+
+  const stages = PATH_STAGES[goalPath] || PATH_STAGES.lose_weight;
+
+  // Calculate elapsed calendar days from startDate to todayDateStr
+  const parseYmd = (s: string) => {
+    const parts = s.split("-").map(Number);
+    return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+  };
+
+  const startD = parseYmd(startDate || todayDateStr);
+  const todayD = parseYmd(todayDateStr);
+  const diffMs = todayD.getTime() - startD.getTime();
+  const totalDaysElapsed = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+  const completedWeeksCount = Math.floor(totalDaysElapsed / 7);
+  const currentCalendarWeek = completedWeeksCount + 1;
+  const dayInCurrentWeek = (totalDaysElapsed % 7) + 1;
+
+  // Group logs by loggedDate
+  const logsByDate = new Map<string, LogDateItem[]>();
+  for (const log of logs) {
+    const d = log.loggedDate;
+    if (!logsByDate.has(d)) logsByDate.set(d, []);
+    logsByDate.get(d)!.push(log);
+  }
+
+  const checkDayCompliant = (dateStr: string): boolean => {
+    const dayLogs = logsByDate.get(dateStr) || [];
+    if (dayLogs.length === 0) return false;
+    const totalCal = dayLogs.reduce((acc, l) => acc + l.calories, 0);
+    // At least 70% of target and not grossly over (under 120%)
+    return totalCal >= targetCalories * 0.7 && totalCal <= targetCalories * 1.2;
+  };
+
+  const formatDateYmd = (d: Date): string => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  // Simulate historical weeks to determine active stage
+  let stageIndex = 0;
+  let isRepeating = false;
+  let repeatCount = 0;
+
+  for (let w = 0; w < completedWeeksCount; w++) {
+    let metDays = 0;
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const dayDate = new Date(startD);
+      dayDate.setDate(dayDate.getDate() + w * 7 + dayOffset);
+      const dateKey = formatDateYmd(dayDate);
+      if (checkDayCompliant(dateKey)) {
+        metDays++;
+      }
+    }
+
+    // 75% rule: 7 * 0.75 = 5.25 => at least 5.25 days (i.e. >= 6 days or ratio >= 0.75)
+    const ratio = metDays / 7;
+    if (ratio >= 0.75) {
+      stageIndex = Math.min(stages.length - 1, stageIndex + 1);
+      isRepeating = false;
+      repeatCount = 0;
+    } else {
+      // Repeat the level!
+      isRepeating = true;
+      repeatCount++;
+    }
+  }
+
+  // Current in-progress week evaluation
+  let currentWeekMetDays = 0;
+  for (let dayOffset = 0; dayOffset < dayInCurrentWeek; dayOffset++) {
+    const dayDate = new Date(startD);
+    dayDate.setDate(dayDate.getDate() + completedWeeksCount * 7 + dayOffset);
+    const dateKey = formatDateYmd(dayDate);
+    if (checkDayCompliant(dateKey)) {
+      currentWeekMetDays++;
+    }
+  }
+
+  const currentWeekComplianceRate = Math.round(
+    (currentWeekMetDays / Math.max(1, dayInCurrentWeek)) * 100
+  );
+  const requiredDaysMet = Math.ceil(7 * 0.75); // 6 days
+
+  // Unlocked stages: from 0 up to stageIndex
+  const unlockedStages = stages.slice(0, stageIndex + 1);
+  const activeStage = stages[stageIndex];
+
+  // Resolve selected stage: user can only view unlocked stages
+  let selectedStage = activeStage;
+  if (selectedLevel !== undefined) {
+    const candidate = unlockedStages.find(
+      (s) =>
+        s.level === selectedLevel &&
+        (selectedWeek === undefined || s.week === selectedWeek)
+    );
+    if (candidate) {
+      selectedStage = candidate;
+    }
+  }
+
+  const canAdvance =
+    dayInCurrentWeek >= 7 && currentWeekMetDays / 7 >= 0.75;
+
+  const advanceRequirementNotice =
+    `Level terkunci hanya dapat dibuka berdasarkan waktu (minimal 1 minggu per level) dan ` +
+    `kepatuhan target harian minimal 75% (${requiredDaysMet} dari 7 hari) tercapai. ` +
+    `Jika di bawah 75%, kamu harus mengulang level di minggu berikutnya.`;
+
+  return {
+    activePath: goalPath,
+    unlockedStages,
+    activeStage,
+    selectedStage,
+    totalDaysElapsed,
+    currentCalendarWeek,
+    dayInCurrentWeek,
+    currentWeekMetDays,
+    currentWeekComplianceRate,
+    requiredDaysMet,
+    isRepeating,
+    repeatCount,
+    canAdvance,
+    advanceRequirementNotice,
+  };
+}

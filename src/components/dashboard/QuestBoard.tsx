@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Sword,
   Trophy,
@@ -16,13 +17,16 @@ import {
   Minus,
   Flame,
   Coins,
+  Lock,
+  Calendar,
+  AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
   GOAL_PATH_LABELS,
   goalTypeToGoalPath,
-  type GoalPath,
   type QuestSideMission,
 } from "@/lib/gamification/quest-engine";
 import { cn } from "@/lib/utils";
@@ -42,7 +46,8 @@ export function QuestBoard({ className }: QuestBoardProps) {
     getDepkesEvaluation,
     setQuestProgression,
     addWater,
-    toggleMissionComplete,
+    getWeeklyProgression,
+    getEvaluatedMissions,
   } = useFoodStore();
 
   const [rewardToast, setRewardToast] = useState<string | null>(null);
@@ -65,11 +70,16 @@ export function QuestBoard({ className }: QuestBoardProps) {
   const questPlan = getQuestPlan();
   const consumed = getConsumed();
   const depkes = getDepkesEvaluation();
+  const weeklyProgression = getWeeklyProgression();
+  const evaluatedMissions = getEvaluatedMissions();
+
+  // 1. Lock Goal Path to Onboarding Choice (Requirement 1)
   const activePath =
     goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
   const activeLevel = goalPlan.currentLevel || 1;
   const activeWeek = goalPlan.currentWeek || 1;
 
+  // Available levels strictly for the active path
   const availableLevels =
     activePath === "maintain_weight"
       ? [1, 2]
@@ -77,29 +87,13 @@ export function QuestBoard({ className }: QuestBoardProps) {
       ? [1, 2, 3, 5]
       : [1, 2, 3, 4];
 
+  // Available weeks strictly for Level 2 of the active path
   const availableWeeks =
     activePath === "lose_weight" && activeLevel === 2
       ? [1, 2, 3, 4]
       : activePath === "gain_muscle" && activeLevel === 2
       ? [1, 2, 3, 4, 5]
       : [];
-
-  const triggerRewardBanner = (title: string, xp: number, coins: number) => {
-    setRewardToast(`Misi "${title}" selesai! +${xp} Pet EXP & +${coins} Koin!`);
-    setTimeout(() => setRewardToast(null), 3200);
-  };
-
-  const handleToggleMission = (
-    id: string,
-    title: string,
-    xp = 35,
-    coins = 15
-  ) => {
-    const completed = toggleMissionComplete(id, xp, coins);
-    if (completed) {
-      triggerRewardBanner(title, xp, coins);
-    }
-  };
 
   const getSideMissionIcon = (type: QuestSideMission["type"]) => {
     switch (type) {
@@ -132,7 +126,7 @@ export function QuestBoard({ className }: QuestBoardProps) {
         className
       )}
     >
-      {/* 1. RPG Quest Header & Level/Week Banner */}
+      {/* 1. RPG Quest Header (Displays only active onboarding path, Requirement 1) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border-divider">
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
@@ -143,94 +137,215 @@ export function QuestBoard({ className }: QuestBoardProps) {
                 {questPlan.weekLabel ? ` - ${questPlan.weekLabel}` : ""}
               </span>
             </span>
-            <span className="px-2.5 py-0.5 rounded-pill text-[11px] font-bold bg-[#FCF8E3] text-text-primary border border-[#FF9233]/30 font-sans">
-              {GOAL_PATH_LABELS[activePath].title}
+            <span className="px-3 py-1 rounded-pill text-xs font-bold bg-[#FCF8E3] text-text-primary border border-[#FF9233]/40 font-sans">
+              Jalur Quest: {GOAL_PATH_LABELS[activePath].title} ({GOAL_PATH_LABELS[activePath].badge})
             </span>
           </div>
           <h2 className="text-xl font-extrabold text-text-primary font-heading tracking-tight pt-1">
             Papan Quest Nutrisi & Progres Level
           </h2>
           <p className="text-xs text-text-muted font-sans">
-            Selesaikan Misi Utama & Side Missions harian untuk mendapatkan Pet EXP dan Caloria Coins.
+            Misi nutrisi otomatis dinilai dari catatan makanan di Diary. Capai minimal 75% target setiap minggu untuk membuka level selanjutnya!
           </p>
         </div>
 
-        {/* Interactive Path, Level & Week Switcher */}
+        {/* Level & Week Selector (Controlled by start date & unlocked stages, Requirement 3) */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Path selector */}
-          <div className="flex items-center gap-1 p-1 rounded-navigation bg-surface border border-border-divider">
-            {(Object.keys(GOAL_PATH_LABELS) as GoalPath[]).map((pathKey) => (
-              <button
-                key={pathKey}
-                type="button"
-                onClick={() =>
-                  setQuestProgression({
-                    goalPath: pathKey,
-                    currentLevel: 1,
-                    currentWeek: 1,
-                  })
-                }
-                className={cn(
-                  "px-2.5 py-1 rounded-navigation text-[11px] font-bold transition-all font-sans cursor-pointer",
-                  activePath === pathKey
-                    ? "bg-[#FF9233] text-white shadow-2xs"
-                    : "text-text-muted hover:text-text-primary"
-                )}
-              >
-                {GOAL_PATH_LABELS[pathKey].title}
-              </button>
-            ))}
-          </div>
-
           {/* Level selector */}
           <div className="flex items-center gap-1 p-1 rounded-navigation bg-surface border border-border-divider">
-            {availableLevels.map((lvl) => (
-              <button
-                key={lvl}
-                type="button"
-                onClick={() =>
-                  setQuestProgression({
-                    currentLevel: lvl,
-                    currentWeek:
-                      lvl === 3 && activePath === "lose_weight"
-                        ? 5
-                        : lvl === 3 && activePath === "gain_muscle"
-                        ? 8
-                        : 1,
-                  })
-                }
-                className={cn(
-                  "px-2.5 py-1 rounded-navigation text-[11px] font-bold transition-all font-sans cursor-pointer",
-                  activeLevel === lvl
-                    ? "bg-[#5B8E55] text-white shadow-2xs"
-                    : "text-text-muted hover:text-text-primary"
-                )}
-              >
-                Lv.{lvl}
-              </button>
-            ))}
+            {availableLevels.map((lvl) => {
+              const isUnlocked = weeklyProgression.unlockedStages.some(
+                (s) => s.level === lvl
+              );
+              const isActive = activeLevel === lvl;
+
+              if (isUnlocked) {
+                return (
+                  <button
+                    key={lvl}
+                    type="button"
+                    onClick={() =>
+                      setQuestProgression({
+                        currentLevel: lvl,
+                        currentWeek:
+                          lvl === 3 && activePath === "lose_weight"
+                            ? 5
+                            : lvl === 3 && activePath === "gain_muscle"
+                            ? 8
+                            : 1,
+                      })
+                    }
+                    className={cn(
+                      "px-2.5 py-1 rounded-navigation text-[11px] font-bold transition-all font-sans cursor-pointer flex items-center gap-1",
+                      isActive
+                        ? "bg-[#5B8E55] text-white shadow-2xs"
+                        : "text-text-muted hover:text-text-primary"
+                    )}
+                  >
+                    <span>Lv.{lvl}</span>
+                  </button>
+                );
+              }
+
+              // Locked level
+              return (
+                <button
+                  key={lvl}
+                  type="button"
+                  disabled
+                  title={`Level ${lvl} Terkunci: Waktu minimal 1 minggu dan kepatuhan ≥75% harian di level sebelumnya diperlukan.`}
+                  className="px-2.5 py-1 rounded-navigation text-[11px] font-bold font-sans cursor-not-allowed opacity-50 text-text-muted bg-surface-subtle flex items-center gap-1 border border-border-divider"
+                >
+                  <Lock className="h-3 w-3" />
+                  <span>Lv.{lvl}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Week selector when in Level 2 */}
           {availableWeeks.length > 0 && (
             <div className="flex items-center gap-1 p-1 rounded-navigation bg-[#FCF8E3] border border-[#FF9233]/30">
-              {availableWeeks.map((wk) => (
-                <button
-                  key={wk}
-                  type="button"
-                  onClick={() => setQuestProgression({ currentWeek: wk })}
-                  className={cn(
-                    "px-2 py-1 rounded-navigation text-[11px] font-bold transition-all font-sans cursor-pointer",
-                    activeWeek === wk
-                      ? "bg-text-primary text-white"
-                      : "text-text-primary hover:bg-surface"
-                  )}
-                >
-                  {wk === 5 && activePath === "gain_muscle" ? "Mg 5–8" : `Mg ${wk}`}
-                </button>
-              ))}
+              {availableWeeks.map((wk) => {
+                const isWkUnlocked = weeklyProgression.unlockedStages.some(
+                  (s) => s.level === activeLevel && s.week === wk
+                );
+                const isWkActive = activeWeek === wk;
+                const label =
+                  wk === 5 && activePath === "gain_muscle" ? "Mg 5–8" : `Mg ${wk}`;
+
+                if (isWkUnlocked) {
+                  return (
+                    <button
+                      key={wk}
+                      type="button"
+                      onClick={() => setQuestProgression({ currentWeek: wk })}
+                      className={cn(
+                        "px-2 py-1 rounded-navigation text-[11px] font-bold transition-all font-sans cursor-pointer",
+                        isWkActive
+                          ? "bg-text-primary text-white"
+                          : "text-text-primary hover:bg-surface"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  );
+                }
+
+                return (
+                  <button
+                    key={wk}
+                    type="button"
+                    disabled
+                    title={`Minggu ${wk} Terkunci: Selesaikan minggu sebelumnya dengan kepatuhan ≥75%.`}
+                    className="px-2 py-1 rounded-navigation text-[11px] font-bold font-sans cursor-not-allowed opacity-45 text-text-muted flex items-center gap-1"
+                  >
+                    <Lock className="h-2.5 w-2.5" />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* 2. Weekly Level Progression Status Banner (Requirement 3: 75% Rule & Start Date) */}
+      <div className="rounded-card bg-surface p-4 sm:p-5 border border-border-divider space-y-3 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border-divider">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-[#FF9233]" />
+            <h3 className="text-sm font-extrabold text-text-primary font-heading">
+              Progres Mingguan & Syarat Level (Target Kepatuhan 75%)
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-text-muted font-sans">
+              Minggu ke-{weeklyProgression.currentCalendarWeek} • Hari {weeklyProgression.dayInCurrentWeek} dari 7
+            </span>
+            {weeklyProgression.isRepeating && (
+              <span className="px-2.5 py-0.5 rounded-pill text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                Mengulang Level
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-xs font-sans">
+            <span className="text-text-muted">
+              Kepatuhan Misi Harian:{" "}
+              <strong className="text-text-primary">
+                {weeklyProgression.currentWeekMetDays} / 7 hari tercapai
+              </strong>{" "}
+              (Target kelulusan: min. 75% / {weeklyProgression.requiredDaysMet} hari)
+            </span>
+            <span
+              className={cn(
+                "font-bold",
+                weeklyProgression.currentWeekComplianceRate >= 75
+                  ? "text-[#5B8E55]"
+                  : "text-amber-600"
+              )}
+            >
+              {weeklyProgression.currentWeekComplianceRate}%
+            </span>
+          </div>
+
+          {/* Segmented 7-day progress indicator */}
+          <div className="grid grid-cols-7 gap-1.5 pt-1">
+            {Array.from({ length: 7 }).map((_, i) => {
+              const dayNum = i + 1;
+              const isPastDay = dayNum < weeklyProgression.dayInCurrentWeek;
+              const isToday = dayNum === weeklyProgression.dayInCurrentWeek;
+              const isMet = dayNum <= weeklyProgression.currentWeekMetDays;
+
+              return (
+                <div
+                  key={dayNum}
+                  className={cn(
+                    "p-2 rounded-navigation text-center border text-[11px] font-bold font-sans transition-all",
+                    isMet
+                      ? "bg-[#5B8E55]/15 border-[#5B8E55] text-[#5B8E55]"
+                      : isPastDay
+                      ? "bg-rose-50 border-rose-200 text-rose-700"
+                      : isToday
+                      ? "bg-[#FCF8E3] border-[#FF9233] text-text-primary ring-2 ring-[#FF9233]/20"
+                      : "bg-surface-subtle border-border-divider text-text-muted"
+                  )}
+                >
+                  <div>H-{dayNum}</div>
+                  <div className="text-[9px] font-normal mt-0.5">
+                    {isMet
+                      ? "✓ Tercapai"
+                      : isPastDay
+                      ? "✕ Belum"
+                      : isToday
+                      ? "Hari Ini"
+                      : "Nanti"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {weeklyProgression.isRepeating ? (
+            <div className="p-3 rounded-navigation bg-amber-50 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900 font-sans">
+              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Perhatian Pengulangan Level:</span> Capaian minggu lalu belum memenuhi syarat minimal 75%. Kamu perlu mengulang Level {activeLevel} minggu ini untuk membangun konsistensi nutrisi sebelum membuka level berikutnya.
+              </div>
+            </div>
+          ) : weeklyProgression.dayInCurrentWeek < 7 ? (
+            <p className="text-[11px] text-text-muted font-sans">
+              💡 Level progression terikat pada tanggal bergabungmu. Level berikutnya akan terbuka di akhir hari ke-7 jika kamu memenuhi minimal 75% misi harian.
+            </p>
+          ) : weeklyProgression.canAdvance ? (
+            <div className="p-3 rounded-navigation bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-xs text-emerald-800 font-bold font-sans">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <span>Selamat! Syarat 75% minggu ini terpenuhi. Level berikutnya telah terbuka!</span>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -244,20 +359,20 @@ export function QuestBoard({ className }: QuestBoardProps) {
           <button
             type="button"
             onClick={() => setRewardToast(null)}
-            className="text-[11px] underline"
+            className="text-[11px] underline cursor-pointer"
           >
             Tutup
           </button>
         </div>
       )}
 
-      {/* 2. Misi Utama Harian (Main Missions Card) */}
+      {/* 3. Misi Utama Harian (Requirement 4: Calorie/Log-Driven, NOT manual to-do list) */}
       <div className="rounded-card bg-surface p-5 border border-border-divider space-y-4 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border-divider">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-[#FF9233] fill-[#FF9233]" />
             <h3 className="text-sm font-extrabold text-text-primary font-heading">
-              Misi Utama Harian (Main Missions)
+              Misi Utama Harian (Berdasarkan Konsumsi Makanan)
             </h3>
           </div>
 
@@ -338,52 +453,99 @@ export function QuestBoard({ className }: QuestBoardProps) {
           </div>
         </div>
 
-        {/* Main Missions List */}
-        <div className="space-y-2.5 pt-1">
+        {/* Main Missions List (Purely Log-Driven Status, Requirement 4) */}
+        <div className="space-y-3 pt-1">
           {questPlan.mainMissions.map((mission) => {
-            const isDone = completedMissions.includes(mission.id);
+            const evaluated = evaluatedMissions.find(
+              (e) => e.mission.id === mission.id
+            );
+            const status = evaluated?.status || {
+              isCompleted: completedMissions.includes(mission.id),
+              currentValue: consumed.calories,
+              targetValue: mission.targetValue,
+              unit: mission.unit,
+              progressPercent: 0,
+              progressLabel: "0 kkal",
+              statusText: "",
+            };
+
+            const isDone = status.isCompleted;
             const xp = mission.xpReward ?? 50;
             const coins = mission.coinReward ?? 25;
 
             return (
               <div
                 key={mission.id}
-                onClick={() => handleToggleMission(mission.id, mission.title, xp, coins)}
                 className={cn(
-                  "p-3.5 rounded-navigation border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3",
+                  "p-4 rounded-navigation border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3.5",
                   isDone
                     ? "bg-[#5B8E55]/10 border-[#5B8E55]"
-                    : "bg-[#FAF8F5] border-border-divider hover:border-[#FF9233]/50"
+                    : "bg-[#FAF8F5] border-border-divider"
                 )}
               >
                 <div className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    className="mt-0.5 text-[#5B8E55] shrink-0"
-                    aria-label={`Tandai misi ${mission.title}`}
+                  <div
+                    className={cn(
+                      "mt-0.5 shrink-0 rounded-pill p-0.5",
+                      isDone ? "text-[#5B8E55]" : "text-text-muted"
+                    )}
                   >
                     {isDone ? (
                       <CheckCircle2 className="h-5 w-5 fill-[#5B8E55] text-white" />
                     ) : (
                       <Circle className="h-5 w-5 text-text-muted" />
                     )}
-                  </button>
-                  <div className="space-y-0.5">
-                    <h4
-                      className={cn(
-                        "text-xs sm:text-sm font-bold font-heading",
-                        isDone ? "line-through text-text-muted" : "text-text-primary"
-                      )}
-                    >
-                      {mission.title}
-                    </h4>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4
+                        className={cn(
+                          "text-xs sm:text-sm font-bold font-heading",
+                          isDone ? "text-[#5B8E55]" : "text-text-primary"
+                        )}
+                      >
+                        {mission.title}
+                      </h4>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-pill text-[10px] font-bold font-sans",
+                          isDone
+                            ? "bg-[#5B8E55] text-white"
+                            : "bg-surface border border-border-default text-text-muted"
+                        )}
+                      >
+                        {isDone ? "✓ Misi Selesai" : "Sedang Berjalan"}
+                      </span>
+                    </div>
                     <p className="text-xs text-text-muted font-sans">
                       {mission.description}
                     </p>
+
+                    {/* Automatic Real-time Progress (Driven strictly by consumed nutrients) */}
+                    <div className="pt-1 flex items-center gap-2 flex-wrap text-xs font-sans">
+                      <span className="font-semibold text-text-primary">
+                        Progres Asupan:{" "}
+                        <strong
+                          className={isDone ? "text-[#5B8E55]" : "text-[#FF9233]"}
+                        >
+                          {status.progressLabel}
+                        </strong>
+                      </span>
+                      <span className="text-text-muted">• {status.statusText}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                  {!isDone && (
+                    <Link
+                      href="/diary/add"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-navigation text-[11px] font-bold bg-[#FF9233] text-white hover:bg-[#e07d24] transition-all font-sans shadow-2xs"
+                    >
+                      <span>+ Catat Diary</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  )}
                   <span className="px-2.5 py-1 rounded-pill text-[10px] font-bold bg-[#FCF8E3] text-text-primary border border-[#FF9233]/30 font-sans">
                     +{xp} XP
                   </span>
@@ -404,7 +566,9 @@ export function QuestBoard({ className }: QuestBoardProps) {
               Progres Kepatuhan Asupan Harian ({consumed.calories} /{" "}
               {Math.round(questPlan.calorieTarget)} kkal)
             </span>
-            <span className="font-bold text-text-primary">{calorieProgressPct}%</span>
+            <span className="font-bold text-text-primary">
+              {calorieProgressPct}%
+            </span>
           </div>
           <div className="h-2.5 w-full rounded-pill bg-surface-subtle overflow-hidden border border-border-divider">
             <div
@@ -415,23 +579,29 @@ export function QuestBoard({ className }: QuestBoardProps) {
               }}
             />
           </div>
-          <p className="text-[11px] text-text-muted font-sans">{depkes.guidanceText}</p>
+          <p className="text-[11px] text-text-muted font-sans">
+            {depkes.guidanceText}
+          </p>
         </div>
       </div>
 
-      {/* 3. Side Missions Checklist */}
+      {/* 4. Side Missions (Water tracker and lifestyle goals) */}
       <div className="rounded-card bg-surface p-5 border border-border-divider space-y-4 shadow-2xs">
         <div className="flex items-center justify-between pb-2 border-b border-border-divider">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#5B8E55]" />
             <h3 className="text-sm font-extrabold text-text-primary font-heading">
-              Side Missions Harian (Kebiasaan & Aktivitas)
+              Side Missions Harian (Hidrasi & Kebiasaan Sehat)
             </h3>
           </div>
           <span className="text-[11px] font-semibold text-text-muted font-sans">
             {questPlan.sideMissions.length === 0
               ? "Fokus Misi Utama di Level 1"
-              : `${questPlan.sideMissions.filter((m) => completedMissions.includes(m.id)).length} / ${questPlan.sideMissions.length} Selesai`}
+              : `${
+                  questPlan.sideMissions.filter((m) =>
+                    completedMissions.includes(m.id)
+                  ).length
+                } / ${questPlan.sideMissions.length} Selesai`}
           </span>
         </div>
 
@@ -462,29 +632,14 @@ export function QuestBoard({ className }: QuestBoardProps) {
                   )}
                 >
                   <div className="flex items-start justify-between gap-2.5">
-                    <div
-                      onClick={() =>
-                        !isWater && handleToggleMission(side.id, side.title, xp, coins)
-                      }
-                      className={cn(
-                        "flex items-start gap-2.5",
-                        !isWater && "cursor-pointer"
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleMission(side.id, side.title, xp, coins);
-                        }}
-                        className="mt-0.5 text-[#5B8E55] shrink-0 cursor-pointer"
-                      >
+                    <div className="flex items-start gap-2.5">
+                      <div className="mt-0.5 text-[#5B8E55] shrink-0">
                         {isDone ? (
                           <CheckCircle2 className="h-5 w-5 fill-[#5B8E55] text-white" />
                         ) : (
                           <Circle className="h-5 w-5 text-text-muted" />
                         )}
-                      </button>
+                      </div>
 
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -492,7 +647,9 @@ export function QuestBoard({ className }: QuestBoardProps) {
                           <h4
                             className={cn(
                               "text-xs font-bold font-heading",
-                              isDone ? "line-through text-text-muted" : "text-text-primary"
+                              isDone
+                                ? "line-through text-text-muted"
+                                : "text-text-primary"
                             )}
                           >
                             {side.title}
@@ -520,7 +677,9 @@ export function QuestBoard({ className }: QuestBoardProps) {
                           </strong>{" "}
                           ({Math.round(waterLoggedMl / 250)} gelas)
                         </span>
-                        <span className="font-bold text-sky-600">{waterPct}%</span>
+                        <span className="font-bold text-sky-600">
+                          {waterPct}%
+                        </span>
                       </div>
 
                       <div className="h-2 w-full rounded-pill bg-surface overflow-hidden border border-border-divider">
@@ -548,7 +707,10 @@ export function QuestBoard({ className }: QuestBoardProps) {
                               !prevDone &&
                               waterLoggedMl + 250 >= side.targetValue
                             ) {
-                              triggerRewardBanner(side.title, xp, coins);
+                              setRewardToast(
+                                `Misi Hidrasi Selesai! +${xp} XP & +${coins} Koin!`
+                              );
+                              setTimeout(() => setRewardToast(null), 3000);
                             }
                           }}
                           className="inline-flex items-center gap-1 px-3 py-1 rounded-navigation text-[11px] font-bold bg-sky-500 hover:bg-sky-600 text-white font-sans cursor-pointer shadow-2xs"
@@ -568,4 +730,3 @@ export function QuestBoard({ className }: QuestBoardProps) {
     </section>
   );
 }
-
