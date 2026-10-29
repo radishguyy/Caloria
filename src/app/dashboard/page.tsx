@@ -24,7 +24,7 @@ import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendar
 import { QuestBoard } from "@/components/dashboard/QuestBoard";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
-import { useSocialStore } from "@/store/use-social-store";
+import { useSocialStore, DEFAULT_INITIAL_FRIENDS } from "@/stores/social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
@@ -33,13 +33,23 @@ import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReminderStackStore } from "@/store/use-reminder-stack-store";
+import { cn } from "@/lib/utils";
 
 const PUSH_REMINDER_DISMISS_KEY = "caloria-dismissed-push-reminder";
 const COOP_REMINDER_DISMISS_KEY = "caloria-dismissed-coop-reminder";
+const INAPP_NOTIF_DISMISS_KEY = "caloria-dismissed-inapp-notif";
 
-function dismissReminderForToday(key: string) {
+function isReminderDismissed(key: string): boolean {
   try {
-    localStorage.setItem(key, getTodayKey());
+    return sessionStorage.getItem(key) === "dismissed";
+  } catch {
+    return false;
+  }
+}
+
+function dismissReminder(key: string) {
+  try {
+    sessionStorage.setItem(key, "dismissed");
   } catch {}
 }
 
@@ -56,7 +66,8 @@ export default function DashboardPage() {
   } = useFoodStore();
   const { name, feedPet } = usePetStore();
   const { coopStreakDays, partyName, friends } = useSocialStore();
-  const { toggleDrawer, getUnreadCount } = useNotificationStore();
+  const { toggleDrawer, getUnreadCount, notifications, markAsRead } =
+    useNotificationStore();
   const {
     isSupported: isPushSupported,
     isSubscribed: isPushSubscribed,
@@ -66,7 +77,8 @@ export default function DashboardPage() {
   } = usePushNotifications();
 
   const [quickLogModalOpen, setQuickLogModalOpen] = useState(false);
-  const [selectedQuickMeal, setSelectedQuickMeal] = useState<MealTypeId>("breakfast");
+  const [selectedQuickMeal, setSelectedQuickMeal] =
+    useState<MealTypeId>("breakfast");
 
   useEffect(() => {
     const hours = new Date().getHours();
@@ -76,31 +88,37 @@ export default function DashboardPage() {
     else setSelectedQuickMeal("breakfast");
   }, []);
 
-  const [quickFilter, setQuickFilter] = useState<"popular" | "recent" | "frequent">("popular");
-  const [selectedQuickItems, setSelectedQuickItems] = useState<(typeof FOOD_CATALOG)[0][]>([]);
+  const [quickFilter, setQuickFilter] = useState<
+    "popular" | "recent" | "frequent"
+  >("popular");
+  const [selectedQuickItems, setSelectedQuickItems] = useState<
+    (typeof FOOD_CATALOG)[0][]
+  >([]);
 
   const unreadCount = getUnreadCount();
 
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const reminderStackRef = useRef<HTMLDivElement | null>(null);
-  const [dismissedPushReminder, setDismissedPushReminder] = useState(() => {
+
+  // Clear legacy localStorage suppression so hard refresh doesn't lock out cards
+  useEffect(() => {
     try {
-      return localStorage.getItem(PUSH_REMINDER_DISMISS_KEY) === getTodayKey();
-    } catch {
-      return false;
-    }
-  });
-  const [dismissedCoopReminder, setDismissedCoopReminder] = useState(() => {
-    try {
-      return localStorage.getItem(COOP_REMINDER_DISMISS_KEY) === getTodayKey();
-    } catch {
-      return false;
-    }
-  });
+      localStorage.removeItem(PUSH_REMINDER_DISMISS_KEY);
+      localStorage.removeItem(COOP_REMINDER_DISMISS_KEY);
+    } catch {}
+  }, []);
+
+  const [dismissedPushReminder, setDismissedPushReminder] = useState(() =>
+    isReminderDismissed(PUSH_REMINDER_DISMISS_KEY),
+  );
+  const [dismissedCoopReminder, setDismissedCoopReminder] = useState(() =>
+    isReminderDismissed(COOP_REMINDER_DISMISS_KEY),
+  );
+  const [dismissedInAppNotif, setDismissedInAppNotif] = useState(() =>
+    isReminderDismissed(INAPP_NOTIF_DISMISS_KEY),
+  );
 
   const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
-
-  // ... (existing quickLogModalOpen state and other quick log functions from original dashboard)
 
   const getPetDialogMessages = () => {
     const messages = [
@@ -124,19 +142,25 @@ export default function DashboardPage() {
       "Yuk makan pempek bareng!",
       "Beri aku ayam goreng, umph!",
       "Jangan lupa kasih aku telur!",
-      "Ayo pergi cari salad!"
+      "Ayo pergi cari salad!",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
-  const pendingFriends = friends.filter((f) => !f.dailyGoalMet);
-  const isViewingCurrentWeek = true;
+  const activeFriends =
+    friends && friends.length > 0 ? friends : DEFAULT_INITIAL_FRIENDS;
+  const pendingFriends = activeFriends.filter((f) => !f.dailyGoalMet);
+  const unreadNotifications = (notifications || []).filter((n) => !n.isRead);
+  const activeInAppNotif = unreadNotifications[0];
+
+  const showInAppNotification =
+    isHydrated && Boolean(activeInAppNotif) && !dismissedInAppNotif;
 
   const showPushReminder =
     isHydrated &&
     isPushSupported &&
     !isPushSubscribed &&
-    pushPermission === "default" &&
+    pushPermission !== "denied" &&
     !dismissedPushReminder;
 
   const showCoopReminder =
@@ -147,12 +171,20 @@ export default function DashboardPage() {
 
   const closePushReminder = () => {
     setDismissedPushReminder(true);
-    dismissReminderForToday(PUSH_REMINDER_DISMISS_KEY);
+    dismissReminder(PUSH_REMINDER_DISMISS_KEY);
   };
 
   const closeCoopReminder = () => {
     setDismissedCoopReminder(true);
-    dismissReminderForToday(COOP_REMINDER_DISMISS_KEY);
+    dismissReminder(COOP_REMINDER_DISMISS_KEY);
+  };
+
+  const closeInAppNotification = () => {
+    setDismissedInAppNotif(true);
+    dismissReminder(INAPP_NOTIF_DISMISS_KEY);
+    if (activeInAppNotif) {
+      markAsRead(activeInAppNotif.id);
+    }
   };
 
   // Publish the desktop reminder stack height so the global toaster can sit above it.
@@ -165,7 +197,9 @@ export default function DashboardPage() {
       return;
     }
 
-    const observer = new ResizeObserver(() => setDesktopHeight(element.offsetHeight));
+    const observer = new ResizeObserver(() =>
+      setDesktopHeight(element.offsetHeight),
+    );
     observer.observe(element);
     setDesktopHeight(element.offsetHeight);
 
@@ -173,18 +207,87 @@ export default function DashboardPage() {
       observer.disconnect();
       setDesktopHeight(0);
     };
-  }, [isDesktop, showPushReminder, showCoopReminder]);
+  }, [isDesktop, showInAppNotification, showPushReminder, showCoopReminder]);
 
   useEffect(() => {
-    if (!showPushReminder && !showCoopReminder) return;
+    if (!showInAppNotification && !showPushReminder && !showCoopReminder)
+      return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (showPushReminder) closePushReminder();
+      if (showInAppNotification) closeInAppNotification();
+      else if (showPushReminder) closePushReminder();
       else closeCoopReminder();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showPushReminder, showCoopReminder]);
+  }, [showInAppNotification, showPushReminder, showCoopReminder]);
+
+  const isPokeNotif = activeInAppNotif?.type === "poke";
+
+  const inAppNotificationCard = activeInAppNotif && (
+    <div
+      className={cn(
+        "pointer-events-auto w-full max-w-sm rounded-2xl border bg-surface p-4 shadow-lg animate-in fade-in slide-in-from-bottom-5 duration-300",
+        isPokeNotif ? "border-accent-orange/30" : "border-accent-green/30",
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl",
+              isPokeNotif
+                ? "bg-accent-orange/15 text-accent-orange-dark"
+                : "bg-accent-green/15 text-accent-green",
+            )}
+          >
+            {isPokeNotif ? (
+              <Users className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Bell className="h-4 w-4" aria-hidden="true" />
+            )}
+          </div>
+          <h4 className="text-sm font-bold text-text-primary">
+            {activeInAppNotif.title}
+          </h4>
+        </div>
+        <button
+          type="button"
+          onClick={closeInAppNotification}
+          aria-label="Tutup notifikasi"
+          className="-mr-1 -mt-1 shrink-0 rounded-xl p-1.5 text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+
+      <p className="mt-2 pl-10 text-xs leading-relaxed text-text-muted">
+        {activeInAppNotif.message}
+      </p>
+
+      <div className="mt-3 flex gap-2">
+        <Link
+          href={
+            isPokeNotif ? "/social" : activeInAppNotif.actionUrl || "/social"
+          }
+          onClick={closeInAppNotification}
+          className={cn(
+            "flex-1 rounded-xl px-3 py-2 text-center text-xs font-bold text-text-inverse transition-opacity hover:opacity-90",
+            isPokeNotif ? "bg-accent-orange" : "bg-accent-green",
+          )}
+        >
+          {isPokeNotif ? "Senggol di Social" : "Lihat Detail"}
+        </Link>
+        <button
+          type="button"
+          onClick={closeInAppNotification}
+          className="rounded-xl border border-border-default px-3 py-2 text-xs font-bold text-text-primary transition-colors hover:bg-accent-green-light"
+        >
+          Tutup
+        </button>
+      </div>
+    </div>
+  );
 
   const pushReminderCard = (
     <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-accent-green/30 bg-surface p-4 shadow-lg animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -193,7 +296,9 @@ export default function DashboardPage() {
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-green/15 text-accent-green">
             <Bell className="h-4 w-4" aria-hidden="true" />
           </div>
-          <h4 className="text-sm font-bold text-text-primary">Supaya kamu ingat {name}</h4>
+          <h4 className="text-sm font-bold text-text-primary">
+            Supaya kamu ingat {name}
+          </h4>
         </div>
         <button
           type="button"
@@ -206,7 +311,8 @@ export default function DashboardPage() {
       </div>
 
       <p className="mt-2 pl-10 text-xs leading-relaxed text-text-muted">
-        Aktifkan notifikasi supaya pengingat waktu makan dan streak co-op sampai ke perangkatmu.
+        Aktifkan notifikasi supaya pengingat waktu makan dan streak co-op sampai
+        ke perangkatmu.
       </p>
 
       <div className="mt-3 flex gap-2">
@@ -239,12 +345,14 @@ export default function DashboardPage() {
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-orange/15 text-accent-orange-dark">
             <Users className="h-4 w-4" aria-hidden="true" />
           </div>
-          <h4 className="text-sm font-bold text-text-primary">Temanmu belum mencatat makanannya</h4>
+          <h4 className="text-sm font-bold text-text-primary">
+            Pengingat Senggolan Teman ⚔️
+          </h4>
         </div>
         <button
           type="button"
           onClick={closeCoopReminder}
-          aria-label="Tutup pengingat co-op"
+          aria-label="Tutup pengingat senggolan"
           className="-mr-1 -mt-1 shrink-0 rounded-xl p-1.5 text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -252,17 +360,18 @@ export default function DashboardPage() {
       </div>
 
       <p className="mt-2 pl-10 text-xs leading-relaxed text-text-muted">
-        {pendingFriends.length} teman co-op{partyName ? ` ${partyName}` : ""} belum mencatat makan
-        hari ini. Colek mereka biar streak party tetap aman.
+        {pendingFriends.length} teman co-op{partyName ? ` ${partyName}` : ""}{" "}
+        belum mencatat makan hari ini. Senggol mereka di halaman Social biar
+        streak party tetap aman!
       </p>
 
       <div className="mt-3 flex gap-2">
         <Link
-          href="/social/coop"
+          href="/social"
           onClick={closeCoopReminder}
           className="flex-1 rounded-xl bg-accent-orange px-3 py-2 text-center text-xs font-bold text-text-inverse transition-opacity hover:opacity-90"
         >
-          Ingatkan
+          Senggol di Social
         </Link>
         <button
           type="button"
@@ -289,7 +398,10 @@ export default function DashboardPage() {
     if (selectedQuickItems.length === 0) return;
 
     const todayStr = new Date().toISOString().split("T")[0];
-    const totalCal = selectedQuickItems.reduce((sum, item) => sum + item.calories, 0);
+    const totalCal = selectedQuickItems.reduce(
+      (sum, item) => sum + item.calories,
+      0,
+    );
 
     const logsToSave = selectedQuickItems.map((item) => ({
       name: item.name,
@@ -335,16 +447,19 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
       {/* Floating reminders: stacked bottom-right on desktop, one at a time centered on mobile */}
-      {(showPushReminder || showCoopReminder) && (
+      {(showInAppNotification || showPushReminder || showCoopReminder) && (
         <div
           ref={reminderStackRef}
-          className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-2 p-4 sm:inset-auto sm:bottom-4 sm:right-4 sm:items-end sm:justify-end sm:p-0"
+          className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-2.5 p-4 sm:inset-auto sm:bottom-4 sm:right-4 sm:items-end sm:justify-end sm:p-0"
         >
           {isDesktop ? (
             <>
+              {showInAppNotification && inAppNotificationCard}
               {showPushReminder && pushReminderCard}
               {showCoopReminder && coopReminderCard}
             </>
+          ) : showInAppNotification ? (
+            inAppNotificationCard
           ) : showPushReminder ? (
             pushReminderCard
           ) : showCoopReminder ? (
@@ -358,7 +473,7 @@ export default function DashboardPage() {
         {/* Left Column: CalPal Container */}
         <div className="lg:col-span-5 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-4">
           <PetRenderer
-            interactive={false}
+            interactive={true}
             size="md"
             dialogMessage={isHydrated ? getPetDialogMessages() : null}
             statusIndicators={true}
@@ -368,223 +483,102 @@ export default function DashboardPage() {
         {/* Right Column: Daily Nutrition Target with MacroBar */}
         <div className="lg:col-span-7 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-6">
           <MacroBar />
-
-          {/* Quick Food Logging */}
-          <div className="pt-4 border-t border-border-divider">
-            <h3 className="text-sm font-bold text-text-primary mb-3">Catat Makanan</h3>
-            <button
-              onClick={() => setQuickLogModalOpen(true)}
-              className="button-primary w-full py-3.5 text-sm flex items-center justify-center gap-2"
-            >
-              <PlusCircle className="h-5 w-5" />
-              <span>+ Quick Catat Makanan</span>
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Weekly Calendar & Program Progress */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-text-primary font-heading">Jurnal Mingguan</h2>
-        <DashboardCalendarStrip className="mb-4" />
-        <div className="space-y-2">
-          <div className="flex justify-between text-xs font-semibold text-text-primary">
-            <span>Progres Program</span>
-            <span>45% tercapai</span>
-          </div>
-          <div className="h-2 w-full rounded-pill bg-surface-subtle overflow-hidden border border-border-divider">
-            <div className="h-full bg-accent-green transition-all duration-500" style={{ width: "45%" }} />
-          </div>
-          <p className="text-xs text-text-muted">Hari 5 dari 11 menuju misi</p>
-        </div>
-      </section>
+      {/* 2. Unified Nutrition Summary & Calendar Strip */}
+      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-6">
+        <DashboardCalendarStrip />
+      </div>
 
-      {/* RPG Quest & Mission Board Widget */}
-      <QuestBoard />
+      {/* 3. Quick Food Logging Widget */}
+      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-base font-bold text-text-primary">
+              Pencatatan Makanan Cepat
+            </h3>
+            <p className="text-xs text-text-muted mt-0.5">
+              Pilih menu favorit atau baru dimakan untuk dicatat dalam 1-klik
+            </p>
+          </div>
+          <button
+            onClick={() => setQuickLogModalOpen(true)}
+            className="button-ghost text-xs flex items-center gap-1.5 py-1.5 px-3"
+          >
+            <Plus className="h-3.5 w-3.5 text-accent-green" />
+            <span>Pilih Banyak Sekaligus</span>
+          </button>
+        </div>
+
+        {/* Quick Log Row: Horizontal scrollable badges for fast single-click logging */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <Link
+            href="/diary/add"
+            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-card bg-surface-subtle border border-dashed border-border-default hover:border-accent-green text-text-muted hover:text-text-primary transition-all text-xs font-semibold"
+          >
+            <PlusCircle className="h-4 w-4 text-accent-green" />
+            <span>Katalog Lengkap</span>
+          </Link>
+
+          {FOOD_CATALOG.slice(0, 8).map((food) => (
+            <button
+              key={food.id}
+              onClick={() => handleQuickAdd(food)}
+              className="flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-card bg-surface border border-border-divider hover:border-accent-orange/40 hover:bg-accent-yellow/10 transition-all text-left shadow-2xs group"
+            >
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-text-primary group-hover:text-accent-orange-dark transition-colors">
+                  {food.name}
+                </span>
+                <span className="text-[10px] text-text-muted">
+                  {food.calories} kcal • {food.proteinG}g P
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-accent-green bg-accent-green/10 px-1.5 py-0.5 rounded-pill ml-1">
+                + Catat
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-card border border-border-divider bg-surface p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-border-divider">
-              <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                <PlusCircle className="h-5 w-5 text-accent-green" />
-                <span>Quick Catat Makanan</span>
-              </h3>
-              <button
-                onClick={() => setQuickLogModalOpen(false)}
-                className="text-text-muted hover:text-text-primary p-1 rounded-navigation hover:bg-accent-green-light/40"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-muted">Pilih Waktu Makan:</label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {MEAL_TYPES.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedQuickMeal(m.id)}
-                    className={`nav-item py-1.5 px-1 text-xs font-semibold border text-center transition-colors ${selectedQuickMeal === m.id
-                        ? "is-selected border-accent-orange font-bold"
-                        : "bg-surface-subtle text-neutral-10 border-border-default"
-                      }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg rounded-modal border border-border-divider bg-surface p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-border-divider pb-3">
+              <div className="flex items-center gap-2">
+                <Utensils className="h-5 w-5 text-accent-orange" />
+                <h3 className="font-heading text-lg font-bold text-text-primary">
+                  Catat Makanan Cepat
+                </h3>
               </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 border-b border-border-divider pb-2 text-[11px]">
-              <button
-                type="button"
-                onClick={() => setQuickFilter("popular")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${quickFilter === "popular"
-                    ? "bg-accent-green text-text-inverse border-accent-green"
-                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                  }`}
-              >
-                Menu Populer
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickFilter("recent")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${quickFilter === "recent"
-                    ? "bg-accent-green text-text-inverse border-accent-green"
-                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                  }`}
-              >
-                Baru Dimakan
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickFilter("frequent")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${quickFilter === "frequent"
-                    ? "bg-accent-green text-text-inverse border-accent-green"
-                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                  }`}
-              >
-                Paling Sering
-              </button>
-            </div>
-
-            <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
-              {(quickFilter === "recent"
-                ? getRecentFoods()
-                : quickFilter === "frequent"
-                ? getFrequentFoods()
-                : FOOD_CATALOG.slice(0, 8)
-              ).map((food) => {
-                const isChecked = selectedQuickItems.some((i) => i.id === food.id);
-                return (
-                  <div
-                    key={food.id}
-                    onClick={() => toggleQuickItem(food)}
-                    className={`p-2.5 rounded-input border transition-colors flex items-center justify-between cursor-pointer ${isChecked
-                        ? "bg-accent-yellow/30 border-accent-orange font-bold"
-                        : "border-border-divider bg-surface-subtle hover:bg-accent-green-light/40"
-                      }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {}}
-                        className="h-3.5 w-3.5 rounded accent-accent-green cursor-pointer"
-                      />
-                      <div>
-                        <p className="text-xs font-bold text-foreground">{food.name}</p>
-                        <p className="text-[10px] text-text-muted">
-                          {food.defaultServingSize} {food.servingUnit} • P: {food.proteinG}g
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-extrabold text-text-primary">
-                        +{food.calories} kcal
-                      </span>
-                      <button
-                        type="button"
-                        title="Catat langsung 1 item"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQuickAdd(food);
-                        }}
-                        className="px-2 py-0.5 rounded-pill bg-accent-green/15 text-text-primary text-[10px] font-bold hover:bg-accent-green hover:text-text-inverse transition-colors"
-                      >
-                        + 1-Klik
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {selectedQuickItems.length > 0 && (
-              <button
-                type="button"
-                onClick={handleBatchQuickSave}
-                className="button-primary w-full py-2.5 text-xs flex items-center justify-center gap-1.5 font-black shadow-md"
-              >
-                <Plus className="h-4 w-4" />
-                <span>
-                  Tambahkan Dipilih ({selectedQuickItems.length} Menu) & Kasih Makan Pet
-                </span>
-              </button>
-            )}
-
-            <div className="pt-1 flex items-center justify-between text-xs">
-              <Link
-                href="/diary/add"
-                onClick={() => setQuickLogModalOpen(false)}
-                className="font-bold text-text-primary hover:underline"
-              >
-                Cari di Katalog Lengkap &rarr;
-              </Link>
               <button
                 onClick={() => {
                   setSelectedQuickItems([]);
                   setQuickLogModalOpen(false);
                 }}
-                className="px-4 py-1.5 rounded-button border border-border-default hover:bg-accent-green-light text-text-primary font-bold"
+                className="rounded-full p-1 text-text-muted hover:bg-surface-subtle hover:text-text-primary"
               >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Quick Action Modal: Fast Log Food */}
-      {quickLogModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-card border border-border-divider bg-surface p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-border-divider">
-              <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                <PlusCircle className="h-5 w-5 text-accent-green" />
-                <span>Quick Catat Makanan</span>
-              </h3>
-              <button
-                onClick={() => setQuickLogModalOpen(false)}
-                className="text-text-muted hover:text-text-primary p-1 rounded-navigation hover:bg-accent-green-light/40"
-              >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-muted">Pilih Waktu Makan:</label>
+              <label className="text-xs font-semibold text-text-muted">
+                Pilih Waktu Makan:
+              </label>
               <div className="grid grid-cols-4 gap-1.5">
                 {MEAL_TYPES.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => setSelectedQuickMeal(m.id)}
-                    className={`nav-item py-1.5 px-1 text-xs font-semibold border text-center transition-colors ${selectedQuickMeal === m.id
+                    className={`nav-item py-1.5 px-1 text-xs font-semibold border text-center transition-colors ${
+                      selectedQuickMeal === m.id
                         ? "is-selected border-accent-orange font-bold"
                         : "bg-surface-subtle text-neutral-10 border-border-default"
-                      }`}
+                    }`}
                   >
                     {m.label}
                   </button>
@@ -596,30 +590,33 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setQuickFilter("popular")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${quickFilter === "popular"
+                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
+                  quickFilter === "popular"
                     ? "bg-accent-green text-text-inverse border-accent-green"
                     : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                  }`}
+                }`}
               >
                 Menu Populer
               </button>
               <button
                 type="button"
                 onClick={() => setQuickFilter("recent")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${quickFilter === "recent"
+                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
+                  quickFilter === "recent"
                     ? "bg-accent-green text-text-inverse border-accent-green"
                     : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                  }`}
+                }`}
               >
                 Baru Dimakan
               </button>
               <button
                 type="button"
                 onClick={() => setQuickFilter("frequent")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${quickFilter === "frequent"
+                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
+                  quickFilter === "frequent"
                     ? "bg-accent-green text-text-inverse border-accent-green"
                     : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                  }`}
+                }`}
               >
                 Paling Sering
               </button>
@@ -629,10 +626,12 @@ export default function DashboardPage() {
               {(quickFilter === "recent"
                 ? getRecentFoods()
                 : quickFilter === "frequent"
-                ? getFrequentFoods()
-                : FOOD_CATALOG.slice(0, 8)
+                  ? getFrequentFoods()
+                  : FOOD_CATALOG
               ).map((food) => {
-                const isChecked = selectedQuickItems.some((i) => i.id === food.id);
+                const isChecked = selectedQuickItems.some(
+                  (i) => i.id === food.id,
+                );
                 return (
                   <div
                     key={food.id}
@@ -648,24 +647,29 @@ export default function DashboardPage() {
                         <Utensils className="h-4 w-4 text-text-muted" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-foreground">{food.name}</p>
+                        <p className="text-xs font-bold text-foreground">
+                          {food.name}
+                        </p>
                         <p className="text-[10px] text-text-muted">
-                          {food.defaultServingSize} {food.servingUnit} • P: {food.proteinG}g
+                          {food.calories} kcal • {food.proteinG}g P •{" "}
+                          {food.carbsG}g C • {food.fatG}g F
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-extrabold text-text-primary">
-                        +{food.calories} kcal
+                      <span className="text-xs font-black text-text-primary">
+                        {food.calories}{" "}
+                        <span className="text-[10px] text-text-muted">
+                          kcal
+                        </span>
                       </span>
                       <button
                         type="button"
-                        title="Catat langsung 1 item"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleQuickAdd(food);
                         }}
-                        className="px-2 py-0.5 rounded-pill bg-accent-green/15 text-text-primary text-[10px] font-bold hover:bg-accent-green hover:text-text-inverse transition-colors"
+                        className="rounded-lg bg-surface px-2 py-1 text-[11px] font-bold text-accent-green hover:bg-accent-green-light border border-border-default"
                       >
                         + 1-Klik
                       </button>
@@ -683,7 +687,8 @@ export default function DashboardPage() {
               >
                 <Plus className="h-4 w-4" />
                 <span>
-                  Tambahkan Dipilih ({selectedQuickItems.length} Menu) & Kasih Makan Pet
+                  Tambahkan Dipilih ({selectedQuickItems.length} Menu) & Kasih
+                  Makan Pet
                 </span>
               </button>
             )}
@@ -709,6 +714,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* 4. RPG Quest & Mission Board Widget */}
+      <QuestBoard />
     </div>
   );
 }

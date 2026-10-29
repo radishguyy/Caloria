@@ -14,7 +14,11 @@ export interface ToastOptions {
   duration?: number;
 }
 
-export function toastSuccess(title: string, description?: string, options?: ToastOptions) {
+export function toastSuccess(
+  title: string,
+  description?: string,
+  options?: ToastOptions,
+) {
   return toast.success(title, {
     description,
     duration: options?.duration ?? 3500,
@@ -23,8 +27,14 @@ export function toastSuccess(title: string, description?: string, options?: Toas
   });
 }
 
-export function toastReward(title: string, exp: number, coins: number, description?: string) {
-  const rewardDesc = description || `+${exp} EXP & +${coins} Koin didapatkan. Pet kamu kenyang!`;
+export function toastReward(
+  title: string,
+  exp: number,
+  coins: number,
+  description?: string,
+) {
+  const rewardDesc =
+    description || `+${exp} EXP & +${coins} Koin didapatkan. Pet kamu kenyang!`;
   return toast.success(title, {
     description: rewardDesc,
     duration: 4000,
@@ -33,7 +43,11 @@ export function toastReward(title: string, exp: number, coins: number, descripti
   });
 }
 
-export function toastInfo(title: string, description?: string, options?: ToastOptions) {
+export function toastInfo(
+  title: string,
+  description?: string,
+  options?: ToastOptions,
+) {
   return toast(title, {
     description,
     duration: options?.duration ?? 3000,
@@ -42,7 +56,11 @@ export function toastInfo(title: string, description?: string, options?: ToastOp
   });
 }
 
-export function toastWarning(title: string, description?: string, options?: ToastOptions) {
+export function toastWarning(
+  title: string,
+  description?: string,
+  options?: ToastOptions,
+) {
   return toast.warning(title, {
     description,
     duration: options?.duration ?? 3500,
@@ -65,14 +83,14 @@ export function toastMealsCommitted(exp: number = 25, coins: number = 10) {
     "Makanan Berhasil Dicatat! 🍽️✨",
     exp,
     coins,
-    `+${exp} EXP & +${coins} Koin didapatkan. Pet kamu kenyang!`
+    `+${exp} EXP & +${coins} Koin didapatkan. Pet kamu kenyang!`,
   );
 }
 
 export function toastOcrSuccess() {
   return toastSuccess(
     "Label Nutrisi Terbaca! 📸",
-    "Informasi kalori dan makro otomatis terisi."
+    "Informasi kalori dan makro otomatis terisi.",
   );
 }
 
@@ -80,14 +98,14 @@ export function toastOcrSuccess() {
 export function toastFriendRequestSent(username: string) {
   return toastInfo(
     "Undangan Dikirim! 🤝",
-    `Menunggu persetujuan dari @${username.replace(/^@/, "")}.`
+    `Menunggu persetujuan dari @${username.replace(/^@/, "")}.`,
   );
 }
 
 export function toastFriendRequestAccepted(username: string) {
   return toastSuccess(
     "Teman Baru Ditambahkan! 🎉",
-    `Kamu dan @${username.replace(/^@/, "")} sekarang berteman.`
+    `Kamu dan @${username.replace(/^@/, "")} sekarang berteman.`,
   );
 }
 
@@ -98,7 +116,7 @@ export function toastFriendRequestDeclined() {
 export function toastNudgeSent(username: string) {
   return toastSuccess(
     "Colekan Terkirim! ⚔️🔥",
-    `Mengingatkan @${username.replace(/^@/, "")} untuk mencatat makan hari ini.`
+    `Mengingatkan @${username.replace(/^@/, "")} untuk mencatat makan hari ini.`,
   );
 }
 
@@ -115,14 +133,21 @@ export function toastLoadoutEquipped() {
 export function toastPaletteSaved() {
   return toastSuccess(
     "Warna Calpal Disimpan! 🎨",
-    "Tampilan palet baru Calpal-mu telah aktif."
+    "Tampilan palet baru Calpal-mu telah aktif.",
   );
 }
 
 export function toastShopPurchased(price: number) {
   return toastSuccess(
     "Item Berhasil Dibeli! 🛍️",
-    `-${price} Koin. Cek lemari untuk memakainya!`
+    `-${price} Koin. Cek lemari untuk memakainya!`,
   );
 }
 
+/** 4. Calpal Interaction Triggers */
+export function toastPetPetted(exp: number = 10) {
+  return toastSuccess(
+    "Calpal Senang Di-elus! ❤️✨",
+    `Kebahagiaan bertambah & +${exp} EXP didapatkan!`,
+  );
+}
