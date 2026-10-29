@@ -50,6 +50,7 @@ export const profiles = pgTable("profiles", {
   targetFatG: numeric("target_fat_g", { precision: 6, scale: 2 }),
   projectedDays: integer("projected_days"),
   caloriaCoins: integer("caloria_coins").default(0).notNull(),
+  lastLoginClaimDate: date("last_login_claim_date"), // YYYY-MM-DD
   currentStreakDays: integer("current_streak_days").default(0).notNull(),
   longestStreakDays: integer("longest_streak_days").default(0).notNull(),
   lastLoggedDate: date("last_logged_date"),

@@ -33,6 +33,7 @@ export interface AvatarRendererProps {
   tailVariant?: CharacterId;
   faceVariant?: CharacterId;
   animationState?: PetAnimationState;
+  moodStatus?: "happy" | "neutral" | "complaining";
   equipped?: {
     head?: string | null;
     glasses?: string | null;
@@ -84,6 +85,7 @@ export function AvatarRenderer({
   tailVariant,
   faceVariant,
   animationState = "idle",
+  moodStatus,
   equipped,
   accessoryIds,
   size = "full",
@@ -131,14 +133,18 @@ export function AvatarRenderer({
     if (
       animationState === "sleeping" ||
       animationState === "eating" ||
-      animationState === "happy"
+      animationState === "happy" ||
+      animationState === "complaining"
     ) {
       return ANIMATION_STATE_FACE_OVERLAYS[animationState] || "";
+    }
+    if (moodStatus === "complaining") {
+      return ANIMATION_STATE_FACE_OVERLAYS.complaining || "";
     }
     return (
       (layers[activeFaceId] || layers[safeCharId] || fallbackLayers)?.face || ""
     );
-  }, [animationState, activeFaceId, safeCharId, layers, fallbackLayers]);
+  }, [animationState, moodStatus, activeFaceId, safeCharId, layers, fallbackLayers]);
 
   // Merge equipped slot object with optional accessoryIds list
   const effectiveEquipped = useMemo(() => {
@@ -213,6 +219,9 @@ export function AvatarRenderer({
   } as React.CSSProperties;
 
   const sizeClass = SIZE_CLASSES[String(size)] || SIZE_CLASSES.full;
+
+  const isComplaining =
+    moodStatus === "complaining" || animationState === "complaining";
 
   return (
     <svg
@@ -304,98 +313,108 @@ export function AvatarRenderer({
       {showShadow && (
         <ellipse
           cx="64"
-          cy="146"
-          rx="31"
-          ry="6.5"
+          cy={isComplaining ? 149 : 146}
+          rx={isComplaining ? 33 : 31}
+          ry={6.5}
           fill="var(--char-outline, #231F20)"
           opacity="0.14"
         />
       )}
 
-      {/* Layer 15: Rear Accessory Layer (Backpack Pack, Hero Cape) */}
-      {bodyAccData?.backMarkup && (
-        <g
-          data-layer="back-accessory"
-          transform={bodyTransform || undefined}
-          dangerouslySetInnerHTML={{ __html: bodyAccData.backMarkup }}
-        />
-      )}
+      {/* Character Group with Dynamic Sluggish Posture when Hungry/Complaining */}
+      <g
+        data-posture={isComplaining ? "sluggish" : "energetic"}
+        transform={
+          isComplaining
+            ? "translate(0, 4) scale(0.99, 0.96) translate(0.5, 2)"
+            : undefined
+        }
+      >
+        {/* Layer 15: Rear Accessory Layer (Backpack Pack, Hero Cape) */}
+        {bodyAccData?.backMarkup && (
+          <g
+            data-layer="back-accessory"
+            transform={bodyTransform || undefined}
+            dangerouslySetInnerHTML={{ __html: bodyAccData.backMarkup }}
+          />
+        )}
 
-      {/* Layer 20: Character Tail */}
-      {tailMarkup && (
-        <g
-          data-layer="character-tail"
-          dangerouslySetInnerHTML={{ __html: tailMarkup }}
-        />
-      )}
+        {/* Layer 20: Character Tail */}
+        {tailMarkup && (
+          <g
+            data-layer="character-tail"
+            dangerouslySetInnerHTML={{ __html: tailMarkup }}
+          />
+        )}
 
-      {/* Layer 30: Character Ears & Rear Anatomy */}
-      {earsMarkup && (
-        <g
-          data-layer="character-ears"
-          dangerouslySetInnerHTML={{ __html: earsMarkup }}
-        />
-      )}
+        {/* Layer 30: Character Ears & Rear Anatomy */}
+        {earsMarkup && (
+          <g
+            data-layer="character-ears"
+            dangerouslySetInnerHTML={{ __html: earsMarkup }}
+          />
+        )}
 
-      {/* Layer 40: Character Body & Limbs */}
-      {bodyMarkup && (
-        <g
-          data-layer="character-body"
-          dangerouslySetInnerHTML={{ __html: bodyMarkup }}
-        />
-      )}
+        {/* Layer 40: Character Body & Limbs */}
+        {bodyMarkup && (
+          <g
+            data-layer="character-body"
+            dangerouslySetInnerHTML={{ __html: bodyMarkup }}
+          />
+        )}
 
-      {/* Layer 50-55: Body / Neck Foreground Accessory (Hoodie, Scarf, Apron, Jersey) */}
-      {bodyAccData?.frontMarkup && (
-        <g
-          data-layer="body-accessory"
-          transform={bodyTransform || undefined}
-          dangerouslySetInnerHTML={{ __html: bodyAccData.frontMarkup }}
-        />
-      )}
+        {/* Layer 50-55: Body / Neck Foreground Accessory (Hoodie, Scarf, Apron, Jersey) */}
+        {bodyAccData?.frontMarkup && (
+          <g
+            data-layer="body-accessory"
+            transform={bodyTransform || undefined}
+            dangerouslySetInnerHTML={{ __html: bodyAccData.frontMarkup }}
+          />
+        )}
 
-      {/* Layer 60: Character Oversized Head */}
-      {headMarkup && (
-        <g
-          data-layer="character-head"
-          dangerouslySetInnerHTML={{ __html: headMarkup }}
-        />
-      )}
+        {/* Layer 60: Character Oversized Head */}
+        {headMarkup && (
+          <g
+            data-layer="character-head"
+            dangerouslySetInnerHTML={{ __html: headMarkup }}
+          />
+        )}
 
-      {/* Layer 70: Character Face (Eyes, Eyebrows, Nose, Mouth, Blush) */}
-      {faceMarkup && (
-        <g
-          data-layer="character-face"
-          dangerouslySetInnerHTML={{ __html: faceMarkup }}
-        />
-      )}
+        {/* Layer 70: Character Face (Eyes, Eyebrows, Nose, Mouth, Blush) */}
+        {faceMarkup && (
+          <g
+            data-layer="character-face"
+            dangerouslySetInnerHTML={{ __html: faceMarkup }}
+          />
+        )}
 
-      {/* Layer 80: Eye Accessories (Glasses) */}
-      {glassesAccData?.frontMarkup && (
-        <g
-          data-layer="eye-accessory"
-          transform={glassesTransform || undefined}
-          dangerouslySetInnerHTML={{ __html: glassesAccData.frontMarkup }}
-        />
-      )}
+        {/* Layer 80: Eye Accessories (Glasses) */}
+        {glassesAccData?.frontMarkup && (
+          <g
+            data-layer="eye-accessory"
+            transform={glassesTransform || undefined}
+            dangerouslySetInnerHTML={{ __html: glassesAccData.frontMarkup }}
+          />
+        )}
 
-      {/* Layer 90-92: Head Accessories (Hats, Clips, Headbands, Headphones) */}
-      {headAccData?.frontMarkup && (
-        <g
-          data-layer="head-accessory"
-          transform={headTransform || undefined}
-          dangerouslySetInnerHTML={{ __html: headAccData.frontMarkup }}
-        />
-      )}
+        {/* Layer 90-92: Head Accessories (Hats, Clips, Headbands, Headphones) */}
+        {headAccData?.frontMarkup && (
+          <g
+            data-layer="head-accessory"
+            transform={headTransform || undefined}
+            dangerouslySetInnerHTML={{ __html: headAccData.frontMarkup }}
+          />
+        )}
 
-      {/* Layer 100: Held Objects (Food & Drink Items) */}
-      {heldAccData?.frontMarkup && (
-        <g
-          data-layer="held-accessory"
-          transform={heldTransform || undefined}
-          dangerouslySetInnerHTML={{ __html: heldAccData.frontMarkup }}
-        />
-      )}
+        {/* Layer 100: Held Objects (Food & Drink Items) */}
+        {heldAccData?.frontMarkup && (
+          <g
+            data-layer="held-accessory"
+            transform={heldTransform || undefined}
+            dangerouslySetInnerHTML={{ __html: heldAccData.frontMarkup }}
+          />
+        )}
+      </g>
     </svg>
   );
 }

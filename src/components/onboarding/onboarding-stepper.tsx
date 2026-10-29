@@ -1,18 +1,19 @@
 "use client";
 
-import { Check, Target, Calculator, Sparkles, Egg } from "lucide-react";
+import { Check, Target, Calculator, Sparkles, Flame, Egg } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OnboardingStepperProps {
-  currentStep: number; // 1, 2, 3, 4
+  currentStep: number; // 1, 2, 3, 4, 5
 }
 
 export function OnboardingStepper({ currentStep }: OnboardingStepperProps) {
   const steps = [
-    { number: 1, label: "Tujuan Utama", icon: Target },
-    { number: 2, label: "Profil Fisik & BMI", icon: Calculator },
-    { number: 3, label: "Proyeksi N Hari", icon: Sparkles },
-    { number: 4, label: "Adopsi Pet", icon: Egg },
+    { number: 1, label: "Tujuan", icon: Target },
+    { number: 2, label: "Profil & BMI", icon: Calculator },
+    { number: 3, label: "Proyeksi", icon: Sparkles },
+    { number: 4, label: "Target Gizi", icon: Flame },
+    { number: 5, label: "Adopsi Pet", icon: Egg },
   ];
 
   return (
