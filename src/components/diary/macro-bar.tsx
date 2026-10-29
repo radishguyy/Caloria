@@ -17,10 +17,36 @@ export function MacroBar() {
     selectedDate,
     setSelectedDate,
   } = useFoodStore();
+
+  if (!isHydrated) {
+    return (
+      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs text-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
+          <div className="space-y-2">
+            <div className="h-4 w-36 bg-surface-subtle animate-pulse rounded-navigation" />
+            <div className="h-9 w-44 bg-surface-subtle animate-pulse rounded-navigation" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="space-y-1 text-right">
+              <div className="h-3 w-12 bg-surface-subtle animate-pulse rounded-navigation ml-auto" />
+              <div className="h-5 w-20 bg-surface-subtle animate-pulse rounded-navigation ml-auto" />
+            </div>
+            <div className="h-12 w-12 rounded-pill bg-surface-subtle animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3 pt-4">
+          <div className="h-20 rounded-button bg-surface-subtle animate-pulse" />
+          <div className="h-20 rounded-button bg-surface-subtle animate-pulse" />
+          <div className="h-20 rounded-button bg-surface-subtle animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   const consumed = getConsumed();
   const caloriesRemaining = getCaloriesRemaining();
   const depkes = getDepkesEvaluation();
-  const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
+  const isSelectedToday = isToday(selectedDate);
 
   const caloriePercent = Math.min(
     100,

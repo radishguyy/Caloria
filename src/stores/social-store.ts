@@ -27,8 +27,12 @@ export interface SocialStoreState {
 
   // Actions
   fetchSocialData: () => Promise<void>;
-  sendFriendRequest: (targetUserId: string) => Promise<{ success: boolean; message: string }>;
-  sendFriendRequestByUsername: (username: string) => Promise<{ success: boolean; message: string }>;
+  sendFriendRequest: (
+    targetUserId: string,
+  ) => Promise<{ success: boolean; message: string }>;
+  sendFriendRequestByUsername: (
+    username: string,
+  ) => Promise<{ success: boolean; message: string }>;
   acceptFriendRequest: (requestId: string) => Promise<void>;
   declineFriendRequest: (requestId: string) => Promise<void>;
   dismissRecommendation: (userId: string) => void;
@@ -42,6 +46,49 @@ export interface SocialStoreState {
   simulateIncomingRequest: (name: string, username: string) => void;
   setStreak: (days: number) => void;
 }
+
+export const DEFAULT_INITIAL_FRIENDS: Friend[] = [
+  {
+    id: "friend-afza",
+    userId: "user-afza",
+    username: "afza_fit",
+    fullName: "Afza Fitriani",
+    avatarColor: "bg-teal-500",
+    petName: "Mochi",
+    petSpecies: "bloomie",
+    petLevel: 5,
+    petStage: "Juvenile",
+    goalType: "diet",
+    caloriesLoggedToday: 850,
+    calorieTarget: 1900,
+    mealsLoggedToday: 1,
+    dailyGoalMet: false,
+    streakDays: 7,
+    lastActiveText: "10 menit yang lalu",
+    lastPokedAt: null,
+    status: "accepted",
+  },
+  {
+    id: "friend-budi",
+    userId: "user-budi",
+    username: "budi_santoso",
+    fullName: "Budi Santoso",
+    avatarColor: "bg-blue-500",
+    petName: "Rocky",
+    petSpecies: "boulder",
+    petLevel: 6,
+    petStage: "Adult",
+    goalType: "bulking",
+    caloriesLoggedToday: 2400,
+    calorieTarget: 2600,
+    mealsLoggedToday: 3,
+    dailyGoalMet: true,
+    streakDays: 14,
+    lastActiveText: "1 jam yang lalu",
+    lastPokedAt: null,
+    status: "accepted",
+  },
+];
 
 function getAuthHeaders(): HeadersInit {
   const currentUserId = useAuthStore.getState().user?.id;
@@ -57,7 +104,7 @@ function getAuthHeaders(): HeadersInit {
 export const useSocialStore = create<SocialStoreState>()(
   persist(
     (set, get) => ({
-      friends: [],
+      friends: DEFAULT_INITIAL_FRIENDS,
       pendingRequests: [],
       recommendations: [],
       isLoading: false,
@@ -77,7 +124,9 @@ export const useSocialStore = create<SocialStoreState>()(
 
           const [friendsRes, recsRes] = await Promise.all([
             fetch("/api/friends", { headers }).catch(() => null),
-            fetch("/api/friends/recommendations", { headers }).catch(() => null),
+            fetch("/api/friends/recommendations", { headers }).catch(
+              () => null,
+            ),
           ]);
 
           if (friendsRes && friendsRes.ok) {
@@ -87,8 +136,12 @@ export const useSocialStore = create<SocialStoreState>()(
                 ...(data.pendingRequests?.incoming || []),
                 ...(data.pendingRequests?.outgoing || []),
               ];
+              const loadedFriends =
+                Array.isArray(data.friends) && data.friends.length > 0
+                  ? data.friends
+                  : DEFAULT_INITIAL_FRIENDS;
               set({
-                friends: Array.isArray(data.friends) ? data.friends : [],
+                friends: loadedFriends,
                 pendingRequests: combinedRequests,
               });
             }
@@ -125,7 +178,8 @@ export const useSocialStore = create<SocialStoreState>()(
             await get().fetchSocialData();
             return {
               success: true,
-              message: data.message || "Permintaan pertemanan berhasil dikirim!",
+              message:
+                data.message || "Permintaan pertemanan berhasil dikirim!",
             };
           } else {
             return {
@@ -134,36 +188,54 @@ export const useSocialStore = create<SocialStoreState>()(
             };
           }
         } catch (err: any) {
-          return { success: false, message: err?.message || "Gagal mengirim permintaan." };
+          return {
+            success: false,
+            message: err?.message || "Gagal mengirim permintaan.",
+          };
         }
       },
 
       sendFriendRequestByUsername: async (username: string) => {
         const clean = username.trim().replace(/^@/, "");
         if (!clean) {
-          return { success: false, message: "Masukkan username atau Caloria Tag yang valid!" };
+          return {
+            success: false,
+            message: "Masukkan username atau Caloria Tag yang valid!",
+          };
         }
 
         const currentUsername = useAuthStore.getState().user?.username;
-        if (currentUsername && clean.toLowerCase() === currentUsername.toLowerCase()) {
-          return { success: false, message: "Kamu tidak bisa menambahkan akun sendiri sebagai teman." };
+        if (
+          currentUsername &&
+          clean.toLowerCase() === currentUsername.toLowerCase()
+        ) {
+          return {
+            success: false,
+            message: "Kamu tidak bisa menambahkan akun sendiri sebagai teman.",
+          };
         }
 
         // Prevent duplicate friend or pending request
         const isAlreadyFriend = get().friends.some(
-          (f) => f.username.toLowerCase() === clean.toLowerCase()
+          (f) => f.username.toLowerCase() === clean.toLowerCase(),
         );
         if (isAlreadyFriend) {
-          return { success: false, message: `@${clean} sudah ada di daftar teman kamu!` };
+          return {
+            success: false,
+            message: `@${clean} sudah ada di daftar teman kamu!`,
+          };
         }
 
         const isAlreadyPending = get().pendingRequests.some(
           (r) =>
             r.sender?.username?.toLowerCase() === clean.toLowerCase() ||
-            r.receiver?.username?.toLowerCase() === clean.toLowerCase()
+            r.receiver?.username?.toLowerCase() === clean.toLowerCase(),
         );
         if (isAlreadyPending) {
-          return { success: false, message: `Permintaan ke @${clean} sudah dikirim dan sedang menunggu respon.` };
+          return {
+            success: false,
+            message: `Permintaan ke @${clean} sudah dikirim dan sedang menunggu respon.`,
+          };
         }
 
         try {
@@ -178,12 +250,22 @@ export const useSocialStore = create<SocialStoreState>()(
 
           if (res.ok && data.success) {
             await get().fetchSocialData();
-            return { success: true, message: data.message || `Undangan berhasil dikirim ke @${clean}!` };
+            return {
+              success: true,
+              message:
+                data.message || `Undangan berhasil dikirim ke @${clean}!`,
+            };
           } else {
-            return { success: false, message: data.message || "Gagal mengirim undangan." };
+            return {
+              success: false,
+              message: data.message || "Gagal mengirim undangan.",
+            };
           }
         } catch (err: any) {
-          return { success: false, message: err?.message || "Gagal mengirim undangan." };
+          return {
+            success: false,
+            message: err?.message || "Gagal mengirim undangan.",
+          };
         }
       },
 
@@ -229,7 +311,9 @@ export const useSocialStore = create<SocialStoreState>()(
 
       // Co-op & Friend interactions
       pokeFriend: (friendId: string) => {
-        const friend = get().friends.find((f) => f.id === friendId || f.userId === friendId);
+        const friend = get().friends.find(
+          (f) => f.id === friendId || f.userId === friendId,
+        );
         if (!friend) return null;
 
         const nowStr = "Baru saja";
@@ -243,7 +327,9 @@ export const useSocialStore = create<SocialStoreState>()(
 
         set((state) => ({
           friends: state.friends.map((f) =>
-            f.id === friendId || f.userId === friendId ? { ...f, lastPokedAt: nowStr } : f
+            f.id === friendId || f.userId === friendId
+              ? { ...f, lastPokedAt: nowStr }
+              : f,
           ),
           pokeHistory: [newPoke, ...state.pokeHistory.slice(0, 9)],
           activePokeToast: newPoke,
@@ -257,7 +343,7 @@ export const useSocialStore = create<SocialStoreState>()(
         if (!clean) return false;
 
         const exists = get().friends.some(
-          (f) => f.username.toLowerCase() === clean.toLowerCase()
+          (f) => f.username.toLowerCase() === clean.toLowerCase(),
         );
         if (exists) return false;
 
@@ -287,12 +373,14 @@ export const useSocialStore = create<SocialStoreState>()(
                   dailyGoalMet: true,
                   lastActiveText: "Baru saja menyelesaikan misi gizi harian!",
                 }
-              : f
+              : f,
           );
           const allMet = updatedFriends.every((f) => f.dailyGoalMet);
           return {
             friends: updatedFriends,
-            coopStreakDays: allMet ? state.coopStreakDays + 1 : state.coopStreakDays,
+            coopStreakDays: allMet
+              ? state.coopStreakDays + 1
+              : state.coopStreakDays,
             highestCoopStreak: allMet
               ? Math.max(state.highestCoopStreak, state.coopStreakDays + 1)
               : state.highestCoopStreak,
@@ -343,18 +431,22 @@ export const useSocialStore = create<SocialStoreState>()(
     }),
     {
       name: "caloria-social-storage",
-      version: 3,
+      version: 4,
       migrate: (persistedState: any, version: number) => {
-        if (version < 3 || !persistedState) {
+        if (
+          !persistedState ||
+          !Array.isArray(persistedState.friends) ||
+          persistedState.friends.length === 0
+        ) {
           return {
             ...persistedState,
-            friends: [],
-            pendingRequests: [],
-            recommendations: [],
+            friends: DEFAULT_INITIAL_FRIENDS,
+            pendingRequests: persistedState?.pendingRequests || [],
+            recommendations: persistedState?.recommendations || [],
           };
         }
         return persistedState;
       },
-    }
-  )
+    },
+  ),
 );

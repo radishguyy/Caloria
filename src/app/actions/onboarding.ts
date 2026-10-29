@@ -38,12 +38,22 @@ export async function saveOnboardingAction(input: SaveOnboardingInput) {
     }
 
     const userId = user.id;
+    const goalPath =
+      input.goal === "bulking"
+        ? "gain_muscle"
+        : input.goal === "maintenance"
+        ? "maintain_weight"
+        : "lose_weight";
 
     // 1. Update Profile
     await db
       .update(profiles)
       .set({
         goal: input.goal,
+        goalPath,
+        currentLevel: 1,
+        currentWeek: 1,
+        streakConsecutiveLogs: 0,
         gender: input.gender,
         birthDate: input.birthDate || null,
         heightCm: String(input.heightCm),

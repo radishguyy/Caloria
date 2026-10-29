@@ -16,6 +16,7 @@ import { Friend } from "@/types";
 import { useSocialStore } from "@/stores/social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { toastNudgeSent } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 interface FriendListProps {
@@ -57,6 +58,7 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
         message: poke.message,
         actionUrl: "/social",
       });
+      toastNudgeSent(friend.fullName || friend.username);
     }
   };
 

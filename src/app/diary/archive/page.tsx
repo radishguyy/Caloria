@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { CalendarGrid } from "@/components/diary/archive/CalendarGrid";
 import { DailyArchiveDetail } from "@/components/diary/archive/DailyArchiveDetail";
+import { CaloriaWrappedShelf } from "@/components/diary/archive/CaloriaWrappedShelf";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
@@ -112,6 +113,9 @@ function DiaryArchiveContent() {
           </Link>
         </div>
       </div>
+
+      {/* Caloria Wrapped Shelf: Time-Gated Story Recaps & Milestones */}
+      <CaloriaWrappedShelf />
 
       {/* Main Two-Column Grid: Calendar on Left, Inspector on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Settings, UserRound } from "lucide-react";
+import { Bell, Settings, UserRound, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { NAV_ITEMS, isNavItemActive } from "./nav-config";
 import { NavStreakBadge } from "./nav-streak-badge";
+import { logoutAction } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 
 const controlClass =
   "relative inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg bg-canvas text-ink transition-colors duration-200 hover:bg-brand-green-light hover:text-brand-green-ink focus-visible:bg-brand-green-light focus-visible:text-brand-green-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink motion-reduce:transition-none";
@@ -25,12 +27,27 @@ function getInitials(fullName: string | undefined, username: string | undefined)
 export function Navbar() {
   const pathname = usePathname();
   const hydrated = useHydrated();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
   const toggleDrawer = useNotificationStore((state) => state.toggleDrawer);
   const isDrawerOpen = useNotificationStore((state) => state.isDrawerOpen);
   const storedUnreadCount = useNotificationStore((state) =>
     state.notifications.filter((n) => !n.isRead).length
   );
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Client signOut warning:", e);
+    }
+    await logoutAction();
+    logout();
+    try {
+      localStorage.removeItem("caloria-auth-storage");
+    } catch {}
+    window.location.href = "/login";
+  };
 
   const isAuthed = hydrated && isAuthenticated;
   const unreadCount = hydrated ? storedUnreadCount : 0;
@@ -163,6 +180,21 @@ export function Navbar() {
               <UserRound className="h-5 w-5" aria-hidden="true" />
             )}
           </Link>
+
+          {isAuthed && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label="Keluar dari akun"
+              title="Keluar (Logout)"
+              className={cn(
+                controlClass,
+                "text-destructive hover:bg-destructive/10 hover:text-destructive"
+              )}
+            >
+              <LogOut className="h-5 w-5" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
     </header>

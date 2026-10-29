@@ -25,8 +25,14 @@ import {
   getDynamicQuestTargets,
   goalPathToGoalType,
   goalTypeToGoalPath,
+  evaluateMissionAutoStatus,
+  calculateWeeklyProgression,
   type DailyQuestPlan,
   type GoalPath,
+  type QuestMainMission,
+  type QuestSideMission,
+  type MissionAutoStatus,
+  type WeeklyProgressionResult,
 } from "@/lib/gamification/quest-engine";
 import { usePetStore } from "@/store/use-pet-store";
 
@@ -92,6 +98,12 @@ export interface FoodStoreState {
   getQuestPlan: () => DailyQuestPlan;
   getDepkesEvaluation: (date?: string) => DepkesComplianceResult;
   getClinicalBenchmarks: () => ClinicalNutritionBenchmarks;
+  getWeeklyProgression: () => WeeklyProgressionResult;
+  getEvaluatedMissions: (targetDate?: string) => Array<{
+    mission: QuestMainMission | QuestSideMission;
+    status: MissionAutoStatus;
+    isMain: boolean;
+  }>;
 }
 
 const getTodayFormatted = () => {
@@ -499,7 +511,7 @@ const createInitialLogs = (): ExtendedFoodLog[] => {
 const INITIAL_GOAL_PLAN: UserGoalPlan = {
   goalType: "diet",
   goalPath: "lose_weight",
-  currentLevel: 2,
+  currentLevel: 1,
   currentWeek: 1,
   streakConsecutiveLogs: 7,
   currentWeightKg: 76,
@@ -513,7 +525,46 @@ const INITIAL_GOAL_PLAN: UserGoalPlan = {
   totalProjectedDays: 98,
   currentDayNumber: 12,
   dailyMarginKcal: -100,
-  startDate: "2026-10-01",
+  startDate: "2026-10-23",
+};
+
+const autoEvaluateAndSyncMissions = (
+  consumed: MacroCurrent,
+  dayLogs: ExtendedFoodLog[],
+  waterLoggedMl: number,
+  questPlan: DailyQuestPlan,
+  currentCompleted: string[]
+): string[] => {
+  let nextCompleted = [...currentCompleted];
+  const allMissions = [
+    ...questPlan.mainMissions,
+    ...questPlan.sideMissions,
+  ];
+
+  for (const item of allMissions) {
+    const status = evaluateMissionAutoStatus(item, {
+      consumedCalories: consumed.calories,
+      consumedProtein: consumed.protein,
+      consumedCarbs: consumed.carbs,
+      consumedFat: consumed.fat,
+      consumedFiber: consumed.fiber,
+      consumedSugar: consumed.sugar,
+      targetCalories: questPlan.calorieTarget,
+      dayLogsCount: dayLogs.length,
+      waterLoggedMl,
+    });
+
+    const isAlreadyDone = nextCompleted.includes(item.id);
+    if (status.isCompleted && !isAlreadyDone) {
+      nextCompleted.push(item.id);
+      usePetStore.getState().gainExp(item.xpReward ?? 30);
+      usePetStore.getState().addCoins(item.coinReward ?? 15);
+    } else if (!status.isCompleted && isAlreadyDone) {
+      nextCompleted = nextCompleted.filter((id) => id !== item.id);
+    }
+  }
+
+  return nextCompleted;
 };
 
 const computeTargetsFromPlan = (plan: UserGoalPlan): MacroTargets => {
@@ -582,6 +633,13 @@ export const useFoodStore = create<FoodStoreState>()(
 
       setGoalPlan: (newPlan: Partial<UserGoalPlan>) =>
         set((state) => {
+          const prevPath =
+            state.goalPlan.goalPath || goalTypeToGoalPath(state.goalPlan.goalType);
+          const nextPath =
+            newPlan.goalPath ||
+            (newPlan.goalType ? goalTypeToGoalPath(newPlan.goalType) : prevPath);
+          const isPathChanged = Boolean(nextPath && nextPath !== prevPath);
+
           const updatedPlan: UserGoalPlan = {
             ...state.goalPlan,
             ...newPlan,
@@ -590,6 +648,17 @@ export const useFoodStore = create<FoodStoreState>()(
             updatedPlan.goalType = goalPathToGoalType(newPlan.goalPath);
           } else if (newPlan.goalType && !newPlan.goalPath) {
             updatedPlan.goalPath = goalTypeToGoalPath(newPlan.goalType);
+          }
+
+          let nextCompletedMissions = state.completedMissions;
+
+          // Requirement 2: If a user changes their path, reset progress on previous path!
+          if (isPathChanged) {
+            updatedPlan.currentLevel = 1;
+            updatedPlan.currentWeek = 1;
+            updatedPlan.startDate = getTodayFormatted();
+            updatedPlan.streakConsecutiveLogs = 0;
+            nextCompletedMissions = [];
           }
 
           const imtEval = calculateIMT(updatedPlan.currentWeightKg, updatedPlan.heightCm);
@@ -615,15 +684,45 @@ export const useFoodStore = create<FoodStoreState>()(
             goalPlan: updatedPlan,
             targets: nextTargets,
             depkesStatus: depkes.code,
+            completedMissions: nextCompletedMissions,
           };
         }),
 
       setQuestProgression: ({ goalPath, currentLevel, currentWeek }) => {
         const currentPlan = get().goalPlan;
-        const resolvedPath =
-          goalPath ?? currentPlan.goalPath ?? goalTypeToGoalPath(currentPlan.goalType);
+        const currentPath =
+          currentPlan.goalPath || goalTypeToGoalPath(currentPlan.goalType);
+        const resolvedPath = goalPath ?? currentPath;
+
+        // If path changed, reset completely to level 1 week 1 on new path
+        if (resolvedPath !== currentPath) {
+          get().setGoalPlan({
+            goalPath: resolvedPath,
+            goalType: goalPathToGoalType(resolvedPath),
+            currentLevel: 1,
+            currentWeek: 1,
+          });
+          return;
+        }
+
+        const weeklyProgression = get().getWeeklyProgression();
         const resolvedLevel = currentLevel ?? currentPlan.currentLevel ?? 1;
         const resolvedWeek = currentWeek ?? currentPlan.currentWeek ?? 1;
+
+        // Requirement 3: User cannot skip to locked levels!
+        const isUnlocked = weeklyProgression.unlockedStages.some(
+          (s) =>
+            s.level === resolvedLevel &&
+            (currentWeek === undefined || s.week === resolvedWeek)
+        );
+
+        if (!isUnlocked) {
+          get().setGoalPlan({
+            currentLevel: weeklyProgression.activeStage.level,
+            currentWeek: weeklyProgression.activeStage.week,
+          });
+          return;
+        }
 
         get().setGoalPlan({
           goalPath: resolvedPath,
@@ -641,20 +740,17 @@ export const useFoodStore = create<FoodStoreState>()(
       setWaterLoggedMl: (amountMl: number) => {
         const clamped = Math.max(0, Math.min(4000, amountMl));
         const questPlan = get().getQuestPlan();
-        const waterMission = questPlan.sideMissions.find((m) => m.type === "water");
+        const consumed = get().getConsumed();
+        const dayLogs = get().getLogsByDate(get().selectedDate);
         const currentCompleted = get().completedMissions;
 
-        let nextCompleted = [...currentCompleted];
-        if (waterMission) {
-          const isAlreadyDone = currentCompleted.includes(waterMission.id);
-          if (clamped >= waterMission.targetValue && !isAlreadyDone) {
-            nextCompleted.push(waterMission.id);
-            usePetStore.getState().gainExp(waterMission.xpReward ?? 25);
-            usePetStore.getState().addCoins(waterMission.coinReward ?? 10);
-          } else if (clamped < waterMission.targetValue && isAlreadyDone) {
-            nextCompleted = nextCompleted.filter((id) => id !== waterMission.id);
-          }
-        }
+        const nextCompleted = autoEvaluateAndSyncMissions(
+          consumed,
+          dayLogs,
+          clamped,
+          questPlan,
+          currentCompleted
+        );
 
         set({
           waterLoggedMl: clamped,
@@ -663,6 +759,14 @@ export const useFoodStore = create<FoodStoreState>()(
       },
 
       toggleMissionComplete: (missionId: string, xpReward = 30, coinReward = 15) => {
+        // Requirement 4: Tasks can only be completed based on calories consumed, not as a to-do list.
+        const questPlan = get().getQuestPlan();
+        const mainMission = questPlan.mainMissions.find((m) => m.id === missionId);
+        if (mainMission) {
+          // Intake missions cannot be manually checked as to-do list!
+          return get().completedMissions.includes(missionId);
+        }
+
         const current = get().completedMissions;
         const exists = current.includes(missionId);
 
@@ -743,7 +847,15 @@ export const useFoodStore = create<FoodStoreState>()(
         }
 
         const depkes = evaluateDepkesIntake(consumed.calories, targets.calories);
-        set({ latestFeedback: feedback, depkesStatus: depkes.code });
+        const dayLogs = get().getLogsByDate(get().selectedDate);
+        const nextCompleted = autoEvaluateAndSyncMissions(
+          consumed,
+          dayLogs,
+          get().waterLoggedMl,
+          get().getQuestPlan(),
+          get().completedMissions
+        );
+        set({ latestFeedback: feedback, depkesStatus: depkes.code, completedMissions: nextCompleted });
         return feedback;
       },
 
@@ -771,7 +883,15 @@ export const useFoodStore = create<FoodStoreState>()(
 
         const consumed = get().getConsumed();
         const depkes = evaluateDepkesIntake(consumed.calories, get().targets.calories);
-        set({ latestFeedback: feedback, depkesStatus: depkes.code });
+        const dayLogs = get().getLogsByDate(get().selectedDate);
+        const nextCompleted = autoEvaluateAndSyncMissions(
+          consumed,
+          dayLogs,
+          get().waterLoggedMl,
+          get().getQuestPlan(),
+          get().completedMissions
+        );
+        set({ latestFeedback: feedback, depkesStatus: depkes.code, completedMissions: nextCompleted });
         return feedback;
       },
 
@@ -793,7 +913,15 @@ export const useFoodStore = create<FoodStoreState>()(
         }));
         const consumed = get().getConsumed();
         const depkes = evaluateDepkesIntake(consumed.calories, get().targets.calories);
-        set({ depkesStatus: depkes.code });
+        const dayLogs = get().getLogsByDate(get().selectedDate);
+        const nextCompleted = autoEvaluateAndSyncMissions(
+          consumed,
+          dayLogs,
+          get().waterLoggedMl,
+          get().getQuestPlan(),
+          get().completedMissions
+        );
+        set({ depkesStatus: depkes.code, completedMissions: nextCompleted });
       },
 
       setLogs: (logs: ExtendedFoodLog[]) => set({ logs }),
@@ -1015,6 +1143,66 @@ export const useFoodStore = create<FoodStoreState>()(
           weightKg: goalPlan.currentWeightKg,
           heightCm: goalPlan.heightCm,
         });
+      },
+
+      getWeeklyProgression: (): WeeklyProgressionResult => {
+        const { goalPlan, logs, targets } = get();
+        const goalPath = goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
+        return calculateWeeklyProgression({
+          startDate: goalPlan.startDate || getTodayFormatted(),
+          goalPath,
+          logs,
+          selectedLevel: goalPlan.currentLevel,
+          selectedWeek: goalPlan.currentWeek,
+          todayDateStr: getTodayFormatted(),
+          targetCalories: targets.calories,
+        });
+      },
+
+      getEvaluatedMissions: (targetDate?: string) => {
+        const dateToUse = targetDate || get().selectedDate;
+        const consumed = get().getConsumed(dateToUse);
+        const dayLogs = get().getLogsByDate(dateToUse);
+        const questPlan = get().getQuestPlan();
+        const waterLoggedMl = get().waterLoggedMl;
+
+        const results: Array<{
+          mission: QuestMainMission | QuestSideMission;
+          status: MissionAutoStatus;
+          isMain: boolean;
+        }> = [];
+
+        for (const main of questPlan.mainMissions) {
+          const status = evaluateMissionAutoStatus(main, {
+            consumedCalories: consumed.calories,
+            consumedProtein: consumed.protein,
+            consumedCarbs: consumed.carbs,
+            consumedFat: consumed.fat,
+            consumedFiber: consumed.fiber,
+            consumedSugar: consumed.sugar,
+            targetCalories: questPlan.calorieTarget,
+            dayLogsCount: dayLogs.length,
+            waterLoggedMl,
+          });
+          results.push({ mission: main, status, isMain: true });
+        }
+
+        for (const side of questPlan.sideMissions) {
+          const status = evaluateMissionAutoStatus(side, {
+            consumedCalories: consumed.calories,
+            consumedProtein: consumed.protein,
+            consumedCarbs: consumed.carbs,
+            consumedFat: consumed.fat,
+            consumedFiber: consumed.fiber,
+            consumedSugar: consumed.sugar,
+            targetCalories: questPlan.calorieTarget,
+            dayLogsCount: dayLogs.length,
+            waterLoggedMl,
+          });
+          results.push({ mission: side, status, isMain: false });
+        }
+
+        return results;
       },
     }),
     {

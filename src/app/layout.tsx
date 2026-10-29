@@ -5,6 +5,7 @@ import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
 import { SessionProvider } from "@/components/shared/session-provider";
+import { AppToaster } from "@/components/shared/app-toaster";
 
 const openRunde = localFont({
   src: [
@@ -52,6 +53,7 @@ export default function RootLayout({
           <main className="flex-1 pb-24 lg:pb-12">{children}</main>
           <BottomNav />
           <NotificationDrawer />
+          <AppToaster />
         </SessionProvider>
       </body>
     </html>

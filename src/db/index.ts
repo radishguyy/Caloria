@@ -2,9 +2,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
+type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
+
 const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
-  db: ReturnType<typeof drizzle> | undefined;
+  db: DrizzleDb | undefined;
 };
 
 function getClient() {
@@ -30,7 +32,7 @@ function getClient() {
   return globalForDb.conn;
 }
 
-export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+export const db = new Proxy({} as DrizzleDb, {
   get(_target, prop) {
     if (!globalForDb.db) {
       const client = getClient();

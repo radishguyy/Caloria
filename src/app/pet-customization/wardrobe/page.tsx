@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -16,6 +16,7 @@ import {
 import { CosmeticCategory } from "@/lib/cosmetics-catalog";
 import { WARDROBE_CATEGORIES } from "@/lib/wardrobe-categories";
 import { savePetEquippedAction } from "@/app/actions/pet-customization";
+import { toastLoadoutEquipped, toastPaletteSaved } from "@/lib/toast";
 
 export default function PetWardrobePage() {
   const isHydrated = useHydrated();
@@ -222,6 +223,14 @@ export default function PetWardrobePage() {
     }
 
     // Feedback toast
+    const hasColorChanged =
+      JSON.stringify(customColors || {}) !== JSON.stringify(draftState.colors || {});
+    if (hasColorChanged) {
+      toastPaletteSaved();
+    } else {
+      toastLoadoutEquipped();
+    }
+
     setSaveToast({
       success: true,
       message: "Perubahan penampilan Calpal berhasil disimpan!",

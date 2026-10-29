@@ -6,6 +6,10 @@ import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { FriendRequest } from "@/types";
 import { useSocialStore } from "@/stores/social-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import {
+  toastFriendRequestAccepted,
+  toastFriendRequestDeclined,
+} from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 interface FriendRequestListProps {
@@ -38,10 +42,11 @@ export function FriendRequestList({ className, onAcceptSuccess }: FriendRequestL
     (req) => req.direction === "outgoing" && req.status === "pending"
   );
 
-  const handleAccept = async (requestId: string) => {
+  const handleAccept = async (requestId: string, username?: string) => {
     setProcessingId(requestId);
     try {
       await acceptFriendRequest(requestId);
+      toastFriendRequestAccepted(username || "Teman");
       onAcceptSuccess?.();
     } finally {
       setProcessingId(null);
@@ -52,6 +57,7 @@ export function FriendRequestList({ className, onAcceptSuccess }: FriendRequestL
     setProcessingId(requestId);
     try {
       await declineFriendRequest(requestId);
+      toastFriendRequestDeclined();
     } finally {
       setProcessingId(null);
     }
@@ -190,7 +196,7 @@ export function FriendRequestList({ className, onAcceptSuccess }: FriendRequestL
                       <button
                         type="button"
                         disabled={isBusy}
-                        onClick={() => handleAccept(req.id)}
+                        onClick={() => handleAccept(req.id, req.sender.username)}
                         className="button-primary inline-flex items-center gap-1 px-4 py-1.5 text-xs font-bold font-sans cursor-pointer"
                         style={{
                           backgroundColor: "#5B8E55",

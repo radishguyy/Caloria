@@ -293,48 +293,96 @@ export function ReviewScanModal({
           </div>
 
           {/* Servings Consumed Multiplier Stepper */}
-          <div className="rounded-button border border-border-divider bg-surface-subtle p-3.5 flex items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-extrabold text-foreground block">
-                Jumlah Porsi Dikonsumsi
-              </span>
-              <span className="text-[11px] text-text-muted">
-                1 porsi = {servingSize || "100"} {servingUnit || "g"}
-                {initialData.servingsPerContainer
-                  ? ` (${initialData.servingsPerContainer} sajian/kemasan)`
-                  : ""}
-              </span>
+          <div className="rounded-button border border-border-divider bg-surface-subtle p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-extrabold text-foreground block">
+                  Jumlah Porsi Dikonsumsi
+                </span>
+                <span className="text-[11px] text-text-muted">
+                  1 porsi = {servingSize || "100"} {servingUnit || "g"}
+                  {initialData.servingsPerContainer
+                    ? ` • ${initialData.servingsPerContainer} sajian/kemasan`
+                    : ""}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleAdjustServings(-0.25)}
+                  className="h-8 w-8 rounded-input border border-border-default bg-surface hover:bg-accent-green-light flex items-center justify-center text-foreground hover:text-text-primary transition-colors"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <input
+                  type="number"
+                  step="0.25"
+                  min="0.25"
+                  max="50"
+                  value={servingsConsumed}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (Number.isFinite(val) && val > 0) {
+                      setServingsConsumed(val);
+                    }
+                  }}
+                  className="input-field w-16 text-center py-1 text-xs font-extrabold"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleAdjustServings(0.25)}
+                  className="h-8 w-8 rounded-input border border-border-default bg-surface hover:bg-accent-green-light flex items-center justify-center text-foreground hover:text-text-primary transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Quick shortcuts for portions (including full package if available) */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-border-divider/50">
+              <span className="text-[10px] font-semibold text-text-muted mr-1">Cepat:</span>
               <button
                 type="button"
-                onClick={() => handleAdjustServings(-0.25)}
-                className="h-8 w-8 rounded-input border border-border-default bg-surface hover:bg-accent-green-light flex items-center justify-center text-foreground hover:text-text-primary transition-colors"
+                onClick={() => setServingsConsumed(1.0)}
+                className={cn(
+                  "px-2 py-0.5 rounded text-[10px] font-bold border transition-colors",
+                  servingsConsumed === 1.0
+                    ? "bg-accent-green-light border-brand-primary text-text-primary"
+                    : "border-border-default bg-surface text-text-muted hover:text-foreground"
+                )}
               >
-                <Minus className="h-3.5 w-3.5" />
+                1 porsi
               </button>
-              <input
-                type="number"
-                step="0.25"
-                min="0.25"
-                max="50"
-                value={servingsConsumed}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  if (Number.isFinite(val) && val > 0) {
-                    setServingsConsumed(val);
-                  }
-                }}
-                className="input-field w-16 text-center py-1 text-xs font-extrabold"
-              />
-              <button
-                type="button"
-                onClick={() => handleAdjustServings(0.25)}
-                className="h-8 w-8 rounded-input border border-border-default bg-surface hover:bg-accent-green-light flex items-center justify-center text-foreground hover:text-text-primary transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
+              {initialData.servingsPerContainer && initialData.servingsPerContainer !== 1 && (
+                <button
+                  type="button"
+                  onClick={() => setServingsConsumed(initialData.servingsPerContainer!)}
+                  className={cn(
+                    "px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center gap-1",
+                    servingsConsumed === initialData.servingsPerContainer
+                      ? "bg-accent-green-light border-brand-primary text-text-primary"
+                      : "border-border-default bg-surface text-text-muted hover:text-foreground"
+                  )}
+                >
+                  <span>1 kemasan penuh</span>
+                  <span className="opacity-75">({initialData.servingsPerContainer} porsi)</span>
+                </button>
+              )}
+              {initialData.servingsPerContainer && initialData.servingsPerContainer > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setServingsConsumed(Math.max(0.25, Math.round((initialData.servingsPerContainer! / 2) * 100) / 100))}
+                  className={cn(
+                    "px-2 py-0.5 rounded text-[10px] font-bold border transition-colors",
+                    servingsConsumed === Math.max(0.25, Math.round((initialData.servingsPerContainer! / 2) * 100) / 100)
+                      ? "bg-accent-green-light border-brand-primary text-text-primary"
+                      : "border-border-default bg-surface text-text-muted hover:text-foreground"
+                  )}
+                >
+                  1/2 kemasan
+                </button>
+              )}
             </div>
           </div>
 

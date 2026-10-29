@@ -37,6 +37,11 @@ import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import { ReviewScanModal } from "@/components/diary/ReviewScanModal";
 import { CreateCustomFoodModal } from "@/components/diary/CreateCustomFoodModal";
 import { batchLogFoodsAction } from "@/app/actions/diary";
+import {
+  toastFoodStaged,
+  toastMealsCommitted,
+  toastOcrSuccess,
+} from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 /**
@@ -198,6 +203,7 @@ function DiaryAddFoodContent() {
 
       setScannedData(json.data as NutritionLabelData);
       setIsReviewModalOpen(true);
+      toastOcrSuccess();
     } catch (err) {
       setScanError(
         err instanceof Error
@@ -265,6 +271,7 @@ function DiaryAddFoodContent() {
       if (exists) {
         return prev.filter((i) => i.id !== food.id);
       }
+      toastFoodStaged(food.name);
       return [
         ...prev,
         {
@@ -416,6 +423,7 @@ function DiaryAddFoodContent() {
     });
 
     feedPet(result.totalBatchCalories, result.totalXp, 0);
+    toastMealsCommitted(result.totalXp, 10);
 
     setRewardResult(result);
     if (result.leveledUp) {
@@ -987,6 +995,7 @@ function DiaryAddFoodContent() {
           }}
           onAddToStaging={(item) => {
             setStagedItems((prev) => [...prev, item]);
+            toastFoodStaged(item.name);
           }}
         />
       )}

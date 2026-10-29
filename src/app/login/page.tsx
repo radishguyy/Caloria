@@ -48,9 +48,9 @@ export default function LoginPage() {
       });
 
       if (!res.user.isOnboardingCompleted) {
-        router.push("/onboarding/goal");
+        window.location.href = "/onboarding/goal";
       } else {
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan.");

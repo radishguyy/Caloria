@@ -52,8 +52,20 @@ export default function OnboardingGoalPage() {
     if (selectedGoal === "bulking") dailyMargin = 400;
     else if (selectedGoal === "maintenance") dailyMargin = 0;
 
+    const goalPath =
+      selectedGoal === "bulking"
+        ? "gain_muscle"
+        : selectedGoal === "maintenance"
+        ? "maintain_weight"
+        : "lose_weight";
+
     setGoalPlan({
       goalType: selectedGoal,
+      goalPath,
+      currentLevel: 1,
+      currentWeek: 1,
+      startDate: new Date().toISOString().split("T")[0],
+      streakConsecutiveLogs: 0,
       dailyMarginKcal: dailyMargin,
     });
     setOnboardingStep(2);

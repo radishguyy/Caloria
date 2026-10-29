@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Search, UserPlus, Check, AlertCircle, Copy, Users } from "lucide-react";
 import { useSocialStore } from "@/stores/social-store";
+import { toastFriendRequestSent } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 interface AddFriendModalProps {
@@ -40,6 +41,7 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
     try {
       const res = await sendFriendRequestByUsername(usernameInput);
       if (res.success) {
+        toastFriendRequestSent(usernameInput);
         setStatusMsg({ type: "success", text: res.message });
         setUsernameInput("");
         setTimeout(() => {

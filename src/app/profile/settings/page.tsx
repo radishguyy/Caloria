@@ -14,6 +14,8 @@ import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { logoutAction } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 export default function ProfileSettingsPage() {
@@ -68,9 +70,19 @@ export default function ProfileSettingsPage() {
     setTimeout(() => setSavedFeedback(false), 2000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Client signOut warning:", e);
+    }
+    await logoutAction();
     logout();
-    router.push("/login");
+    try {
+      localStorage.removeItem("caloria-auth-storage");
+    } catch {}
+    window.location.href = "/login";
   };
 
   return (

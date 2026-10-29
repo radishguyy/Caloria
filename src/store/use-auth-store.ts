@@ -38,14 +38,9 @@ interface AuthStoreState {
 export const useAuthStore = create<AuthStoreState>()(
   persist(
     (set) => ({
-      isAuthenticated: true,
-      user: {
-        id: "user-iman-1",
-        email: "iman@caloria.app",
-        username: "iman_dev",
-        fullName: "Iman Nur",
-      },
-      onboardingCompleted: true, // Default to true so existing users go straight to dashboard
+      isAuthenticated: false,
+      user: null,
+      onboardingCompleted: false,
       activeOnboardingStep: 1,
 
       login: (email: string, username?: string) =>
