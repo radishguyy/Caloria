@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TrendingDown, Dumbbell, ShieldCheck, ArrowRight } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
@@ -12,7 +12,14 @@ import { cn } from "@/lib/utils";
 export default function OnboardingGoalPage() {
   const router = useRouter();
   const { goalPlan, setGoalPlan } = useFoodStore();
-  const { setOnboardingStep } = useAuthStore();
+  const { setOnboardingStep, onboardingCompleted } = useAuthStore();
+
+  // If user has already finished onboarding previously, redirect to dashboard
+  useEffect(() => {
+    if (onboardingCompleted) {
+      router.replace("/dashboard");
+    }
+  }, [onboardingCompleted, router]);
 
   const [selectedGoal, setSelectedGoal] = useState<GoalProgramType>(
     goalPlan.goalType || "diet"

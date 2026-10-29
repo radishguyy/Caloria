@@ -40,7 +40,7 @@ export default function LoginPage() {
       }
 
       // Sync Zustand local auth state with Supabase profile
-      login(res.user.email, res.user.username);
+      login(res.user.email, res.user.username, res.user.isOnboardingCompleted);
       useAuthStore.setState({
         user: {
           id: res.user.id,
@@ -49,6 +49,7 @@ export default function LoginPage() {
           fullName: res.user.fullName,
         },
         onboardingCompleted: res.user.isOnboardingCompleted,
+        activeOnboardingStep: res.user.isOnboardingCompleted ? 5 : 1,
       });
 
       if (!res.user.isOnboardingCompleted) {

@@ -16,7 +16,7 @@ interface AuthStoreState {
   activeOnboardingStep: number; // 1: goal, 2: profile-calculator, 3: projection, 4: adopt-pet
 
   // Actions
-  login: (email: string, username?: string) => void;
+  login: (email: string, username?: string, isOnboardingCompleted?: boolean) => void;
   register: (email: string, username: string, fullName: string) => void;
   logout: () => void;
   setOnboardingStep: (step: number) => void;
@@ -43,9 +43,11 @@ export const useAuthStore = create<AuthStoreState>()(
       onboardingCompleted: false,
       activeOnboardingStep: 1,
 
-      login: (email: string, username?: string) =>
+      login: (email: string, username?: string, isOnboardingCompleted?: boolean) =>
         set({
           isAuthenticated: true,
+          onboardingCompleted: isOnboardingCompleted ?? false,
+          activeOnboardingStep: isOnboardingCompleted ? 5 : 1,
           user: {
             id: `user-${Date.now()}`,
             email,
@@ -81,7 +83,7 @@ export const useAuthStore = create<AuthStoreState>()(
       completeOnboarding: () =>
         set({
           onboardingCompleted: true,
-          activeOnboardingStep: 4,
+          activeOnboardingStep: 5,
         }),
 
       resetOnboarding: () =>
@@ -94,7 +96,7 @@ export const useAuthStore = create<AuthStoreState>()(
         set({
           isAuthenticated: true,
           onboardingCompleted: input.isOnboardingCompleted,
-          activeOnboardingStep: input.isOnboardingCompleted ? 4 : 1,
+          activeOnboardingStep: input.isOnboardingCompleted ? 5 : 1,
           user: {
             id: input.id,
             email: input.email || "",
