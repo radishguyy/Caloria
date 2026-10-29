@@ -2,91 +2,124 @@
 
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useFoodStore } from "@/store/use-food-store";
+import { usePetStore } from "@/store/use-pet-store";
+import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useSocialStore } from "@/store/use-social-store";
+import { useWeightStore } from "@/store/use-weight-store";
+import { useAchievementsStore } from "@/store/use-achievements-store";
 import { createClient } from "@/lib/supabase/client";
-import { getProfileData } from "@/app/actions/profile";
+import { fetchAppInitialDataAction } from "@/app/actions/profile";
 
-interface SessionUser {
-  id: string;
-  email: string | null;
-  username: string;
-  fullName: string | null;
-  avatarUrl: string | null;
-  isOnboardingCompleted: boolean;
-}
+async function hydrateStoresFromDatabase() {
+  try {
+    const data = await fetchAppInitialDataAction();
+    if (!data || !data.authenticated || !data.user) {
+      useAuthStore.getState().clearUser();
+      return;
+    }
 
-function applySession(
-  setUser: (input: SessionUser) => void,
-  setStreak: (days: number) => void,
-  sessionUser: SessionUser,
-  supabase: ReturnType<typeof createClient>
-) {
-  setUser({
-    id: sessionUser.id,
-    email: sessionUser.email,
-    username: sessionUser.username,
-    fullName: sessionUser.fullName,
-    avatarUrl: sessionUser.avatarUrl,
-    isOnboardingCompleted: sessionUser.isOnboardingCompleted,
-  });
+    // 1. Hydrate Auth
+    useAuthStore.getState().setUserFromSession(data.user);
 
-  // Streak lives on the profile row; surface it into the social store so the
-  // existing NavStreakBadge continues to read from the store.
-  supabase
-    .from("profiles")
-    .select("current_streak_days")
-    .eq("id", sessionUser.id)
-    .single()
-    .then(({ data }) => {
-      setStreak(data?.current_streak_days ?? 0);
-    });
+    // 2. Hydrate Food & Biometrics Store
+    if (data.profile) {
+      useFoodStore.getState().setGoalPlan({
+        currentWeightKg: data.profile.currentWeightKg,
+        targetWeightKg: data.profile.targetWeightKg,
+        heightCm: data.profile.heightCm,
+        goalPath: data.profile.goalPath as any,
+        currentLevel: data.profile.currentLevel,
+        currentWeek: data.profile.currentWeek,
+        streakConsecutiveLogs: data.profile.streakConsecutiveLogs,
+        totalProjectedDays: data.profile.projectedDays,
+      });
+
+      useFoodStore.getState().setTargets({
+        calories: data.profile.targetCaloriesKcal,
+        protein: data.profile.targetProteinG,
+        carbs: data.profile.targetCarbsG,
+        fat: data.profile.targetFatG,
+      });
+
+      useFoodStore.getState().setQuestProgression({
+        goalPath: data.profile.goalPath as any,
+        currentLevel: data.profile.currentLevel,
+        currentWeek: data.profile.currentWeek,
+      });
+    }
+
+    if (data.foodLogs && data.foodLogs.length > 0) {
+      useFoodStore.getState().setLogs(data.foodLogs as any);
+    }
+
+    // 3. Hydrate Pet Store
+    if (data.pet) {
+      usePetStore.getState().setPetState({
+        name: data.pet.name,
+        species: data.pet.species,
+        stage: data.pet.stage,
+        level: data.pet.level,
+        exp: data.pet.exp,
+        hunger: data.pet.hunger,
+        happiness: data.pet.happiness,
+        coins: data.pet.coins,
+        customColors: data.pet.customColors,
+      });
+    }
+
+    // 4. Hydrate Cosmetics & Wardrobe Store
+    if (data.cosmetics) {
+      useCosmeticsStore.getState().setOwnedItemIds(data.cosmetics.ownedItemIds);
+      if (data.cosmetics.equipped) {
+        useCosmeticsStore.getState().setEquippedLoadout(data.cosmetics.equipped as any);
+      }
+    }
+
+    // 5. Hydrate Weight History Store
+    if (data.weightLogs) {
+      useWeightStore.getState().setWeightLogs(data.weightLogs);
+    }
+
+    // 6. Hydrate Achievements Store
+    if (data.unlockedBadgeIds) {
+      useAchievementsStore.getState().setUnlockedBadgeIds(data.unlockedBadgeIds);
+    }
+
+    // 7. Hydrate Social Hub Store
+    useSocialStore.getState().fetchSocialData();
+    if (data.profile) {
+      useSocialStore.getState().setStreak(data.profile.streakCount);
+    }
+  } catch (err) {
+    console.error("[SessionProvider] Hydration error:", err);
+  }
 }
 
 /**
- * SessionProvider bridges Supabase Auth sessions with the existing zustand
- * stores. It must be mounted once, at the root, so every component that reads
- * `useAuthStore` reflects the real authenticated session.
- *
- * - On mount, hydrates the auth store from the current Supabase session.
- * - Subscribes to auth state changes (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED).
- * - On SIGNED_OUT, clears the stores.
+ * SessionProvider bridges Supabase Auth sessions with client zustand stores.
+ * On mount and on auth change, it synchronizes all persistent data from PostgreSQL.
  */
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const setUser = useAuthStore((state) => state.setUserFromSession);
-  const clearUser = useAuthStore((state) => state.clearUser);
-  const setStreak = useSocialStore((state) => state.setStreak);
-
   useEffect(() => {
     const supabase = createClient();
 
-    // Hydrate from the current session.
-    const hydrate = async () => {
-      const profile = await getProfileData();
-      if (profile) {
-        applySession(setUser, setStreak, profile, supabase);
-      } else {
-        clearUser();
-      }
-    };
+    // Initial hydration
+    hydrateStoresFromDatabase();
 
-    hydrate();
-
-    // Keep the stores in sync across tabs / token refreshes.
+    // Subscribe to auth state events
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        const profile = await getProfileData();
-        if (profile) {
-          applySession(setUser, setStreak, profile, supabase);
-        }
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        hydrateStoresFromDatabase();
       } else if (event === "SIGNED_OUT") {
-        clearUser();
+        useAuthStore.getState().clearUser();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, clearUser, setStreak]);
+  }, []);
 
   return <>{children}</>;
 }

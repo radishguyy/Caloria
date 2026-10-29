@@ -5,51 +5,6 @@ import { profiles, pets, friendships } from "@/db/schema";
 import { eq, ne, or, desc } from "drizzle-orm";
 import { FriendRecommendation } from "@/types";
 
-const FALLBACK_RECOMMENDATIONS: FriendRecommendation[] = [
-  {
-    id: "rec-user-1",
-    username: "dimas_runs",
-    fullName: "Dimas Anggara",
-    avatarUrl: null,
-    petName: "Leafy",
-    petSpecies: "bloomie",
-    petLevel: 4,
-    petStage: "Hatchling",
-    mutualTag: "🔥 5-day streak",
-    calorieTarget: 2200,
-    streakDays: 5,
-    goalType: "maintenance",
-  },
-  {
-    id: "rec-user-2",
-    username: "siti_balance",
-    fullName: "Siti Rahma",
-    avatarUrl: null,
-    petName: "Aqua",
-    petSpecies: "droplet",
-    petLevel: 5,
-    petStage: "Juvenile",
-    mutualTag: "🎯 Target Seimbang",
-    calorieTarget: 1800,
-    streakDays: 9,
-    goalType: "diet",
-  },
-  {
-    id: "rec-user-3",
-    username: "kevin_lift",
-    fullName: "Kevin Wijaya",
-    avatarUrl: null,
-    petName: "Pyro",
-    petSpecies: "flameling",
-    petLevel: 6,
-    petStage: "Juvenile",
-    mutualTag: "💪 Fokus Protein",
-    calorieTarget: 2600,
-    streakDays: 12,
-    goalType: "bulking",
-  },
-];
-
 export async function GET(request: NextRequest) {
   try {
     let currentUserId: string | null = null;
@@ -90,7 +45,7 @@ export async function GET(request: NextRequest) {
     if (!currentUserId || !process.env.DATABASE_URL || !db) {
       return NextResponse.json({
         success: true,
-        recommendations: FALLBACK_RECOMMENDATIONS,
+        recommendations: [],
       });
     }
 
@@ -125,14 +80,14 @@ export async function GET(request: NextRequest) {
       .from(profiles)
       .where(ne(profiles.id, currentUserId))
       .orderBy(desc(profiles.currentStreakDays))
-      .limit(10);
+      .limit(15);
 
     const filtered = candidates.filter((c) => !excludedUserIds.has(c.id));
 
     const recs: FriendRecommendation[] = [];
 
-    // Up to 3 real recommendations
-    for (const profile of filtered.slice(0, 3)) {
+    // Up to 5 real recommendations
+    for (const profile of filtered.slice(0, 5)) {
       const [pet] = await db
         .select()
         .from(pets)
@@ -158,22 +113,12 @@ export async function GET(request: NextRequest) {
         petName: pet?.name || "Buddy",
         petSpecies: (pet?.species as any) || "bloomie",
         petLevel: pet?.level || 1,
-        petStage: pet && (pet.stage === 2 || pet.level >= 5) ? "Juvenile" : "Hatchling",
+        petStage: pet && (pet.stage === "juvenile" || pet.stage === "adult" || pet.level >= 5) ? "Juvenile" : "Hatchling",
         mutualTag,
         calorieTarget: profile.targetCaloriesKcal || 2000,
         streakDays: streak,
         goalType: profile.goal || "maintenance",
       });
-    }
-
-    // If real users are fewer than 3, backfill with fallback recommendations
-    if (recs.length < 3) {
-      for (const fallback of FALLBACK_RECOMMENDATIONS) {
-        if (recs.length >= 3) break;
-        if (!recs.some((r) => r.username === fallback.username)) {
-          recs.push(fallback);
-        }
-      }
     }
 
     return NextResponse.json({

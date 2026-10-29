@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profiles";
 import { plazaItems, userWardrobe, pets } from "@/db/schema/pets-plaza";
+import { accessories, userAccessories, userLoadouts } from "@/db/schema/cosmetics";
 import { eq, and } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -229,10 +230,27 @@ export async function purchaseAccessoryAction(
         })
         .where(eq(profiles.id, user.id));
 
+      await tx
+        .update(pets)
+        .set({
+          coins: newCoins,
+          updatedAt: new Date(),
+        })
+        .where(eq(pets.userId, user.id));
+
       await tx.insert(userWardrobe).values({
         userId: user.id,
         itemId: plazaItem.id,
       });
+
+      try {
+        await tx.insert(userAccessories).values({
+          userId: user.id,
+          accessoryId: catalogItem.id,
+        });
+      } catch (e) {
+        // user_accessories already has entry or schema fallback
+      }
 
       return {
         success: true,
@@ -347,6 +365,34 @@ export async function savePetEquippedAction(equippedLoadout: {
         updatedAt: new Date(),
       })
       .where(eq(pets.userId, user.id));
+
+    try {
+      await db
+        .insert(userLoadouts)
+        .values({
+          userId: user.id,
+          headId: equippedLoadout.head || "head-none",
+          glassesId: equippedLoadout.glasses || "glasses-none",
+          bodyId: equippedLoadout.body || "body-none",
+          heldId: equippedLoadout.held || "held-none",
+          skinId: equippedLoadout.skin || "skin-default",
+          roomId: equippedLoadout.room || "room-default",
+        })
+        .onConflictDoUpdate({
+          target: [userLoadouts.userId],
+          set: {
+            headId: equippedLoadout.head || "head-none",
+            glassesId: equippedLoadout.glasses || "glasses-none",
+            bodyId: equippedLoadout.body || "body-none",
+            heldId: equippedLoadout.held || "held-none",
+            skinId: equippedLoadout.skin || "skin-default",
+            roomId: equippedLoadout.room || "room-default",
+            updatedAt: new Date(),
+          },
+        });
+    } catch (e) {
+      // user_loadouts fallback
+    }
 
     return {
       success: true,

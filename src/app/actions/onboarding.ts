@@ -80,8 +80,10 @@ export async function saveOnboardingAction(input: SaveOnboardingInput) {
         userId,
         name: input.petName || "Pyro",
         species: input.petSpecies || "flameling",
-        stage: 1,
+        characterId: input.petSpecies || "flameling",
+        stage: "hatchling",
         level: 1,
+        exp: 0,
         currentXp: 0,
         nextLevelXp: 100,
       })
@@ -90,6 +92,7 @@ export async function saveOnboardingAction(input: SaveOnboardingInput) {
         set: {
           name: input.petName || "Pyro",
           species: input.petSpecies || "flameling",
+          characterId: input.petSpecies || "flameling",
           updatedAt: new Date(),
         },
       });

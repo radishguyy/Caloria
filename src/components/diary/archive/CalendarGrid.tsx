@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,7 +20,8 @@ import {
   subMonths,
 } from "@/lib/date-utils";
 import { useFoodStore } from "@/store/use-food-store";
-import { DailyNutritionSummary } from "@/types";
+import { DailyNutritionSummary, DailyComplianceStatus } from "@/types";
+import { fetchUserArchiveSummariesAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
 
 interface CalendarGridProps {
@@ -45,14 +46,77 @@ export function CalendarGrid({
     return getDaysInMonth(year, month);
   }, [year, month]);
 
-  // Precompute daily summaries for each day cell
+  const [serverSummaries, setServerSummaries] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (days.length === 0) return;
+    const start = days[0].dateKey;
+    const end = days[days.length - 1].dateKey;
+
+    fetchUserArchiveSummariesAction(start, end).then((res) => {
+      if (!isCancelled && res.success && res.data) {
+        setServerSummaries(res.data);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [days]);
+
+  // Precompute daily summaries for each day cell (combining local store + persistent server records)
   const summariesMap = useMemo(() => {
     const map = new Map<string, DailyNutritionSummary>();
     for (const cell of days) {
-      map.set(cell.dateKey, getDailySummary(cell.dateKey));
+      const local = getDailySummary(cell.dateKey);
+      if (local && local.hasLogs) {
+        map.set(cell.dateKey, local);
+      } else if (serverSummaries[cell.dateKey]) {
+        const s = serverSummaries[cell.dateKey];
+        const cal = s.totalCalories || 0;
+        const target = s.calorieTarget || 2000;
+        const pct = target > 0 ? Math.round((cal / target) * 100) : 0;
+        const status: DailyComplianceStatus = s.isCalorieTargetMet
+          ? "hit"
+          : cal < target * 0.85
+          ? "under"
+          : "over";
+
+        map.set(cell.dateKey, {
+          date: cell.dateKey,
+          consumed: {
+            calories: cal,
+            protein: s.totalProtein || 0,
+            carbs: s.totalCarbs || 0,
+            fat: s.totalFat || 0,
+            fiber: 0,
+            sugar: 0,
+          },
+          target: {
+            calories: target,
+            protein: s.proteinTarget || 125,
+            carbs: s.carbsTarget || 250,
+            fat: s.fatTarget || 55,
+          },
+          percentage: pct,
+          status,
+          macroStatus: {
+            protein: s.isMacroBalanced ? "hit" : "under",
+            carbs: s.isMacroBalanced ? "hit" : "under",
+            fat: s.isMacroBalanced ? "hit" : "under",
+          },
+          xpEarned: s.baseXpTotal || 0,
+          coinsEarned: 10,
+          hasLogs: cal > 0,
+          logs: [],
+        });
+      } else {
+        map.set(cell.dateKey, local);
+      }
     }
     return map;
-  }, [days, getDailySummary]);
+  }, [days, getDailySummary, serverSummaries]);
 
   const handlePrevMonth = () => {
     onChangeMonth(subMonths(currentMonthDate, 1));

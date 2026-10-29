@@ -45,6 +45,7 @@ interface PetStoreState {
   setSpecies: (species: PetSpeciesId) => void;
 
   // Customization Actions
+  setPetState: (data: Partial<PetStoreState>) => void;
   setCustomColors: (colors: Partial<CharacterColorPalette>) => void;
   applyColorPalette: (paletteId: CharacterId) => void;
   resetCustomColors: () => void;
@@ -63,18 +64,20 @@ export const usePetStore = create<PetStoreState>()(
     (set, get) => ({
       name: "Pyro",
       species: "flameling",
-      stage: 2, // Hatchling
-      level: 4,
-      exp: 140,
-      coins: 240,
-      hunger: 75,
-      happiness: 85,
+      stage: 1,
+      level: 1,
+      exp: 0,
+      coins: 0,
+      hunger: 100,
+      happiness: 100,
       health: 100,
       animationState: "idle",
       customColors: {},
       earsVariant: undefined,
       tailVariant: undefined,
       faceVariant: undefined,
+
+      setPetState: (data) => set((state) => ({ ...state, ...data })),
 
       getExpNeededForNextLevel: () => {
         const { level } = get();

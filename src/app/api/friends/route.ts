@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
           petName: pet?.name || "Buddy",
           petSpecies: (pet?.species as any) || "bloomie",
           petLevel: pet?.level || 1,
-          petStage: pet && (pet.stage === 2 || pet.level >= 5) ? "Juvenile" : "Hatchling",
+          petStage: pet && (pet.stage === "juvenile" || pet.stage === "adult" || pet.level >= 5) ? "Juvenile" : "Hatchling",
           goalType: profile.goal || "maintenance",
           caloriesLoggedToday: caloriesToday,
           calorieTarget,
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
           petName: isIncoming ? otherPet?.name : undefined,
           petSpecies: isIncoming ? (otherPet?.species as any) : undefined,
           petLevel: isIncoming ? otherPet?.level : undefined,
-          petStage: isIncoming && otherPet ? (otherPet.stage === 2 || otherPet.level >= 5 ? "Juvenile" : "Hatchling") : undefined,
+          petStage: isIncoming && otherPet ? (otherPet.stage === "juvenile" || otherPet.stage === "adult" || otherPet.level >= 5 ? "Juvenile" : "Hatchling") : undefined,
         },
         receiver: {
           id: req.receiverId,

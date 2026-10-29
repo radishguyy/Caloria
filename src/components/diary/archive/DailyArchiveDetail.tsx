@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Flame,
@@ -23,6 +23,7 @@ import { useFoodStore } from "@/store/use-food-store";
 import { MEAL_TYPES } from "@/lib/constants";
 import { CharacterSvg } from "@/components/pet/character-svg";
 import { usePetStore } from "@/store/use-pet-store";
+import { fetchUserArchiveSummariesAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
 
 interface DailyArchiveDetailProps {
@@ -40,23 +41,78 @@ export function DailyArchiveDetail({
   const isSelectedToday = isToday(selectedDate);
   const isSelectedFuture = isFuture(selectedDate);
   const summary = getDailySummary(selectedDate);
-  const { consumed, percentage, status, xpEarned, coinsEarned, hasLogs, logs } =
-    summary;
+
+  const [serverSummary, setServerSummary] = useState<any>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (summary.hasLogs) {
+      setServerSummary(null);
+      return;
+    }
+    fetchUserArchiveSummariesAction(selectedDate, selectedDate).then((res) => {
+      if (!isCancelled && res.success && res.data && res.data[selectedDate]) {
+        setServerSummary(res.data[selectedDate]);
+      } else if (!isCancelled) {
+        setServerSummary(null);
+      }
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedDate, summary.hasLogs]);
+
+  const activeCalories = summary.hasLogs
+    ? summary.consumed.calories
+    : serverSummary?.totalCalories || 0;
+  const activeProtein = summary.hasLogs
+    ? summary.consumed.protein
+    : serverSummary?.totalProtein || 0;
+  const activeCarbs = summary.hasLogs
+    ? summary.consumed.carbs
+    : serverSummary?.totalCarbs || 0;
+  const activeFat = summary.hasLogs
+    ? summary.consumed.fat
+    : serverSummary?.totalFat || 0;
+
+  const consumed = {
+    calories: activeCalories,
+    protein: activeProtein,
+    carbs: activeCarbs,
+    fat: activeFat,
+  };
+
+  const hasLogs = summary.hasLogs || activeCalories > 0;
+  const percentage = targets.calories > 0
+    ? Math.round((activeCalories / targets.calories) * 100)
+    : 0;
+
+  const status = summary.hasLogs
+    ? summary.status
+    : serverSummary?.isCalorieTargetMet
+    ? "hit"
+    : activeCalories < (targets.calories || 2000) * 0.85
+    ? "under"
+    : "over";
+
+  const xpEarned = summary.hasLogs ? summary.xpEarned : serverSummary?.baseXpTotal || 0;
+  const coinsEarned = summary.hasLogs ? summary.coinsEarned : 10;
+  const logs = summary.logs;
 
   const effectiveColors = getEffectiveColors();
 
   // Macro percentages
   const proteinPercent = Math.min(
     100,
-    Math.round((consumed.protein / (targets.protein || 130)) * 100)
+    Math.round((activeProtein / (targets.protein || 130)) * 100)
   );
   const carbsPercent = Math.min(
     100,
-    Math.round((consumed.carbs / (targets.carbs || 230)) * 100)
+    Math.round((activeCarbs / (targets.carbs || 230)) * 100)
   );
   const fatPercent = Math.min(
     100,
-    Math.round((consumed.fat / (targets.fat || 55)) * 100)
+    Math.round((activeFat / (targets.fat || 55)) * 100)
   );
 
   return (

@@ -18,6 +18,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
+import { QuestWidget } from "@/components/shared/QuestWidget";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -200,6 +201,9 @@ export default function FoodDiaryPage() {
           <p className="text-[10px] text-text-muted">Lemak sehat</p>
         </div>
       </div>
+
+      {/* Quest & Level Progress Summary Widget */}
+      <QuestWidget />
 
       {/* Filter Tabs by Meal Time */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-border-divider">

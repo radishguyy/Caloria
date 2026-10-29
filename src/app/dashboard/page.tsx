@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  PlusCircle,
   Plus,
   Target,
   Sparkles,
@@ -21,10 +20,10 @@ import {
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
-import { QuestBoard } from "@/components/dashboard/QuestBoard";
+import { QuestWidget } from "@/components/shared/QuestWidget";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
-import { useSocialStore, DEFAULT_INITIAL_FRIENDS } from "@/stores/social-store";
+import { useSocialStore } from "@/stores/social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
@@ -33,6 +32,7 @@ import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReminderStackStore } from "@/store/use-reminder-stack-store";
+import { batchLogFoodsAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
 
 const PUSH_REMINDER_DISMISS_KEY = "caloria-dismissed-push-reminder";
@@ -147,8 +147,7 @@ export default function DashboardPage() {
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
-  const activeFriends =
-    friends && friends.length > 0 ? friends : DEFAULT_INITIAL_FRIENDS;
+  const activeFriends = friends || [];
   const pendingFriends = activeFriends.filter((f) => !f.dailyGoalMet);
   const unreadNotifications = (notifications || []).filter((n) => !n.isRead);
   const activeInAppNotif = unreadNotifications[0];
@@ -346,7 +345,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4" aria-hidden="true" />
           </div>
           <h4 className="text-sm font-bold text-text-primary">
-            Pengingat Senggolan Teman ⚔️
+            Pengingat Senggolan Teman âš”ï¸
           </h4>
         </div>
         <button
@@ -420,11 +419,30 @@ export default function DashboardPage() {
     const feedback = addBatchLogs(logsToSave);
     feedPet(totalCal, feedback.xpEarned);
 
+    batchLogFoodsAction(
+      logsToSave.map((l) => ({
+        name: l.name,
+        mealType: l.mealType,
+        servingSize: l.servingSize,
+        servingUnit: l.servingUnit,
+        calories: l.calories,
+        proteinG: l.proteinG,
+        carbsG: l.carbsG,
+        fatG: l.fatG,
+        fiberG: l.fiberG,
+        sugarG: l.sugarG,
+      })),
+      todayStr
+    ).catch((err) =>
+      console.error("[Dashboard] Batch quick log sync error:", err)
+    );
+
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
 
   const handleQuickAdd = (foodItem: (typeof FOOD_CATALOG)[0]) => {
+    const todayStr = new Date().toISOString().split("T")[0];
     const feedback = addLog({
       name: foodItem.name,
       mealType: selectedQuickMeal,
@@ -436,10 +454,31 @@ export default function DashboardPage() {
       sugarG: foodItem.sugarG,
       servingSize: 1,
       servingUnit: foodItem.servingUnit,
-      loggedDate: new Date().toISOString().split("T")[0],
+      loggedDate: todayStr,
     });
 
     feedPet(foodItem.calories, feedback.xpEarned);
+
+    batchLogFoodsAction(
+      [
+        {
+          name: foodItem.name,
+          mealType: selectedQuickMeal,
+          servingSize: 1,
+          servingUnit: foodItem.servingUnit,
+          calories: foodItem.calories,
+          proteinG: foodItem.proteinG,
+          carbsG: foodItem.carbsG,
+          fatG: foodItem.fatG,
+          fiberG: foodItem.fiberG,
+          sugarG: foodItem.sugarG,
+        },
+      ],
+      todayStr
+    ).catch((err) =>
+      console.error("[Dashboard] Quick add sync error:", err)
+    );
+
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
@@ -471,7 +510,7 @@ export default function DashboardPage() {
       {/* CalPal (Virtual Pet) + Daily Nutrition Target Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: CalPal Container */}
-        <div className="lg:col-span-5 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-4">
+        <div className="lg:col-span-6 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-4">
           <PetRenderer
             interactive={true}
             size="md"
@@ -480,68 +519,25 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Right Column: Daily Nutrition Target with MacroBar */}
-        <div className="lg:col-span-7 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-6">
-          <MacroBar />
-        </div>
-      </div>
-
-      {/* 2. Unified Nutrition Summary & Calendar Strip */}
-      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-6">
-        <DashboardCalendarStrip />
-      </div>
-
-      {/* 3. Quick Food Logging Widget */}
-      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-base font-bold text-text-primary">
-              Pencatatan Makanan Cepat
-            </h3>
-            <p className="text-xs text-text-muted mt-0.5">
-              Pilih menu favorit atau baru dimakan untuk dicatat dalam 1-klik
-            </p>
-          </div>
+        {/* Right Column: Daily Nutrition Target + Catat Makanan */}
+        <div className="lg:col-span-6 flex flex-col gap-3">
+            <MacroBar />
+            {/* 2. Unified Nutrition Summary & Calendar Strip */}
+          <DashboardCalendarStrip />
           <button
+            type="button"
             onClick={() => setQuickLogModalOpen(true)}
-            className="button-ghost text-xs flex items-center gap-1.5 py-1.5 px-3"
+            className="w-full flex items-center justify-center gap-2 rounded-card border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-accent-green-dark active:scale-[0.98]"
           >
-            <Plus className="h-3.5 w-3.5 text-accent-green" />
-            <span>Pilih Banyak Sekaligus</span>
+            <Plus className="h-4 w-4" />
+            Catat Makanan
           </button>
         </div>
-
-        {/* Quick Log Row: Horizontal scrollable badges for fast single-click logging */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          <Link
-            href="/diary/add"
-            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-card bg-surface-subtle border border-dashed border-border-default hover:border-accent-green text-text-muted hover:text-text-primary transition-all text-xs font-semibold"
-          >
-            <PlusCircle className="h-4 w-4 text-accent-green" />
-            <span>Katalog Lengkap</span>
-          </Link>
-
-          {FOOD_CATALOG.slice(0, 8).map((food) => (
-            <button
-              key={food.id}
-              onClick={() => handleQuickAdd(food)}
-              className="flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-card bg-surface border border-border-divider hover:border-accent-orange/40 hover:bg-accent-yellow/10 transition-all text-left shadow-2xs group"
-            >
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-text-primary group-hover:text-accent-orange-dark transition-colors">
-                  {food.name}
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  {food.calories} kcal • {food.proteinG}g P
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-accent-green bg-accent-green/10 px-1.5 py-0.5 rounded-pill ml-1">
-                + Catat
-              </span>
-            </button>
-          ))}
-        </div>
       </div>
+
+
+
+
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
@@ -651,8 +647,8 @@ export default function DashboardPage() {
                           {food.name}
                         </p>
                         <p className="text-[10px] text-text-muted">
-                          {food.calories} kcal • {food.proteinG}g P •{" "}
-                          {food.carbsG}g C • {food.fatG}g F
+                          {food.calories} kcal â€¢ {food.proteinG}g P â€¢{" "}
+                          {food.carbsG}g C â€¢ {food.fatG}g F
                         </p>
                       </div>
                     </div>
@@ -715,8 +711,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 4. RPG Quest & Mission Board Widget */}
-      <QuestBoard />
+      {/* 4. RPG Quest & Mission Board Summary Widget */}
+      <QuestWidget />
     </div>
   );
 }

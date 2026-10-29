@@ -7,6 +7,7 @@ interface AchievementsStoreState {
   newlyUnlockedBadge: AchievementBadge | null;
 
   // Actions
+  setUnlockedBadgeIds: (ids: string[]) => void;
   unlockBadge: (badgeId: string, addCoinsCallback?: (coins: number) => void) => boolean;
   clearNewlyUnlockedBadge: () => void;
   checkAutomaticUnlocks: (stats: {
@@ -22,12 +23,10 @@ interface AchievementsStoreState {
 export const useAchievementsStore = create<AchievementsStoreState>()(
   persist(
     (set, get) => ({
-      unlockedBadgeIds: [
-        "badge-consistency-3",
-        "badge-consistency-7",
-        "badge-coop-starter",
-      ],
+      unlockedBadgeIds: [],
       newlyUnlockedBadge: null,
+
+      setUnlockedBadgeIds: (ids: string[]) => set({ unlockedBadgeIds: ids }),
 
       unlockBadge: (badgeId: string, addCoinsCallback?: (coins: number) => void) => {
         if (get().unlockedBadgeIds.includes(badgeId)) return false;
