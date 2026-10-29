@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Flame, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { loginAction } from "@/app/actions/auth";
 import { GoogleButton } from "@/components/auth/google-button";
+import { PeekingCalpal } from "@/components/auth/PeekingCalpal";
+import { useRandomLogo } from "@/lib/logos";
 
 export default function LoginPage() {
+  const logo = useRandomLogo();
   const router = useRouter();
   const { login } = useAuthStore();
 
@@ -60,18 +64,31 @@ export default function LoginPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-12 sm:py-16 flex flex-col items-center justify-center">
-      <div className="w-full rounded-card border border-border-divider bg-surface p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="group relative w-full pt-8">
+        <PeekingCalpal characterId="droplet" position="left" expression="idle" title="Droplet mengintip dari kiri" />
+        <PeekingCalpal characterId="flameling" position="top-right" expression="happy" title="Flameling mengintip dari atas" />
+        <div className="relative z-10 w-full rounded-card border border-border-divider bg-surface p-6 sm:p-8 shadow-sm space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-button bg-accent-green text-text-inverse shadow-xs">
-            <Flame className="h-7 w-7 fill-text-inverse" />
-          </div>
+        <div className="text-center">
           <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
-            Masuk ke Caloria
+            Login akun
           </h1>
-          <p className="text-xs text-text-muted">
-            Lanjutkan perjalanan merawat nutrisi dan meningkatkan level Pet kamu.
-          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+            aria-label="Kembali ke Beranda Caloria"
+          >
+            <Image
+              src={logo}
+              alt="Caloria Logo"
+              width={150}
+              height={40}
+              priority
+              unoptimized
+              className="h-10 w-auto object-contain"
+            />
+          </Link>
+
         </div>
 
         {errorMsg && (
@@ -153,6 +170,7 @@ export default function LoginPage() {
             Daftar Sekarang
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );

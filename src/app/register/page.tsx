@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Flame, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { registerAction } from "@/app/actions/auth";
+import { PeekingCalpal } from "@/components/auth/PeekingCalpal";
+import { useRandomLogo } from "@/lib/logos";
 
 export default function RegisterPage() {
+  const logo = useRandomLogo();
   const router = useRouter();
   const { register } = useAuthStore();
 
@@ -67,17 +71,33 @@ export default function RegisterPage() {
 
   return (
     <div className="container mx-auto max-w-md px-4 py-12 sm:py-16 flex flex-col items-center justify-center">
-      <div className="w-full rounded-card border border-border-divider bg-surface p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="group relative w-full pt-8">
+        <PeekingCalpal characterId="sunny" position="right" expression="happy" title="Sunny mengintip dari kanan" />
+        <PeekingCalpal characterId="bloomie" position="top-left" expression="idle" title="Bloomie mengintip dari atas" />
+        <div className="relative z-10 w-full rounded-card border border-border-divider bg-surface p-6 sm:p-8 shadow-sm space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-button bg-accent-green text-text-inverse shadow-xs">
-            <Flame className="h-7 w-7 fill-text-inverse" />
-          </div>
+        <div className="text-center">
           <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">
-            Daftar Akun Caloria
+            Daftar Akun
           </h1>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+            aria-label="Kembali ke Beranda Caloria"
+          >
+            <Image
+              src={logo}
+              alt="Caloria Logo"
+              width={150}
+              height={40}
+              priority
+              unoptimized
+              className="h-10 w-auto object-contain"
+            />
+          </Link>
+
           <p className="text-xs text-text-muted">
-            Mulai petualangan gizi dan adopsi virtual pet pertamamu.
+            Mulai petualangan gizi dan adopsi virtual pet pertamamu!
           </p>
         </div>
 
@@ -174,6 +194,7 @@ export default function RegisterPage() {
             Masuk di sini
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );
