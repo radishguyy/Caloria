@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  PlusCircle,
   Plus,
   Target,
   Sparkles,
@@ -346,7 +345,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4" aria-hidden="true" />
           </div>
           <h4 className="text-sm font-bold text-text-primary">
-            Pengingat Senggolan Teman ⚔️
+            Pengingat Senggolan Teman âš”ï¸
           </h4>
         </div>
         <button
@@ -471,7 +470,7 @@ export default function DashboardPage() {
       {/* CalPal (Virtual Pet) + Daily Nutrition Target Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: CalPal Container */}
-        <div className="lg:col-span-5 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-4">
+        <div className="lg:col-span-6 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-4">
           <PetRenderer
             interactive={true}
             size="md"
@@ -480,68 +479,24 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Right Column: Daily Nutrition Target with MacroBar */}
-        <div className="lg:col-span-7 rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-6">
-          <MacroBar />
-        </div>
-      </div>
-
-      {/* 2. Unified Nutrition Summary & Calendar Strip */}
-      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs space-y-6">
-        <DashboardCalendarStrip />
-      </div>
-
-      {/* 3. Quick Food Logging Widget */}
-      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-base font-bold text-text-primary">
-              Pencatatan Makanan Cepat
-            </h3>
-            <p className="text-xs text-text-muted mt-0.5">
-              Pilih menu favorit atau baru dimakan untuk dicatat dalam 1-klik
-            </p>
-          </div>
+        {/* Right Column: Daily Nutrition Target + Catat Makanan */}
+        <div className="lg:col-span-6 flex flex-col gap-3">
+            <MacroBar />
           <button
+            type="button"
             onClick={() => setQuickLogModalOpen(true)}
-            className="button-ghost text-xs flex items-center gap-1.5 py-1.5 px-3"
+            className="w-full flex items-center justify-center gap-2 rounded-card border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-accent-green-dark active:scale-[0.98]"
           >
-            <Plus className="h-3.5 w-3.5 text-accent-green" />
-            <span>Pilih Banyak Sekaligus</span>
+            <Plus className="h-4 w-4" />
+            Catat Makanan
           </button>
         </div>
-
-        {/* Quick Log Row: Horizontal scrollable badges for fast single-click logging */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          <Link
-            href="/diary/add"
-            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-card bg-surface-subtle border border-dashed border-border-default hover:border-accent-green text-text-muted hover:text-text-primary transition-all text-xs font-semibold"
-          >
-            <PlusCircle className="h-4 w-4 text-accent-green" />
-            <span>Katalog Lengkap</span>
-          </Link>
-
-          {FOOD_CATALOG.slice(0, 8).map((food) => (
-            <button
-              key={food.id}
-              onClick={() => handleQuickAdd(food)}
-              className="flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-card bg-surface border border-border-divider hover:border-accent-orange/40 hover:bg-accent-yellow/10 transition-all text-left shadow-2xs group"
-            >
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-text-primary group-hover:text-accent-orange-dark transition-colors">
-                  {food.name}
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  {food.calories} kcal • {food.proteinG}g P
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-accent-green bg-accent-green/10 px-1.5 py-0.5 rounded-pill ml-1">
-                + Catat
-              </span>
-            </button>
-          ))}
-        </div>
       </div>
+
+
+
+      {/* 2. Unified Nutrition Summary & Calendar Strip */}
+        <DashboardCalendarStrip />
 
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
@@ -651,8 +606,8 @@ export default function DashboardPage() {
                           {food.name}
                         </p>
                         <p className="text-[10px] text-text-muted">
-                          {food.calories} kcal • {food.proteinG}g P •{" "}
-                          {food.carbsG}g C • {food.fatG}g F
+                          {food.calories} kcal â€¢ {food.proteinG}g P â€¢{" "}
+                          {food.carbsG}g C â€¢ {food.fatG}g F
                         </p>
                       </div>
                     </div>
