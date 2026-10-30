@@ -40,7 +40,7 @@ export default function LoginPage() {
       }
 
       // Sync Zustand local auth state with Supabase profile
-      login(res.user.email, res.user.username, res.user.isOnboardingCompleted);
+      login(res.user.email, res.user.username, true);
       useAuthStore.setState({
         user: {
           id: res.user.id,
@@ -48,15 +48,11 @@ export default function LoginPage() {
           username: res.user.username,
           fullName: res.user.fullName,
         },
-        onboardingCompleted: res.user.isOnboardingCompleted,
-        activeOnboardingStep: res.user.isOnboardingCompleted ? 5 : 1,
+        onboardingCompleted: true,
+        activeOnboardingStep: 5,
       });
 
-      if (!res.user.isOnboardingCompleted) {
-        window.location.href = "/onboarding/goal";
-      } else {
-        window.location.href = "/dashboard";
-      }
+      window.location.href = "/dashboard";
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan.");
       setLoading(false);

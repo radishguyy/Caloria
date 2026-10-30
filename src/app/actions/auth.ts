@@ -245,7 +245,14 @@ export async function loginAction(formData: {
         if (profile) {
           userUsername = profile.username;
           userFullName = profile.fullName || userFullName;
-          userOnboardingCompleted = profile.isOnboardingCompleted;
+          userOnboardingCompleted = true; // Existing users logging in are done with onboarding
+
+          if (!profile.isOnboardingCompleted) {
+            db.update(profiles)
+              .set({ isOnboardingCompleted: true, updatedAt: new Date() })
+              .where(eq(profiles.id, userId))
+              .catch((e) => console.warn("[loginAction] update onboarding status warning:", e));
+          }
         }
       } else {
         const { data: profile } = await supabase
@@ -257,7 +264,15 @@ export async function loginAction(formData: {
         if (profile) {
           userUsername = profile.username;
           userFullName = profile.full_name || userFullName;
-          userOnboardingCompleted = profile.is_onboarding_completed ?? false;
+          userOnboardingCompleted = true;
+
+          if (!profile.is_onboarding_completed) {
+            supabase
+              .from("profiles")
+              .update({ is_onboarding_completed: true, updated_at: new Date().toISOString() })
+              .eq("id", userId)
+              .then(() => {});
+          }
         }
       }
     } catch (queryErr) {
@@ -271,7 +286,7 @@ export async function loginAction(formData: {
       if (profile) {
         userUsername = profile.username;
         userFullName = profile.full_name || userFullName;
-        userOnboardingCompleted = profile.is_onboarding_completed ?? false;
+        userOnboardingCompleted = true;
       }
     }
 
