@@ -5,17 +5,29 @@ import { usePathname } from "next/navigation";
 import { Sparkles, UtensilsCrossed, Award, Users, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const APP_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/diary",
+  "/pet",
+  "/pet-customization",
+  "/profile",
+  "/quests",
+  "/settings",
+  "/social",
+];
+
 export function BottomNav() {
   const pathname = usePathname();
 
-  // Hide bottom nav on landing page, auth pages, and onboarding wizard
-  const isAuthRoute =
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname.startsWith("/forgot-password");
-  const isOnboardingRoute = pathname.startsWith("/onboarding");
+  // Only show bottom nav on authenticated in-app routes
+  const isAppRoute = Boolean(
+    pathname &&
+      APP_ROUTE_PREFIXES.some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+      ),
+  );
 
-  if (pathname === "/" || isAuthRoute || isOnboardingRoute) {
+  if (!isAppRoute) {
     return null;
   }
 
