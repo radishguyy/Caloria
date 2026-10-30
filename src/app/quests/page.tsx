@@ -9,17 +9,44 @@ import {
   Lock,
   Plus,
   Minus,
+  Check,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
+import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { AvatarRenderer } from "@/components/pet/avatar-renderer";
+import { getCharacterDefinition } from "@/lib/character-assets/catalog";
 import {
   GOAL_PATH_LABELS,
   goalTypeToGoalPath,
+  type GoalPath,
 } from "@/lib/gamification/quest-engine";
 import { claimLevelUpPromotionAction } from "@/server/actions/pet-actions";
 import { toastReward } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+
+const LEVEL_STAGE_META: Record<
+  GoalPath,
+  Array<{ level: number; shortTitle: string; targetNote: string }>
+> = {
+  lose_weight: [
+    { level: 1, shortTitle: "Catat Asupan", targetNote: "100% TEE" },
+    { level: 2, shortTitle: "Defisit Bertahap", targetNote: "-100 s/d -400 kkal" },
+    { level: 3, shortTitle: "Defisit Optimal", targetNote: "-500 kkal" },
+    { level: 4, shortTitle: "Maintenance", targetNote: "Stabil TEE" },
+  ],
+  gain_muscle: [
+    { level: 1, shortTitle: "Catat Asupan", targetNote: "100% TEE" },
+    { level: 2, shortTitle: "Surplus & Protein", targetNote: "+100 s/d +500 kkal" },
+    { level: 3, shortTitle: "Nutrisi Latihan", targetNote: "+500 kkal" },
+    { level: 5, shortTitle: "Konsistensi Otot", targetNote: "Maintenance" },
+  ],
+  maintain_weight: [
+    { level: 1, shortTitle: "Keseimbangan TEE", targetNote: "95–105% TEE" },
+    { level: 2, shortTitle: "Hidrasi & Gizi", targetNote: "Stabil + Air" },
+  ],
+};
 
 export default function QuestsPage() {
   const isHydrated = useHydrated();
@@ -35,7 +62,22 @@ export default function QuestsPage() {
     getEvaluatedMissions,
   } = useFoodStore();
 
-  const { addCoins } = usePetStore();
+  const {
+    name: petName,
+    species,
+    level: petLevel,
+    exp: petExp,
+    customColors,
+    earsVariant,
+    tailVariant,
+    faceVariant,
+    getEffectiveColors,
+    getExpNeededForNextLevel,
+    addCoins,
+  } = usePetStore();
+
+  const { equipped } = useCosmeticsStore();
+
   const [isClaimingLevelUp, setIsClaimingLevelUp] = useState(false);
   const [levelUpClaimed, setLevelUpClaimed] = useState(false);
 
@@ -46,7 +88,7 @@ export default function QuestsPage() {
           <div className="h-8 w-8 bg-surface-subtle animate-pulse rounded-xl" />
           <div className="h-7 w-56 bg-surface-subtle animate-pulse rounded-xl" />
         </div>
-        <div className="h-44 bg-surface-subtle animate-pulse rounded-2xl border border-border-divider" />
+        <div className="h-48 bg-surface-subtle animate-pulse rounded-2xl border border-border-divider" />
         <div className="h-64 bg-surface-subtle animate-pulse rounded-2xl border border-border-divider" />
       </div>
     );
@@ -61,6 +103,19 @@ export default function QuestsPage() {
     goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
   const activeLevel = goalPlan.currentLevel || 1;
   const activeWeek = goalPlan.currentWeek || 1;
+
+  const charDef = getCharacterDefinition(species);
+  const effectiveColors = getEffectiveColors
+    ? getEffectiveColors()
+    : {
+        ...charDef.defaultColors,
+        ...Object.fromEntries(
+          Object.entries(customColors || {}).filter(([, v]) => Boolean(v))
+        ),
+      };
+
+  const expNeeded = getExpNeededForNextLevel ? getExpNeededForNextLevel() : 100;
+  const petExpPct = Math.min(100, Math.round((petExp / Math.max(1, expNeeded)) * 100));
 
   const handleClaimLevelUpPromotion = async () => {
     if (isClaimingLevelUp || levelUpClaimed) return;
@@ -85,12 +140,7 @@ export default function QuestsPage() {
     }
   };
 
-  const availableLevels =
-    activePath === "maintain_weight"
-      ? [1, 2]
-      : activePath === "gain_muscle"
-      ? [1, 2, 3, 5]
-      : [1, 2, 3, 4];
+  const levelStages = LEVEL_STAGE_META[activePath] || LEVEL_STAGE_META.lose_weight;
 
   const availableWeeks =
     activePath === "lose_weight" && activeLevel === 2
@@ -112,6 +162,18 @@ export default function QuestsPage() {
   ).length;
 
   const cleanLevelTitle = questPlan.levelTitle.replace(/^Level\s+\d+:\s*/i, "");
+  const activeStageIndex = Math.max(
+    0,
+    levelStages.findIndex((s) => s.level === activeLevel)
+  );
+  const roadmapFillPct =
+    levelStages.length > 1
+      ? Math.round((activeStageIndex / (levelStages.length - 1)) * 100)
+      : 100;
+
+  const allMainDone =
+    questPlan.mainMissions.length > 0 &&
+    completedMainCount === questPlan.mainMissions.length;
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
@@ -130,109 +192,185 @@ export default function QuestsPage() {
             <h1 className="text-xl font-extrabold leading-tight tracking-tight text-text-primary font-heading sm:text-2xl">
               Misi & Progres Level
             </h1>
-            <p className="text-xs font-semibold text-text-muted mt-0.5">
-              {GOAL_PATH_LABELS[activePath]?.title} • Level {activeLevel} ({cleanLevelTitle})
-            </p>
           </div>
 
-          <div className="ml-auto flex items-center gap-2 flex-wrap">
-            {/* Level Selector */}
-            <div
-              role="group"
-              aria-label="Pilih level"
-              className="inline-flex items-center gap-1 rounded-xl border border-border-default bg-surface p-1"
-            >
-              {availableLevels.map((lvl) => {
-                const isUnlocked = weeklyProgression.unlockedStages.some(
-                  (s) => s.level === lvl
-                );
-                const isActive = activeLevel === lvl;
+          <span className="text-xs font-semibold text-text-muted">
+            Jalur {GOAL_PATH_LABELS[activePath]?.title}
+          </span>
+        </div>
+      </header>
 
-                return (
-                  <button
-                    key={lvl}
-                    type="button"
-                    disabled={!isUnlocked}
-                    onClick={() =>
-                      isUnlocked &&
-                      setQuestProgression({
-                        currentLevel: lvl,
-                        currentWeek:
-                          lvl === 3 && activePath === "lose_weight"
-                            ? 5
-                            : lvl === 3 && activePath === "gain_muscle"
-                            ? 8
-                            : 1,
-                      })
-                    }
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors",
-                      isActive
-                        ? "bg-accent-green text-text-inverse"
-                        : isUnlocked
-                        ? "text-neutral-10 hover:text-text-primary cursor-pointer"
-                        : "text-text-muted/50 cursor-not-allowed"
-                    )}
-                  >
-                    {!isUnlocked && <Lock className="h-3 w-3" aria-hidden="true" />}
-                    <span>Lv.{lvl}</span>
-                  </button>
-                );
-              })}
+      {/* 2. Highlighted Level Hero + Interactive Level Stepper Card */}
+      <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6 space-y-6">
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.6fr] lg:items-center">
+          {/* Left: Big Highlighted Active Level */}
+          <div className="flex items-baseline gap-4 lg:border-r lg:border-border-divider lg:pr-6">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                Level Saat Ini
+              </p>
+              <div className="mt-1 flex items-baseline gap-2.5">
+                <span
+                  className="font-heading font-extrabold leading-none text-text-primary"
+                  style={{ fontSize: "clamp(3rem, 9vw, 4.5rem)" }}
+                >
+                  Lv.{activeLevel}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-heading text-lg font-extrabold text-text-primary leading-tight sm:text-xl">
+                    {cleanLevelTitle}
+                  </p>
+                  <p className="text-xs font-semibold text-text-muted mt-0.5">
+                    Pekan ke-{weeklyProgression.currentCalendarWeek} • Hari {weeklyProgression.dayInCurrentWeek}/7
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* Week Selector for Level 2 */}
-            {availableWeeks.length > 0 && (
+          {/* Right: Connected Visual Level Roadmap */}
+          <div className="space-y-4">
+            <div className="relative">
+              {/* Connecting Track Line */}
               <div
-                role="group"
-                aria-label="Pilih minggu"
-                className="inline-flex items-center gap-1 rounded-xl border border-border-default bg-surface p-1"
+                aria-hidden="true"
+                className="absolute left-6 right-6 top-5 h-1 rounded-full bg-border-divider"
               >
-                {availableWeeks.map((wk) => {
-                  const isWkUnlocked = weeklyProgression.unlockedStages.some(
-                    (s) => s.level === activeLevel && s.week === wk
+                <div
+                  className="h-full rounded-full bg-accent-green transition-all duration-300"
+                  style={{ width: `${roadmapFillPct}%` }}
+                />
+              </div>
+
+              {/* Level Nodes */}
+              <div
+                className="relative grid gap-2"
+                style={{
+                  gridTemplateColumns: `repeat(${levelStages.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {levelStages.map((stage, idx) => {
+                  const isUnlocked = weeklyProgression.unlockedStages.some(
+                    (s) => s.level === stage.level
                   );
-                  const isWkActive = activeWeek === wk;
-                  const label =
-                    wk === 5 && activePath === "gain_muscle" ? "Mg 5–8" : `Mg ${wk}`;
+                  const isActive = activeLevel === stage.level;
+                  const isPassed = idx < activeStageIndex && isUnlocked;
 
                   return (
                     <button
-                      key={wk}
+                      key={stage.level}
                       type="button"
-                      disabled={!isWkUnlocked}
+                      disabled={!isUnlocked}
                       onClick={() =>
-                        isWkUnlocked && setQuestProgression({ currentWeek: wk })
+                        isUnlocked &&
+                        setQuestProgression({
+                          currentLevel: stage.level,
+                          currentWeek:
+                            stage.level === 3 && activePath === "lose_weight"
+                              ? 5
+                              : stage.level === 3 && activePath === "gain_muscle"
+                              ? 8
+                              : 1,
+                        })
                       }
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors",
-                        isWkActive
-                          ? "bg-accent-green text-text-inverse"
-                          : isWkUnlocked
-                          ? "text-neutral-10 hover:text-text-primary cursor-pointer"
-                          : "text-text-muted/50 cursor-not-allowed"
+                        "group flex flex-col items-center text-center transition-all focus-visible:outline-none",
+                        isUnlocked ? "cursor-pointer" : "cursor-not-allowed"
                       )}
                     >
-                      {!isWkUnlocked && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
-                      <span>{label}</span>
+                      <div
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-xl border text-xs font-extrabold transition-all font-heading",
+                          isActive
+                            ? "border-accent-green bg-accent-green text-text-inverse ring-4 ring-accent-green/20 scale-110"
+                            : isPassed
+                            ? "border-accent-green bg-surface text-text-primary"
+                            : isUnlocked
+                            ? "border-border-default bg-surface text-neutral-10 group-hover:border-accent-green"
+                            : "border-border-divider bg-surface-subtle text-text-muted/60"
+                        )}
+                      >
+                        {isPassed ? (
+                          <Check className="h-4 w-4 text-accent-green" aria-hidden="true" />
+                        ) : !isUnlocked ? (
+                          <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : (
+                          <span>{stage.level}</span>
+                        )}
+                      </div>
+
+                      <span
+                        className={cn(
+                          "mt-2 text-xs font-bold leading-tight",
+                          isActive
+                            ? "text-text-primary"
+                            : isUnlocked
+                            ? "text-neutral-10"
+                            : "text-text-muted/60"
+                        )}
+                      >
+                        Level {stage.level}
+                      </span>
+                      <span className="mt-0.5 text-[11px] font-medium text-text-muted line-clamp-1">
+                        {stage.shortTitle}
+                      </span>
                     </button>
                   );
                 })}
               </div>
+            </div>
+
+            {/* Sub-week selector when Level 2 is active */}
+            {availableWeeks.length > 0 && (
+              <div className="flex items-center justify-between gap-2 border-t border-border-divider pt-3">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                  Fase Minggu Level 2
+                </span>
+                <div className="inline-flex items-center gap-1 rounded-xl border border-border-default bg-surface-subtle p-1">
+                  {availableWeeks.map((wk) => {
+                    const isWkUnlocked = weeklyProgression.unlockedStages.some(
+                      (s) => s.level === activeLevel && s.week === wk
+                    );
+                    const isWkActive = activeWeek === wk;
+                    const label =
+                      wk === 5 && activePath === "gain_muscle" ? "Mg 5–8" : `Mg ${wk}`;
+
+                    return (
+                      <button
+                        key={wk}
+                        type="button"
+                        disabled={!isWkUnlocked}
+                        onClick={() =>
+                          isWkUnlocked && setQuestProgression({ currentWeek: wk })
+                        }
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors",
+                          isWkActive
+                            ? "bg-accent-green text-text-inverse"
+                            : isWkUnlocked
+                            ? "text-neutral-10 hover:text-text-primary cursor-pointer"
+                            : "text-text-muted/50 cursor-not-allowed"
+                        )}
+                      >
+                        {!isWkUnlocked && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
+                        <span>{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
         </div>
-      </header>
 
-      {/* 2. Progress Summary & Daily Targets — Matching ProfileOverview Top Card */}
-      <section className="space-y-4 rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
-        <div className="space-y-2">
+        {/* Weekly Compliance Bar */}
+        <div className="space-y-2 border-t border-border-divider pt-4">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-semibold text-text-primary">
-              {weeklyProgression.currentWeekMetDays} / 7 hari target pekan ke-{weeklyProgression.currentCalendarWeek} tercapai
+              {weeklyProgression.currentWeekMetDays} / 7 hari target pekan ini tercapai
             </p>
             <span className="text-xs font-semibold text-text-muted">
-              Hari ke-{weeklyProgression.dayInCurrentWeek} • Target min. 75% ({weeklyProgression.requiredDaysMet} hari)
+              Syarat naik level: min. {weeklyProgression.requiredDaysMet} hari (75%)
             </span>
           </div>
 
@@ -253,6 +391,7 @@ export default function QuestsPage() {
           </div>
         </div>
 
+        {/* Daily Calorie & Macro Targets Row */}
         <div className="grid grid-cols-2 items-center gap-4 border-t border-border-divider pt-4 lg:grid-cols-[1fr_1.35fr_auto]">
           {/* Col 1: Daily Calories */}
           <div className="min-w-0 lg:pr-6">
@@ -344,7 +483,61 @@ export default function QuestsPage() {
         </div>
       </section>
 
-      {/* 3. Main & Side Missions — Matching ProfileOverview 2-Column Card */}
+      {/* 3. CalPal Tucked Between the Cards */}
+      <div className="relative z-10 -my-2 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/pet"
+            aria-label="Lihat CalPal"
+            className="group relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-border-divider bg-surface shadow-xs transition-transform hover:-translate-y-0.5"
+          >
+            <div className="h-20 w-16">
+              <AvatarRenderer
+                characterId={species}
+                colors={effectiveColors}
+                earsVariant={earsVariant}
+                tailVariant={tailVariant}
+                faceVariant={faceVariant}
+                equipped={equipped}
+                animationState={allMainDone ? "happy" : "idle"}
+                size="full"
+                showShadow={false}
+              />
+            </div>
+          </Link>
+
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+              Partner Misi • Level {petLevel}
+            </p>
+            <p className="font-heading text-lg font-extrabold text-text-primary leading-tight">
+              {petName || "CalPal"}
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-neutral-10">
+              {allMainDone
+                ? "Semua misi utama hari ini beres. Pertahankan ritmemu!"
+                : `Selesaikan misi di bawah untuk menambah EXP ${petName || "CalPal"}.`}
+            </p>
+          </div>
+        </div>
+
+        <div className="w-full sm:w-52 space-y-1.5">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-text-muted">
+            <span>EXP Partner</span>
+            <span className="text-text-primary">
+              {petExp} / {expNeeded} XP
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-md bg-border-divider">
+            <div
+              className="h-full rounded-md bg-accent-green transition-all duration-300"
+              style={{ width: `${petExpPct}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Main & Side Missions — Matching ProfileOverview 2-Column Card */}
       <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-0">
           {/* Left: Main Missions */}
