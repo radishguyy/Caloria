@@ -24,17 +24,56 @@ async function hydrateStoresFromDatabase() {
       } = await supabase.auth.getSession();
       if (session?.user) {
         const u = session.user;
+        const [{ data: prof }, { data: petRow }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("username, full_name, avatar_url, caloria_coins")
+            .eq("id", u.id)
+            .maybeSingle(),
+          supabase
+            .from("pets")
+            .select("*")
+            .eq("user_id", u.id)
+            .maybeSingle(),
+        ]);
+
         useAuthStore.getState().setUserFromSession({
           id: u.id,
           email: u.email || null,
           username:
-            u.user_metadata?.username || u.email?.split("@")[0] || "User",
+            prof?.username ||
+            u.user_metadata?.username ||
+            u.email?.split("@")[0] ||
+            "user",
           fullName:
-            u.user_metadata?.full_name || u.user_metadata?.name || null,
+            prof?.full_name ||
+            u.user_metadata?.full_name ||
+            u.user_metadata?.name ||
+            prof?.username ||
+            null,
           avatarUrl:
-            u.user_metadata?.avatar_url || u.user_metadata?.picture || null,
+            prof?.avatar_url ||
+            u.user_metadata?.avatar_url ||
+            u.user_metadata?.picture ||
+            null,
           isOnboardingCompleted: true,
         });
+
+        if (petRow) {
+          usePetStore.getState().setPetState({
+            name: petRow.name || "Pyro",
+            species: (petRow.species || petRow.character_id || "flameling") as any,
+            stage: petRow.stage === "juvenile" ? 2 : 1,
+            level: petRow.level || 1,
+            exp: petRow.exp ?? petRow.current_xp ?? 0,
+            hunger: petRow.hunger ?? 100,
+            happiness: petRow.happiness ?? 100,
+            coins: prof?.caloria_coins ?? petRow.coins ?? 50,
+            lastFedAt: petRow.last_fed_at || new Date().toISOString(),
+            moodStatus: (petRow.mood_status as any) || "happy",
+            customColors: (petRow.custom_colors as any) || {},
+          });
+        }
         return;
       }
       useAuthStore.getState().clearUser();
@@ -45,11 +84,11 @@ async function hydrateStoresFromDatabase() {
     useAuthStore.getState().setUserFromSession(data.user);
 
     // 2. Hydrate Food & Weight Logs First (so progression calculations have full historical data)
-    if (data.foodLogs && data.foodLogs.length > 0) {
+    if (Array.isArray(data.foodLogs)) {
       useFoodStore.getState().setLogs(data.foodLogs as any);
     }
 
-    if (data.weightLogs) {
+    if (Array.isArray(data.weightLogs)) {
       useWeightStore.getState().setWeightLogs(data.weightLogs);
     }
 

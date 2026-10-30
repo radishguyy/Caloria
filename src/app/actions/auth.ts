@@ -115,10 +115,10 @@ export async function registerAction(formData: {
           .insert(pets)
           .values({
             userId,
-            name: "Egg Starter",
-            species: "egg_starter",
-            characterId: "egg_starter",
-            stage: "hatchling",
+            name: "Pyro",
+            species: "flameling",
+            characterId: "flameling",
+            stage: "baby",
             level: 1,
             exp: 0,
             currentXp: 0,
@@ -139,9 +139,10 @@ export async function registerAction(formData: {
           .from("pets")
           .upsert({
             user_id: userId,
-            name: "Egg Starter",
-            species: "egg_starter",
-            stage: 1,
+            name: "Pyro",
+            species: "flameling",
+            character_id: "flameling",
+            stage: "baby",
             level: 1,
             current_xp: 0,
             next_level_xp: 100,
@@ -162,9 +163,10 @@ export async function registerAction(formData: {
         .from("pets")
         .upsert({
           user_id: userId,
-          name: "Egg Starter",
-          species: "egg_starter",
-          stage: 1,
+          name: "Pyro",
+          species: "flameling",
+          character_id: "flameling",
+          stage: "baby",
           level: 1,
           current_xp: 0,
           next_level_xp: 100,
@@ -225,9 +227,15 @@ export async function loginAction(formData: {
 
     const userId = data.user.id;
 
-    let userUsername = data.user.email?.split("@")[0] || "user";
-    let userFullName = "Caloria User";
-    let userOnboardingCompleted = false;
+    let userUsername =
+      data.user.user_metadata?.username ||
+      data.user.email?.split("@")[0] ||
+      "user";
+    let userFullName =
+      data.user.user_metadata?.full_name ||
+      data.user.user_metadata?.name ||
+      userUsername;
+    let userOnboardingCompleted = true;
 
     // Query user profile with Supabase client fallback
     try {

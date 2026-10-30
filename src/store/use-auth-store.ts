@@ -69,11 +69,21 @@ export const useAuthStore = create<AuthStoreState>()(
           activeOnboardingStep: 1,
         }),
 
-      logout: () =>
+      logout: () => {
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("caloria-pet-storage");
+            localStorage.removeItem("caloria-food-storage");
+            localStorage.removeItem("caloria-weight-storage");
+            localStorage.removeItem("caloria-cosmetics-storage");
+            localStorage.removeItem("caloria-achievements-storage");
+          } catch {}
+        }
         set({
           isAuthenticated: false,
           user: null,
-        }),
+        });
+      },
 
       setOnboardingStep: (step: number) =>
         set({
@@ -106,13 +116,23 @@ export const useAuthStore = create<AuthStoreState>()(
           },
         }),
 
-      clearUser: () =>
+      clearUser: () => {
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("caloria-pet-storage");
+            localStorage.removeItem("caloria-food-storage");
+            localStorage.removeItem("caloria-weight-storage");
+            localStorage.removeItem("caloria-cosmetics-storage");
+            localStorage.removeItem("caloria-achievements-storage");
+          } catch {}
+        }
         set({
           isAuthenticated: false,
           user: null,
           onboardingCompleted: false,
           activeOnboardingStep: 1,
-        }),
+        });
+      },
     }),
     {
       name: "caloria-auth-storage",

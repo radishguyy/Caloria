@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -33,6 +33,41 @@ export default function ProfileSettingsPage() {
   } = usePushNotifications();
 
   const [savedFeedback, setSavedFeedback] = useState(false);
+
+  useEffect(() => {
+    if (user?.email && user?.username) return;
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data }) => {
+      const u = data.user;
+      if (!u) return;
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("username, full_name, avatar_url")
+        .eq("id", u.id)
+        .maybeSingle();
+      useAuthStore.getState().setUserFromSession({
+        id: u.id,
+        email: u.email || null,
+        username:
+          prof?.username ||
+          u.user_metadata?.username ||
+          u.email?.split("@")[0] ||
+          "user",
+        fullName:
+          prof?.full_name ||
+          u.user_metadata?.full_name ||
+          u.user_metadata?.name ||
+          prof?.username ||
+          null,
+        avatarUrl:
+          prof?.avatar_url ||
+          u.user_metadata?.avatar_url ||
+          u.user_metadata?.picture ||
+          null,
+        isOnboardingCompleted: true,
+      });
+    });
+  }, [user?.email, user?.username]);
 
   const handlePushToggle = async () => {
     if (isSubscribed) {
