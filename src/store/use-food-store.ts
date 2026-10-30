@@ -259,7 +259,7 @@ export const useFoodStore = create<FoodStoreState>()(
           let nextCompletedMissions = state.completedMissions;
 
           // Requirement 2: If a user changes their path, reset progress on previous path!
-          if (isPathChanged) {
+          if (isPathChanged && !newPlan.startDate) {
             updatedPlan.currentLevel = 1;
             updatedPlan.currentWeek = 1;
             updatedPlan.startDate = getTodayFormatted();
