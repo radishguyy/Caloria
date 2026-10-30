@@ -14,6 +14,17 @@ import { NavStreakBadge } from "./nav-streak-badge";
 import { logoutAction } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/client";
 
+const APP_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/diary",
+  "/pet",
+  "/pet-customization",
+  "/profile",
+  "/quests",
+  "/settings",
+  "/social",
+];
+
 const controlClass =
   "relative inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg bg-canvas text-ink transition-colors duration-200 hover:bg-brand-green-light hover:text-brand-green-ink focus-visible:bg-brand-green-light focus-visible:text-brand-green-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink motion-reduce:transition-none";
 
@@ -58,22 +69,23 @@ export function Navbar() {
   };
 
   const unreadCount = hydrated ? storedUnreadCount : 0;
-  const profileActive = pathname.startsWith("/profile");
-  const settingsActive = pathname.startsWith("/profile/settings");
+  const profileActive = Boolean(pathname?.startsWith("/profile"));
+  const settingsActive = Boolean(pathname?.startsWith("/profile/settings"));
   const profileHref = "/profile/overview";
   const profileLabel = user?.fullName || user?.username
     ? `Profil ${user?.fullName ?? user?.username}`.trim()
     : "Profil";
   const initials = getInitials(user?.fullName, user?.username);
 
-  // Hide navbar on public landing page, auth routes, and onboarding wizard
-  const isAuthRoute =
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname.startsWith("/forgot-password");
-  const isOnboardingRoute = pathname.startsWith("/onboarding");
+  // Only show navbar on authenticated in-app routes (hide on landing /, /index, /login, /register, /onboarding, etc.)
+  const isAppRoute = Boolean(
+    pathname &&
+      APP_ROUTE_PREFIXES.some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+      ),
+  );
 
-  if (pathname === "/" || isAuthRoute || isOnboardingRoute) {
+  if (!isAppRoute) {
     return null;
   }
 
