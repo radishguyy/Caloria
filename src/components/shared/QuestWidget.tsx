@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Sword, Calendar, Flame, CheckCircle2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
@@ -15,7 +15,7 @@ interface QuestWidgetProps {
   variant?: "compact" | "full";
 }
 
-export function QuestWidget({ className, variant = "full" }: QuestWidgetProps) {
+export function QuestWidget({ className }: QuestWidgetProps) {
   const isHydrated = useHydrated();
   const {
     goalPlan,
@@ -28,21 +28,12 @@ export function QuestWidget({ className, variant = "full" }: QuestWidgetProps) {
   if (!isHydrated) {
     return (
       <div
+        aria-hidden="true"
         className={cn(
-          "rounded-card border border-border-divider bg-[#FAF8F5] p-5 shadow-xs space-y-3",
+          "h-36 animate-pulse rounded-2xl border border-border-divider bg-surface-subtle",
           className
         )}
-      >
-        <div className="flex items-center justify-between">
-          <div className="h-5 w-40 bg-surface-subtle animate-pulse rounded-navigation" />
-          <div className="h-5 w-28 bg-surface-subtle animate-pulse rounded-pill" />
-        </div>
-        <div className="h-3 w-full bg-surface-subtle animate-pulse rounded-pill" />
-        <div className="flex justify-between items-center pt-1">
-          <div className="h-4 w-32 bg-surface-subtle animate-pulse rounded-navigation" />
-          <div className="h-8 w-36 bg-surface-subtle animate-pulse rounded-navigation" />
-        </div>
-      </div>
+      />
     );
   }
 
@@ -72,103 +63,75 @@ export function QuestWidget({ className, variant = "full" }: QuestWidgetProps) {
   const totalMissions = evaluatedMissions.length;
 
   const remainingDays = Math.max(0, 7 - weeklyProgression.dayInCurrentWeek);
-  const countdownText =
-    remainingDays === 0
-      ? `Pekan ${weeklyProgression.currentCalendarWeek} • Hari Evaluasi Terakhir`
-      : `Pekan ${weeklyProgression.currentCalendarWeek} • Sisa ${remainingDays} hari evaluasi`;
 
   return (
-    <div
+    <section
       className={cn(
-        "rounded-card border border-border-default bg-[#FAF8F5] p-4 sm:p-5 shadow-xs transition-all hover:border-[#FF9233]/40",
+        "space-y-4 rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6",
         className
       )}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-divider/70">
-        {/* Current Level Badge & Path */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-bold bg-[#5B8E55] text-white shadow-2xs font-sans">
-            <Sword className="h-3.5 w-3.5" />
-            <span>Level {activeLevel} • {pathLabel}</span>
-          </span>
-
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill text-[11px] font-semibold bg-[#FCF8E3] text-text-primary border border-[#FF9233]/30 font-sans">
-            <Calendar className="h-3 w-3 text-[#FF9233]" />
-            <span>{countdownText}</span>
-          </span>
-        </div>
-
-        {/* Quick completed missions status */}
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted font-sans">
-          <CheckCircle2 className="h-3.5 w-3.5 text-[#5B8E55]" />
+      {/* Top Progress Bar */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm font-semibold text-text-primary">
           <span>
-            <strong className="text-text-primary">{completedCount}</strong>/{totalMissions} misi aktif tercapai
+            {consumedCalories.toLocaleString("id-ID")} /{" "}
+            {targetCalories.toLocaleString("id-ID")} kkal asupan hari ini
           </span>
+          <span>{caloriePct}%</span>
         </div>
-      </div>
-
-      {/* Progress Indicator */}
-      <div className="space-y-2 py-3">
-        <div className="flex items-center justify-between text-xs font-sans">
-          <div className="flex items-center gap-1.5 text-text-muted">
-            <Flame className="h-3.5 w-3.5 text-[#FF9233] fill-[#FF9233]" />
-            <span>Asupan Kalori Hari Ini:</span>
-            <strong className="text-text-primary font-bold">
-              {consumedCalories.toLocaleString("id-ID")} /{" "}
-              {targetCalories.toLocaleString("id-ID")} kkal
-            </strong>
-          </div>
-          <span
-            className={cn(
-              "font-bold font-sans",
-              caloriePct >= 85 && caloriePct <= 115
-                ? "text-[#5B8E55]"
-                : caloriePct > 115
-                ? "text-rose-600"
-                : "text-text-primary"
-            )}
-          >
-            {caloriePct}%
-          </span>
-        </div>
-
-        {/* Clean Progress Bar */}
-        <div className="h-2 w-full rounded-pill bg-surface-subtle overflow-hidden border border-border-divider/80">
+        <div
+          role="progressbar"
+          aria-label="Progres kalori harian"
+          aria-valuemin={0}
+          aria-valuemax={targetCalories}
+          aria-valuenow={consumedCalories}
+          className="h-3 w-full overflow-hidden rounded-md bg-border-divider"
+        >
           <div
-            className={cn(
-              "h-full transition-all duration-500 rounded-pill",
-              caloriePct > 105
-                ? "bg-amber-500"
-                : caloriePct >= 75
-                ? "bg-[#5B8E55]"
-                : "bg-[#FF9233]"
-            )}
+            className="h-full rounded-md bg-accent-green transition-all duration-300"
             style={{ width: `${caloriePct}%` }}
           />
         </div>
       </div>
 
-      {/* Footer with minimal details and Action CTA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="text-[11px] text-text-muted font-sans flex items-center gap-3">
-          <span>
-            Kepatuhan pekan ini:{" "}
-            <strong className="text-text-primary">
-              {weeklyProgression.currentWeekMetDays}/7 hari ({weeklyProgression.currentWeekComplianceRate}%)
-            </strong>
-          </span>
-          <span className="hidden md:inline">• Target min. 75% untuk naik level</span>
+      {/* Bottom Metrics & CTA */}
+      <div className="grid grid-cols-2 items-center gap-4 border-t border-border-divider pt-4 lg:grid-cols-[1fr_1fr_auto]">
+        <div className="min-w-0 lg:pr-6">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+            Level {activeLevel} • {pathLabel}
+          </p>
+          <p className="mt-1 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
+            {completedCount} / {totalMissions}
+            <span className="ml-1.5 align-baseline text-xs font-bold text-text-muted">
+              misi hari ini
+            </span>
+          </p>
         </div>
 
-        <Link
-          href="/quests"
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-navigation text-xs font-bold bg-[#FF9233] text-white hover:bg-[#e07d24] transition-all font-sans shadow-2xs self-stretch sm:self-auto"
-        >
-          <span>Lihat Detail Misi</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        <div className="min-w-0 border-border-divider pl-0 lg:border-l lg:pl-6">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+            Pekan {weeklyProgression.currentCalendarWeek} •{" "}
+            {remainingDays === 0 ? "Hari evaluasi" : `Sisa ${remainingDays} hari`}
+          </p>
+          <p className="mt-1 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
+            {weeklyProgression.currentWeekMetDays} / 7
+            <span className="ml-1.5 align-baseline text-xs font-bold text-text-muted">
+              hari patuh ({weeklyProgression.currentWeekComplianceRate}%)
+            </span>
+          </p>
+        </div>
+
+        <div className="col-span-2 flex justify-center border-t border-border-divider pt-3 lg:col-span-1 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <Link
+            href="/quests"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-green px-5 py-2.5 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 lg:w-auto"
+          >
+            <span>Detail Misi</span>
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
-

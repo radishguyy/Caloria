@@ -7,7 +7,7 @@ import {
   profiles,
   pets,
 } from "@/db/schema";
-import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
 
 export interface RecapSlideData {
   slideType:
@@ -76,12 +76,12 @@ export const recapStorySchema: Schema = {
     archetypeTitle: {
       type: Type.STRING,
       description:
-        "Fun RPG eating archetype in Indonesian, e.g., 'Ksatria Protein Tinggi', 'Penjelajah Sayur', 'Pejuang Defisit Konsisten'",
+        "Short 2-3 word title in Indonesian, e.g., 'Fokus Protein', 'Gizi Seimbang', 'Disiplin Defisit'",
     },
     grade: { type: Type.STRING, enum: ["S", "A", "B", "C", "D"] },
     headline: {
       type: Type.STRING,
-      description: "Punchy, celebratory phrase for slide 1",
+      description: "Short, direct summary phrase (max 5 words)",
     },
     slides: {
       type: Type.ARRAY,
@@ -98,16 +98,16 @@ export const recapStorySchema: Schema = {
               "letter_from_calpal",
             ],
           },
-          title: { type: Type.STRING },
-          subtitle: { type: Type.STRING },
+          title: { type: Type.STRING, description: "Max 3 words" },
+          subtitle: { type: Type.STRING, description: "Max 4 words" },
           highlightStat: {
             type: Type.STRING,
             description:
-              "e.g., '6/7 Hari Asupan Baik', '+450 Pet EXP', 'Ayam Bakar'",
+              "Short metric, e.g., '6/7 Hari', '+450 XP', 'Ayam Bakar'",
           },
           commentary: {
             type: Type.STRING,
-            description: "2-3 playful sentences in Calpal's voice (Indonesian)",
+            description: "1 short, direct sentence (max 10 words, Indonesian, no fluff)",
           },
           petMood: {
             type: Type.STRING,
@@ -127,7 +127,7 @@ export const recapStorySchema: Schema = {
     actionableTipNextWeek: {
       type: Type.STRING,
       description:
-        "One simple practical nutritional habit to focus on next",
+        "1 short actionable tip (max 8 words)",
     },
   },
   required: [
@@ -338,7 +338,6 @@ export function generateDeterministicFallbackRecap(
     daysLogged,
     daysMeetingDepkes,
     depkesPercentage,
-    totalCalories,
     averageCalories,
     targetTee,
     topFood,
@@ -355,77 +354,73 @@ export function generateDeterministicFallbackRecap(
   const unitLabel = cycleType === "monthly" ? "Bulan" : "Pekan";
 
   let grade: "S" | "A" | "B" | "C" | "D" = "B";
-  let archetypeTitle = "Penjelajah Nutrisi Seimbang";
-  let headline = `Pencapaian Hebat di ${unitLabel} ke-${cycleNumber}!`;
-  let tip = "Coba tambahkan satu porsi sayuran hijau di setiap makan siang!";
+  let archetypeTitle = "Gizi Seimbang";
+  let headline = `Ringkasan ${unitLabel} ${cycleNumber}`;
+  let tip = "Tambahkan porsi sayur di makan siang.";
 
   if (depkesPercentage >= 85 && daysLogged >= (totalCycleDays * 0.8)) {
     grade = "S";
     archetypeTitle =
-      topMacro === "Protein"
-        ? "Ksatria Protein Tinggi Legendaris"
-        : "Master Gizi Seimbang Paripurna";
-    headline = `Luar Biasa! Performa Emas di ${unitLabel} ke-${cycleNumber}! ⭐`;
-    tip = "Ritme gizi kamu sudah sempurna! Terus pertahankan konsistensi ini.";
+      topMacro === "Protein" ? "Fokus Protein" : "Gizi Optimal";
+    headline = `Target ${unitLabel} ${cycleNumber} Tercapai`;
+    tip = "Pertahankan ritme makan dan porsi protein ini.";
   } else if (depkesPercentage >= 70 && daysLogged >= (totalCycleDays * 0.6)) {
     grade = "A";
     archetypeTitle =
-      topMacro === "Protein"
-        ? "Pejuang Protein Disiplin"
-        : "Penjelajah Kalori Terarah";
-    headline = `Mantap Sekali! Standar Depkes Berhasil Terlampaui! 🚀`;
-    tip = "Jaga hidrasi minimal 2 liter sehari untuk menjaga metabolisme optimal.";
+      topMacro === "Protein" ? "Disiplin Protein" : "Kalori Terukur";
+    headline = `Progres Stabil di ${unitLabel} ${cycleNumber}`;
+    tip = "Jaga asupan air minimal 2 liter sehari.";
   } else if (daysLogged >= (totalCycleDays * 0.4)) {
     grade = "B";
-    archetypeTitle = "Pencari Konsistensi Tangguh";
-    headline = `Pondasi Kuat! Kita Siap Melesat Lebih Jauh! 💪`;
-    tip = "Catat makanan tepat setelah selesai makan agar tidak ada menu yang terlewat.";
+    archetypeTitle = "Rutin Mencatat";
+    headline = `Konsistensi ${unitLabel} ${cycleNumber}`;
+    tip = "Catat makan langsung agar tidak terlewat.";
   } else {
     grade = daysLogged > 0 ? "C" : "D";
-    archetypeTitle = "Petualang Pemula Penuh Harapan";
-    headline = `Langkah Awal Bersama Calpal! 🌱`;
-    tip = "Awali hari dengan sarapan padat nutrisi untuk membakar energimu!";
+    archetypeTitle = "Langkah Awal";
+    headline = `Awal ${unitLabel} ${cycleNumber}`;
+    tip = "Mulai rutin mencatat sarapan setiap pagi.";
   }
 
   const slides: RecapSlideData[] = [
     {
       slideType: "intro",
-      title: `Recap ${unitLabel} ke-${cycleNumber} Kamu!`,
-      subtitle: archetypeTitle,
-      highlightStat: `${daysLogged}/${totalCycleDays} Hari Tercatat`,
-      commentary: `Halo sahabatku! Aku ${petName}. Selama ${unitLabel.toLowerCase()} ini, kita sudah bersama-sama merekam perjalanan nutrisi dan kebiasaan makanmu!`,
+      title: `Recap ${unitLabel} ${cycleNumber}`,
+      subtitle: `${daysLogged} dari ${totalCycleDays} hari tercatat`,
+      highlightStat: `${daysLogged}/${totalCycleDays} Hari`,
+      commentary: `Catatan ${unitLabel.toLowerCase()} ini sudah siap, berikut ringkasannya.`,
       petMood: grade === "S" || grade === "A" ? "proud" : "dancing",
     },
     {
       slideType: "nutrition_stats",
-      title: "Rapor Angka & Standar Depkes",
-      subtitle: "Kepatuhan Zona Asupan Baik (80% - 120%)",
-      highlightStat: `${daysMeetingDepkes}/${daysLogged || totalCycleDays} Hari Depkes (${depkesPercentage}%)`,
-      commentary: `Rata-rata asupan harianmu sebesar ${averageCalories} kkal (target ideal ${targetTee} kkal). Kita berhasil menjaga stabilitas energi tubuh dengan konsisten!`,
+      title: "Kepatuhan Kalori",
+      subtitle: `Target ${targetTee} kkal / hari`,
+      highlightStat: `${daysMeetingDepkes}/${daysLogged || totalCycleDays} Hari Sesuai Target`,
+      commentary: `Rata-rata asupanmu ${averageCalories} kkal per hari.`,
       petMood: depkesPercentage >= 70 ? "proud" : "curious",
     },
     {
       slideType: "food_spotlight",
-      title: "Menu Favorit Paling Sering Disantap",
-      subtitle: `Primadona Makronutrien: ${topMacro}`,
+      title: "Menu Terfavorit",
+      subtitle: `Dominan ${topMacro}`,
       highlightStat: topFood,
-      commentary: `Wah, aroma lezat! Makanan "${topFood}" paling sering kamu nikmati di siklus ini. Pilihan yang nikmat untuk menopang energimu!`,
+      commentary: `${topFood} menjadi menu yang paling sering kamu catat.`,
       petMood: "eating",
     },
     {
       slideType: "pet_milestone",
-      title: "Pet Growth & Gamifikasi",
-      subtitle: `${petName} Level ${petLevel}`,
-      highlightStat: `+${expEarned} EXP • +${coinsGained} Koin`,
-      commentary: `Lihat seberapa bahagianya aku! Berkat kedisiplinanmu, aku mengumpulkan banyak EXP dan Caloria Coins untuk bergaya di Plaza!`,
+      title: `Progres ${petName}`,
+      subtitle: `Level ${petLevel}`,
+      highlightStat: `+${expEarned} XP`,
+      commentary: `Konsistensimu menambah +${expEarned} XP dan +${coinsGained} koin.`,
       petMood: "dancing",
     },
     {
       slideType: "letter_from_calpal",
-      title: `Surat Hangat dari ${petName}`,
-      subtitle: `Evaluasi Siklus: Grade ${grade}`,
+      title: `Evaluasi ${unitLabel} ${cycleNumber}`,
+      subtitle: archetypeTitle,
       highlightStat: `Grade ${grade}`,
-      commentary: `Terima kasih sudah terus berjuang bersamaku sahabat! Tidak ada usaha yang sia-sia. Bersiaplah untuk tantangan baru berikutnya!`,
+      commentary: `Progres bagus pekan ini, terus pertahankan kebiasaan sehatmu.`,
       petMood: "proud",
     },
   ];
@@ -478,20 +473,26 @@ export async function generateRecapStoryWithAI(
   const totalCycleDays = cycleType === "monthly" ? 28 : 7;
   const unitLabel = cycleType === "monthly" ? "Bulan" : "Pekan";
 
-  const systemPrompt = `You are ${petName}, the user's adorable and loyal virtual pet companion (Calpal) in Caloria.
-You are presenting "Caloria Wrapped" — an interactive, celebratory story recap of the user's nutritional and gamified journey over the past ${totalCycleDays} days (${unitLabel} ke-${cycleNumber}).
+  const systemPrompt = `You are ${petName}, the user's companion in Caloria.
+Present a concise, to-the-point nutritional recap for the past ${totalCycleDays} days (${unitLabel} ${cycleNumber}).
 
-Persona & Tone Rules:
-1. Language: Conversational, warm, playful Indonesian (Bahasa Indonesia santai, suportif, berjiwa RPG companion).
-2. Persona: You love food, praise the user's consistency, and frame any shortfall as an exciting quest to conquer together.
-3. Strict 5-Slide Sequence: The "slides" array MUST contain EXACTLY 5 objects in this precise order:
-   - Slide 1: slideType = "intro" (Introduce the wrapped recap and celebrate the user's archetype).
-   - Slide 2: slideType = "nutrition_stats" (Highlight total calories, Depkes 80%-120% compliance days, and average calories).
-   - Slide 3: slideType = "food_spotlight" (Spotlight the user's #1 favorite food "${topFood}" and top macro "${topMacro}").
-   - Slide 4: slideType = "pet_milestone" (Celebrate EXP gained (+${expEarned}), coins collected (+${coinsGained}), and pet growth).
-   - Slide 5: slideType = "letter_from_calpal" (Personal heartfelt letter from ${petName}, grade reflection, and looking forward to next week).
-4. Assign an honest yet uplifting grade (S, A, B, C, or D) based on depkesPercentage (${depkesPercentage}%) and days logged (${daysLogged}/${totalCycleDays}).
-5. Return ONLY a valid JSON object matching the provided schema.`;
+Strict Writing Rules:
+1. Language: Clear, natural, concise Indonesian. No flowery AI fluff, no emojis, no exclamation spam.
+2. Brevity:
+   - "archetypeTitle": 2-3 words max (e.g., "Fokus Protein", "Gizi Seimbang").
+   - "headline": 3-5 words max.
+   - Slide "title": 2-3 words max.
+   - Slide "subtitle": 3-4 words max.
+   - Slide "commentary": 1 short sentence max (8-12 words). Get straight to the point.
+   - "actionableTipNextWeek": 1 short practical sentence (max 8 words).
+3. Strict 5-Slide Sequence:
+   - Slide 1: slideType = "intro"
+   - Slide 2: slideType = "nutrition_stats"
+   - Slide 3: slideType = "food_spotlight" (top food "${topFood}", macro "${topMacro}")
+   - Slide 4: slideType = "pet_milestone" (+${expEarned} XP, +${coinsGained} Koin)
+   - Slide 5: slideType = "letter_from_calpal"
+4. Grade (S, A, B, C, or D) based on depkesPercentage (${depkesPercentage}%) and days logged (${daysLogged}/${totalCycleDays}).
+5. Return ONLY valid JSON matching the schema.`;
 
   const userPrompt = `Here are the user's database metrics for this ${totalCycleDays}-day cycle:
 - Unit: ${unitLabel} ke-${cycleNumber}
