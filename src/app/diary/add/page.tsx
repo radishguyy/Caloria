@@ -144,6 +144,9 @@ function DiaryAddFoodContent() {
   // Multi-Select Staging Tray State (FatSecret-Style Staging)
   const [stagedItems, setStagedItems] = useState<StagedFoodItem[]>([]);
   const [isTrayDrawerOpen, setIsTrayDrawerOpen] = useState(false);
+  const [editingInputs, setEditingInputs] = useState<
+    Record<string, { porsi?: string; grams?: string }>
+  >({});
 
   // Custom Food Modal State
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
@@ -317,13 +320,75 @@ function DiaryAddFoodContent() {
   };
 
   const updatePortionMultiplier = (foodId: string, multiplier: number) => {
+    setEditingInputs((prev) => {
+      const next = { ...prev };
+      delete next[foodId];
+      return next;
+    });
     setStagedItems((prev) =>
       prev.map((item) =>
         item.id === foodId
-          ? { ...item, servingMultiplier: Math.max(0.25, Math.round(multiplier * 100) / 100) }
+          ? {
+              ...item,
+              servingMultiplier: Math.max(0.01, Math.round(multiplier * 10000) / 10000),
+            }
           : item
       )
     );
+  };
+
+  const handleCustomPorsiChange = (foodId: string, rawVal: string) => {
+    setEditingInputs((prev) => ({
+      ...prev,
+      [foodId]: { porsi: rawVal },
+    }));
+    const parsed = parseFloat(rawVal.replace(",", "."));
+    if (!isNaN(parsed) && parsed > 0) {
+      setStagedItems((prev) =>
+        prev.map((item) =>
+          item.id === foodId
+            ? {
+                ...item,
+                servingMultiplier: Math.max(0.01, Math.round(parsed * 10000) / 10000),
+              }
+            : item
+        )
+      );
+    }
+  };
+
+  const handleCustomGramsChange = (
+    foodId: string,
+    rawVal: string,
+    gramsPerUnit: number
+  ) => {
+    setEditingInputs((prev) => ({
+      ...prev,
+      [foodId]: { grams: rawVal },
+    }));
+    const parsed = parseFloat(rawVal.replace(",", "."));
+    if (!isNaN(parsed) && parsed > 0) {
+      const baseGrams = gramsPerUnit || 100;
+      const mult = parsed / baseGrams;
+      setStagedItems((prev) =>
+        prev.map((item) =>
+          item.id === foodId
+            ? {
+                ...item,
+                servingMultiplier: Math.max(0.01, Math.round(mult * 10000) / 10000),
+              }
+            : item
+        )
+      );
+    }
+  };
+
+  const clearEditingInput = (foodId: string) => {
+    setEditingInputs((prev) => {
+      const next = { ...prev };
+      delete next[foodId];
+      return next;
+    });
   };
 
   const removeItemFromTray = (foodId: string) => {
@@ -419,19 +484,24 @@ function DiaryAddFoodContent() {
       currentStage: stage,
     });
 
-    const logsToSave = stagedItems.map((item) => ({
-      name: item.name,
-      mealType: activeMeal,
-      calories: Math.round(item.baseCalories * item.servingMultiplier),
-      proteinG: Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
-      carbsG: Math.round(item.baseCarbsG * item.servingMultiplier * 10) / 10,
-      fatG: Math.round(item.baseFatG * item.servingMultiplier * 10) / 10,
-      fiberG: Math.round(item.baseFiberG * item.servingMultiplier * 10) / 10,
-      sugarG: Math.round(item.baseSugarG * item.servingMultiplier * 10) / 10,
-      servingSize: item.servingMultiplier,
-      servingUnit: `${item.servingMultiplier}x ${item.servingUnit}`,
-      loggedDate: dateParam || selectedDate || new Date().toISOString().split("T")[0],
-    }));
+    const logsToSave = stagedItems.map((item) => {
+      const displayMult = Math.round(item.servingMultiplier * 100) / 100;
+      const totalGrams = Math.round((item.gramsPerUnit || 100) * item.servingMultiplier);
+      const cleanUnit = item.servingUnit.replace(/\s*\(\d+g\)/i, "").trim();
+      return {
+        name: item.name,
+        mealType: activeMeal,
+        calories: Math.round(item.baseCalories * item.servingMultiplier),
+        proteinG: Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
+        carbsG: Math.round(item.baseCarbsG * item.servingMultiplier * 10) / 10,
+        fatG: Math.round(item.baseFatG * item.servingMultiplier * 10) / 10,
+        fiberG: Math.round(item.baseFiberG * item.servingMultiplier * 10) / 10,
+        sugarG: Math.round(item.baseSugarG * item.servingMultiplier * 10) / 10,
+        servingSize: displayMult,
+        servingUnit: `${displayMult}x ${cleanUnit} (${totalGrams}g)`,
+        loggedDate: dateParam || selectedDate || new Date().toISOString().split("T")[0],
+      };
+    });
 
     // Persist to Supabase PostgreSQL database via Server Action
     batchLogFoodsAction(
@@ -809,7 +879,7 @@ function DiaryAddFoodContent() {
                               onClick={() => updatePortionMultiplier(food.id, val)}
                               className={cn(
                                 "px-2 py-0.5 rounded-pill text-[10px] font-bold border transition-colors",
-                                currentMultiplier === val
+                                Math.round(currentMultiplier * 100) / 100 === val
                                   ? "bg-accent-orange text-text-inverse border-accent-orange"
                                   : "bg-surface border-border-default text-neutral-10 hover:border-accent-orange"
                               )}
@@ -820,40 +890,98 @@ function DiaryAddFoodContent() {
                         </div>
                       </div>
 
-                      {/* Stepper Controls */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updatePortionMultiplier(
-                              food.id,
-                              currentMultiplier <= 1
-                                ? Math.max(0.5, currentMultiplier - 0.5)
-                                : currentMultiplier - 1
-                            )
-                          }
-                          className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="font-extrabold text-xs min-w-[36px] text-center">
-                          {currentMultiplier}x
+                      {/* Stepper & Custom Unit / Gram Inputs */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updatePortionMultiplier(
+                                food.id,
+                                currentMultiplier <= 1
+                                  ? Math.max(0.5, currentMultiplier - 0.5)
+                                  : Math.floor(currentMultiplier) === currentMultiplier
+                                    ? currentMultiplier - 1
+                                    : Math.floor(currentMultiplier)
+                              )
+                            }
+                            className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary shrink-0"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+
+                          <label className="h-6 px-2 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1 cursor-text">
+                            <input
+                              type="number"
+                              step="any"
+                              min="0.1"
+                              aria-label="Jumlah porsi"
+                              value={
+                                editingInputs[food.id]?.porsi !== undefined
+                                  ? editingInputs[food.id].porsi
+                                  : String(Math.round(currentMultiplier * 100) / 100)
+                              }
+                              onChange={(e) =>
+                                handleCustomPorsiChange(food.id, e.target.value)
+                              }
+                              onBlur={() => clearEditingInput(food.id)}
+                              className="w-10 text-center font-extrabold text-xs text-text-primary bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <span className="text-[10px] font-semibold text-text-muted">
+                              {food.servingUnit.replace(/\s*\(\d+g\)/i, "").trim()}
+                            </span>
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updatePortionMultiplier(
+                                food.id,
+                                currentMultiplier < 1
+                                  ? 1
+                                  : Math.floor(currentMultiplier) + 1
+                              )
+                            }
+                            className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary shrink-0"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        <span className="text-[10px] text-text-muted font-medium">
+                          atau
                         </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updatePortionMultiplier(
-                              food.id,
-                              currentMultiplier < 1 ? 1 : currentMultiplier + 1
-                            )
-                          }
-                          className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </button>
-                        <span className="text-[10px] text-text-muted ml-1">
-                          ({Math.round((food.gramsPerUnit || 100) * currentMultiplier)}g)
-                        </span>
+
+                        {/* Direct Gram Input */}
+                        <label className="h-6 px-2 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1 cursor-text">
+                          <input
+                            type="number"
+                            step="any"
+                            min="1"
+                            aria-label="Berat dalam gram"
+                            value={
+                              editingInputs[food.id]?.grams !== undefined
+                                ? editingInputs[food.id].grams
+                                : String(
+                                    Math.round(
+                                      (food.gramsPerUnit || 100) * currentMultiplier
+                                    )
+                                  )
+                            }
+                            onChange={(e) =>
+                              handleCustomGramsChange(
+                                food.id,
+                                e.target.value,
+                                food.gramsPerUnit || 100
+                              )
+                            }
+                            onBlur={() => clearEditingInput(food.id)}
+                            className="w-12 text-right font-extrabold text-xs text-text-primary bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <span className="text-[10px] font-semibold text-text-muted">
+                            g
+                          </span>
+                        </label>
                       </div>
                     </div>
                   )}
@@ -943,63 +1071,114 @@ function DiaryAddFoodContent() {
                   </button>
                 </div>
 
-                {stagedItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-2.5 rounded-input bg-surface-subtle border border-border-divider flex items-center justify-between gap-2 text-xs"
-                  >
-                    <div>
-                      <p className="font-bold text-text-primary">{item.name}</p>
-                      <p className="text-[10px] text-text-muted">
-                        {item.servingMultiplier}x {item.servingUnit} •{" "}
-                        {Math.round(item.baseCalories * item.servingMultiplier)} kcal (P:{" "}
-                        {Math.round(item.baseProteinG * item.servingMultiplier)}g)
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updatePortionMultiplier(
-                              item.id,
-                              item.servingMultiplier <= 1
-                                ? Math.max(0.5, item.servingMultiplier - 0.5)
-                                : item.servingMultiplier - 1
-                            )
-                          }
-                          className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
-                        >
-                          <Minus className="h-2.5 w-2.5" />
-                        </button>
-                        <span className="text-[11px] font-bold w-6 text-center">
-                          {item.servingMultiplier}x
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updatePortionMultiplier(
-                              item.id,
-                              item.servingMultiplier < 1 ? 1 : item.servingMultiplier + 1
-                            )
-                          }
-                          className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
-                        >
-                          <Plus className="h-2.5 w-2.5" />
-                        </button>
+                {stagedItems.map((item) => {
+                  const displayMult = Math.round(item.servingMultiplier * 100) / 100;
+                  const totalGrams = Math.round(
+                    (item.gramsPerUnit || 100) * item.servingMultiplier
+                  );
+                  const cleanUnit = item.servingUnit
+                    .replace(/\s*\(\d+g\)/i, "")
+                    .trim();
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-2.5 rounded-input bg-surface-subtle border border-border-divider flex items-center justify-between gap-2 text-xs"
+                    >
+                      <div>
+                        <p className="font-bold text-text-primary">{item.name}</p>
+                        <p className="text-[10px] text-text-muted">
+                          {displayMult}x {cleanUnit} ({totalGrams}g) •{" "}
+                          {Math.round(item.baseCalories * item.servingMultiplier)} kcal (P:{" "}
+                          {Math.round(item.baseProteinG * item.servingMultiplier)}g)
+                        </p>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => removeItemFromTray(item.id)}
-                        className="p-1 text-text-muted hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updatePortionMultiplier(
+                                item.id,
+                                item.servingMultiplier <= 1
+                                  ? Math.max(0.5, item.servingMultiplier - 0.5)
+                                  : Math.floor(item.servingMultiplier) ===
+                                      item.servingMultiplier
+                                    ? item.servingMultiplier - 1
+                                    : Math.floor(item.servingMultiplier)
+                              )
+                            }
+                            className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
+                          >
+                            <Minus className="h-2.5 w-2.5" />
+                          </button>
+                          <input
+                            type="number"
+                            step="any"
+                            min="0.1"
+                            aria-label="Jumlah porsi"
+                            value={
+                              editingInputs[item.id]?.porsi !== undefined
+                                ? editingInputs[item.id].porsi
+                                : String(displayMult)
+                            }
+                            onChange={(e) =>
+                              handleCustomPorsiChange(item.id, e.target.value)
+                            }
+                            onBlur={() => clearEditingInput(item.id)}
+                            className="h-5 w-10 rounded-navigation border border-border-default bg-surface text-[11px] font-bold text-center focus:outline-none focus:border-accent-orange [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updatePortionMultiplier(
+                                item.id,
+                                item.servingMultiplier < 1
+                                  ? 1
+                                  : Math.floor(item.servingMultiplier) + 1
+                              )
+                            }
+                            className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
+                          >
+                            <Plus className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+
+                        <label className="h-5 px-1.5 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-0.5 cursor-text">
+                          <input
+                            type="number"
+                            step="any"
+                            min="1"
+                            aria-label="Berat gram"
+                            value={
+                              editingInputs[item.id]?.grams !== undefined
+                                ? editingInputs[item.id].grams
+                                : String(totalGrams)
+                            }
+                            onChange={(e) =>
+                              handleCustomGramsChange(
+                                item.id,
+                                e.target.value,
+                                item.gramsPerUnit || 100
+                              )
+                            }
+                            onBlur={() => clearEditingInput(item.id)}
+                            className="w-10 text-right text-[11px] font-bold bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <span className="text-[10px] text-text-muted">g</span>
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => removeItemFromTray(item.id)}
+                          className="p-1 text-text-muted hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
