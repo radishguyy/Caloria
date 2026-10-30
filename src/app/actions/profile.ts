@@ -242,7 +242,7 @@ export async function fetchAppInitialDataAction() {
       .from(foodLogs)
       .where(eq(foodLogs.userId, user.id))
       .orderBy(desc(foodLogs.createdAt))
-      .limit(100);
+      .limit(500);
 
     let mappedFoodLogs = recentFoodLogs.map((l) => ({
       id: l.id,
@@ -268,7 +268,7 @@ export async function fetchAppInitialDataAction() {
         .from(mealLogs)
         .where(eq(mealLogs.userId, user.id))
         .orderBy(desc(mealLogs.createdAt))
-        .limit(100);
+        .limit(500);
 
       mappedFoodLogs = recentMealLogs.map((m) => ({
         id: m.id,
@@ -318,6 +318,17 @@ export async function fetchAppInitialDataAction() {
       }
     }
 
+    // Compute effective start date from earliest weight log date or profile creation date
+    const earliestWeightDate = wLogs[0]?.loggedDate;
+    const profileCreatedDate = profile?.createdAt
+      ? (profile.createdAt instanceof Date
+          ? profile.createdAt.toISOString().split("T")[0]
+          : new Date(profile.createdAt).toISOString().split("T")[0])
+      : null;
+    const effectiveStartDate = earliestWeightDate && profileCreatedDate
+      ? (earliestWeightDate < profileCreatedDate ? earliestWeightDate : profileCreatedDate)
+      : earliestWeightDate || profileCreatedDate || new Date().toISOString().split("T")[0];
+
     return {
       authenticated: true,
       user: {
@@ -348,6 +359,7 @@ export async function fetchAppInitialDataAction() {
             caloriaCoins: profile.caloriaCoins || 0,
             lastLoginClaimDate: profile.lastLoginClaimDate || null,
             projectedDays: profile.projectedDays || 90,
+            startDate: effectiveStartDate,
           }
         : null,
       pet: pet

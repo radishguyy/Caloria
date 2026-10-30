@@ -24,7 +24,16 @@ async function hydrateStoresFromDatabase() {
     // 1. Hydrate Auth
     useAuthStore.getState().setUserFromSession(data.user);
 
-    // 2. Hydrate Food & Biometrics Store
+    // 2. Hydrate Food & Weight Logs First (so progression calculations have full historical data)
+    if (data.foodLogs && data.foodLogs.length > 0) {
+      useFoodStore.getState().setLogs(data.foodLogs as any);
+    }
+
+    if (data.weightLogs) {
+      useWeightStore.getState().setWeightLogs(data.weightLogs);
+    }
+
+    // 3. Hydrate Food & Biometrics Store
     if (data.profile) {
       useFoodStore.getState().setGoalPlan({
         currentWeightKg: data.profile.currentWeightKg,
@@ -35,6 +44,7 @@ async function hydrateStoresFromDatabase() {
         currentWeek: data.profile.currentWeek,
         streakConsecutiveLogs: data.profile.streakConsecutiveLogs,
         totalProjectedDays: data.profile.projectedDays,
+        startDate: data.profile.startDate,
       });
 
       useFoodStore.getState().setTargets({
@@ -44,15 +54,17 @@ async function hydrateStoresFromDatabase() {
         fat: data.profile.targetFatG,
       });
 
+      // Synchronize quest progression with evaluated weekly history
+      const prog = useFoodStore.getState().getWeeklyProgression();
+      const activeStage = prog.activeStage;
+      const targetLevel = activeStage?.level || data.profile.currentLevel || 1;
+      const targetWeek = activeStage?.week || data.profile.currentWeek || 1;
+
       useFoodStore.getState().setQuestProgression({
         goalPath: data.profile.goalPath as any,
-        currentLevel: data.profile.currentLevel,
-        currentWeek: data.profile.currentWeek,
+        currentLevel: targetLevel,
+        currentWeek: targetWeek,
       });
-    }
-
-    if (data.foodLogs && data.foodLogs.length > 0) {
-      useFoodStore.getState().setLogs(data.foodLogs as any);
     }
 
     // 3. Hydrate Pet Store
@@ -98,12 +110,7 @@ async function hydrateStoresFromDatabase() {
       }
     }
 
-    // 5. Hydrate Weight History Store
-    if (data.weightLogs) {
-      useWeightStore.getState().setWeightLogs(data.weightLogs);
-    }
-
-    // 6. Hydrate Achievements Store
+    // 5. Hydrate Achievements Store
     if (data.unlockedBadgeIds) {
       useAchievementsStore.getState().setUnlockedBadgeIds(data.unlockedBadgeIds);
     }
