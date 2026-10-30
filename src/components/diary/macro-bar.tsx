@@ -20,7 +20,7 @@ export function MacroBar() {
 
   if (!isHydrated) {
     return (
-      <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs text-foreground">
+      <div className="rounded-3xl border border-border-divider bg-surface p-6 shadow-xs text-foreground">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
           <div className="space-y-2">
             <div className="h-4 w-36 bg-surface-subtle animate-pulse rounded-navigation" />
@@ -32,9 +32,9 @@ export function MacroBar() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 pt-4">
-          <div className="h-20 rounded-button bg-surface-subtle animate-pulse" />
-          <div className="h-20 rounded-button bg-surface-subtle animate-pulse" />
-          <div className="h-20 rounded-button bg-surface-subtle animate-pulse" />
+          <div className="h-20 rounded-2xl bg-surface-subtle animate-pulse" />
+          <div className="h-20 rounded-2xl bg-surface-subtle animate-pulse" />
+          <div className="h-20 rounded-2xl bg-surface-subtle animate-pulse" />
         </div>
       </div>
     );
@@ -70,7 +70,7 @@ export function MacroBar() {
   const circ = Math.round(2 * Math.PI * r);
 
   return (
-    <div className="rounded-card border border-border-divider bg-surface p-6 shadow-xs text-foreground">
+    <div className="rounded-3xl border border-border-divider bg-surface p-6 shadow-xs text-foreground">
       {/* Top Calorie Summary */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
         <div>
@@ -154,7 +154,7 @@ export function MacroBar() {
         {/* Protein */}
         <div
           className={cn(
-            "flex flex-col gap-1.5 p-3 rounded-button border",
+            "flex flex-col gap-1.5 p-3.5 rounded-2xl border transition-all",
             MACRO_STYLES.protein.subtleBgClass,
             MACRO_STYLES.protein.borderClass,
           )}
@@ -199,7 +199,7 @@ export function MacroBar() {
         {/* Carbs */}
         <div
           className={cn(
-            "flex flex-col gap-1.5 p-3 rounded-button border",
+            "flex flex-col gap-1.5 p-3.5 rounded-2xl border transition-all",
             MACRO_STYLES.carbs.subtleBgClass,
             MACRO_STYLES.carbs.borderClass,
           )}
@@ -242,7 +242,7 @@ export function MacroBar() {
         {/* Fat */}
         <div
           className={cn(
-            "flex flex-col gap-1.5 p-3 rounded-button border",
+            "flex flex-col gap-1.5 p-3.5 rounded-2xl border transition-all",
             MACRO_STYLES.fat.subtleBgClass,
             MACRO_STYLES.fat.borderClass,
           )}
@@ -285,7 +285,7 @@ export function MacroBar() {
 
       {/* Fiber & Sugar Micronutrient Details */}
       <div className="grid grid-cols-2 gap-3 pt-3 mt-3 border-t border-border-divider text-xs">
-        <div className="flex items-center justify-between px-3 py-2 rounded-input bg-surface-subtle">
+        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-surface-subtle border border-border-divider/50">
           <span className="text-text-muted">Serat (Fiber)</span>
           <span className="font-semibold text-text-primary">
             {consumed.fiber}{" "}
@@ -294,7 +294,7 @@ export function MacroBar() {
             </span>
           </span>
         </div>
-        <div className="flex items-center justify-between px-3 py-2 rounded-input bg-surface-subtle">
+        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-surface-subtle border border-border-divider/50">
           <span className="text-text-muted">Gula (Sugar)</span>
           <span className="font-semibold text-macro-sugar">
             {consumed.sugar}{" "}
