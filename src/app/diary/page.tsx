@@ -240,7 +240,7 @@ export default function FoodDiaryPage() {
       </div>
 
       {/* Meal Timeline Sections */}
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         {MEAL_TYPES.filter(
           (m) => activeFilter === "all" || activeFilter === m.id
         ).map((meal) => {

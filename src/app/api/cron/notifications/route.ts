@@ -4,7 +4,6 @@ import {
   profiles,
   foodLogs,
   coopMembers,
-  pushSubscriptions,
 } from "@/db/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { sendNotificationToUser } from "@/lib/server/push-service";
@@ -42,10 +41,14 @@ export async function GET(request: NextRequest) {
     const forceReengagement = request.nextUrl.searchParams.get("reengagement") === "true";
 
     const stats = {
-      mealtimeSent: 0,
-      streakSaver10PmSelfSent: 0,
-      streakSaver10PmFriendSent: 0,
-      reengagementSent: 0,
+      mealtimePushSent: 0,
+      mealtimeEmailSent: 0,
+      streakSaver10PmSelfPushSent: 0,
+      streakSaver10PmSelfEmailSent: 0,
+      streakSaver10PmFriendPushSent: 0,
+      streakSaver10PmFriendEmailSent: 0,
+      reengagementPushSent: 0,
+      reengagementEmailSent: 0,
     };
 
     // =========================================================================
@@ -66,18 +69,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (currentMealSlot) {
-      const subscribedUsers = await getSubscribedUserIds();
+      const targetUsers = await getTargetUserIds();
 
-      for (const userId of subscribedUsers) {
+      for (const userId of targetUsers) {
         const hasLoggedThisMeal = await userLoggedMealSlot(userId, todayStr, currentMealSlot);
         if (!hasLoggedThisMeal) {
-          await sendNotificationToUser(userId, {
+          const res = await sendNotificationToUser(userId, {
             title: "Waktunya makan! 🍽️",
             body: "Jangan lupa catat menu kamu sekarang biar pet kamu tetap kenyang dan XP nambah!",
             url: "/diary/add",
             tag: `meal-reminder-${currentMealSlot}-${todayStr}`,
+            actionText: "Catat Menu Sekarang 🍽️",
           });
-          stats.mealtimeSent++;
+          if (res.sentCount > 0) stats.mealtimePushSent += res.sentCount;
+          if (res.emailSent) stats.mealtimeEmailSent++;
         }
       }
     }
@@ -88,34 +93,38 @@ export async function GET(request: NextRequest) {
     const isEveningWindow = (jakartaHours >= 21 && jakartaHours <= 23) || forceEvening;
 
     if (isEveningWindow) {
-      const subscribedUsers = await getSubscribedUserIds();
+      const targetUsers = await getTargetUserIds();
 
-      for (const userId of subscribedUsers) {
+      for (const userId of targetUsers) {
         const hasLoggedAnyToday = await userHasAnyLogsToday(userId, todayStr);
         const userProfile = await getUserProfile(userId);
-        const streakDays = userProfile?.currentStreakDays ?? 0;
+        const streakDays = userProfile?.streakCount ?? userProfile?.currentStreakDays ?? 0;
 
         // SCENARIO 3: Self Missed Log (active streak > 0, 0 logs today)
         if (!hasLoggedAnyToday && streakDays > 0) {
-          await sendNotificationToUser(userId, {
+          const res = await sendNotificationToUser(userId, {
             title: "Streak kamu hampir putus! 🔥⚠️",
             body: "Udah jam 10 malam dan kamu belum catat makan hari ini. Sayang banget streak-nya kalau hangus, yuk log sekarang!",
             url: "/diary/add",
             tag: `streak-saver-self-${todayStr}`,
+            actionText: "Selamatkan Streak-mu! 🔥",
           });
-          stats.streakSaver10PmSelfSent++;
+          if (res.sentCount > 0) stats.streakSaver10PmSelfPushSent += res.sentCount;
+          if (res.emailSent) stats.streakSaver10PmSelfEmailSent++;
         }
 
         // SCENARIO 4: Co-op Social Streak Saver (Friend Missed Log)
         const friendsMissingLogs = await getTeammatesWithoutLogsToday(userId, todayStr);
         for (const friend of friendsMissingLogs) {
-          await sendNotificationToUser(userId, {
+          const res = await sendNotificationToUser(userId, {
             title: "Social streak kalian dalam bahaya! 🤝🔥",
             body: `${friend.name} belum nyatet makan hari ini. Colek dia sekarang biar streak party kalian tetap aman!`,
-            url: "/social",
+            url: "/social/coop",
             tag: `streak-saver-coop-${friend.id}-${todayStr}`,
+            actionText: "Colek Teman Sekarang 🤝",
           });
-          stats.streakSaver10PmFriendSent++;
+          if (res.sentCount > 0) stats.streakSaver10PmFriendPushSent += res.sentCount;
+          if (res.emailSent) stats.streakSaver10PmFriendEmailSent++;
         }
       }
     }
@@ -124,26 +133,30 @@ export async function GET(request: NextRequest) {
     // C. SCENARIO 5: Re-engagement / Broken Streak Recovery
     // Cadence: Day 2, Day 5, Day 7, Day 14 after streak break
     // =========================================================================
-    const subscribedUsers = await getSubscribedUserIds();
-    for (const userId of subscribedUsers) {
+    const targetUsers = await getTargetUserIds();
+    for (const userId of targetUsers) {
       const userProfile = await getUserProfile(userId);
       if (!userProfile) continue;
 
+      const streakDays = userProfile?.streakCount ?? userProfile?.currentStreakDays ?? 0;
+
       // Condition: streak is 0, and user has not logged anything today
-      if (userProfile.currentStreakDays === 0) {
+      if (streakDays === 0) {
         const hasLoggedToday = await userHasAnyLogsToday(userId, todayStr);
         if (!hasLoggedToday) {
           const daysSinceBreak = await getDaysSinceLastLogOrCreation(userId, userProfile.createdAt);
 
           // Dispatch only on cadence days: Day 2, Day 5, Day 7, Day 14 (or forced)
           if ([2, 5, 7, 14].includes(daysSinceBreak) || forceReengagement) {
-            await sendNotificationToUser(userId, {
+            const res = await sendNotificationToUser(userId, {
               title: "Pet kamu kangen berat... 🥺🐾",
               body: "Streak boleh reset, tapi petualanganmu belum selesai. Yuk balik lagi dan mulai kebiasaan sehat bareng hari ini!",
               url: "/dashboard",
               tag: `re-engagement-day-${daysSinceBreak}-${todayStr}`,
+              actionText: "Kembali ke Pet Kamu 🐾",
             });
-            stats.reengagementSent++;
+            if (res.sentCount > 0) stats.reengagementPushSent += res.sentCount;
+            if (res.emailSent) stats.reengagementEmailSent++;
           }
         }
       }
@@ -165,17 +178,15 @@ export async function GET(request: NextRequest) {
 }
 
 // Helpers
-async function getSubscribedUserIds(): Promise<string[]> {
+async function getTargetUserIds(): Promise<string[]> {
   try {
     if (process.env.DATABASE_URL) {
-      const rows = await db
-        .select({ userId: pushSubscriptions.userId })
-        .from(pushSubscriptions);
-      return Array.from(new Set(rows.map((r) => r.userId)));
+      const rows = await db.select({ id: profiles.id }).from(profiles);
+      return rows.map((r) => r.id);
     } else {
       const supabase = await createClient();
-      const { data } = await supabase.from("push_subscriptions").select("user_id");
-      return Array.from(new Set((data || []).map((r: any) => r.user_id)));
+      const { data } = await supabase.from("profiles").select("id");
+      return (data || []).map((r: any) => r.id);
     }
   } catch {
     return [];

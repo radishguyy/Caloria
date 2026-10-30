@@ -1,10 +1,11 @@
-import { pgEnum, pgSchema, uuid } from "drizzle-orm/pg-core";
+import { pgEnum, pgSchema, uuid, text } from "drizzle-orm/pg-core";
 
 // Reference to Supabase's internal `auth.users` table
 const authSchema = pgSchema("auth");
 
 export const authUsers = authSchema.table("users", {
   id: uuid("id").primaryKey(),
+  email: text("email"),
 });
 
 // 1. Goal Type Enum

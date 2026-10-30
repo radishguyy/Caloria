@@ -7,6 +7,7 @@ interface NotificationSettings {
   friendPokes: boolean;
   nutritionEvaluations: boolean;
   webPushEnabled: boolean;
+  emailNotificationsEnabled: boolean;
   breakfastTime: string;
   lunchTime: string;
   dinnerTime: string;
@@ -40,6 +41,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
         friendPokes: true,
         nutritionEvaluations: true,
         webPushEnabled: true,
+        emailNotificationsEnabled: true,
         breakfastTime: "08:00",
         lunchTime: "12:30",
         dinnerTime: "19:00",
