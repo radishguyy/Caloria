@@ -329,6 +329,20 @@ export async function fetchAppInitialDataAction() {
       ? (earliestWeightDate < profileCreatedDate ? earliestWeightDate : profileCreatedDate)
       : earliestWeightDate || profileCreatedDate || new Date().toISOString().split("T")[0];
 
+    // Treat as completed if flag is set, or if user already has pet, weight logs, or food logs
+    const isUserOnboardingCompleted =
+      Boolean(profile?.isOnboardingCompleted) ||
+      Boolean(pet) ||
+      wLogs.length > 0 ||
+      mappedFoodLogs.length > 0;
+
+    if (profile && !profile.isOnboardingCompleted && isUserOnboardingCompleted) {
+      db.update(profiles)
+        .set({ isOnboardingCompleted: true, updatedAt: new Date() })
+        .where(eq(profiles.id, user.id))
+        .catch((e) => console.warn("[fetchAppInitialDataAction] update onboarding status warning:", e));
+    }
+
     return {
       authenticated: true,
       user: {
@@ -337,7 +351,7 @@ export async function fetchAppInitialDataAction() {
         username: profile?.username || user.email?.split("@")[0] || "User",
         fullName: profile?.fullName || user.user_metadata?.full_name || null,
         avatarUrl: profile?.avatarUrl || user.user_metadata?.avatar_url || null,
-        isOnboardingCompleted: profile?.isOnboardingCompleted ?? false,
+        isOnboardingCompleted: isUserOnboardingCompleted,
       },
       profile: profile
         ? {
