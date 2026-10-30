@@ -57,15 +57,14 @@ export function Navbar() {
     window.location.href = "/login";
   };
 
-  const isAuthed = hydrated && isAuthenticated;
   const unreadCount = hydrated ? storedUnreadCount : 0;
-  const profileActive = isAuthed && pathname.startsWith("/profile");
+  const profileActive = pathname.startsWith("/profile");
   const settingsActive = pathname.startsWith("/profile/settings");
-  const profileHref = isAuthed ? "/profile/overview" : "/login";
-  const profileLabel = isAuthed
-    ? `Profil ${user?.fullName ?? user?.username ?? ""}`.trim()
-    : "Masuk";
-  const initials = isAuthed ? getInitials(user?.fullName, user?.username) : "";
+  const profileHref = "/profile/overview";
+  const profileLabel = user?.fullName || user?.username
+    ? `Profil ${user?.fullName ?? user?.username}`.trim()
+    : "Profil";
+  const initials = getInitials(user?.fullName, user?.username);
 
   // Hide navbar on public landing page, auth routes, and onboarding wizard
   const isAuthRoute =
@@ -181,6 +180,7 @@ export function Navbar() {
             href={profileHref}
             aria-label={profileLabel}
             aria-current={profileActive ? "page" : undefined}
+            title={profileLabel}
             className={cn(
               controlClass,
               "overflow-hidden",
@@ -188,7 +188,7 @@ export function Navbar() {
                 "bg-brand-orange text-ink hover:bg-brand-orange hover:text-ink",
             )}
           >
-            {isAuthenticated && user?.avatarUrl ? (
+            {user?.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={user.avatarUrl}
@@ -196,7 +196,7 @@ export function Navbar() {
                 className="h-full w-full object-cover"
                 draggable={false}
               />
-            ) : isAuthenticated && initials ? (
+            ) : initials ? (
               <span aria-hidden="true" className="text-sm font-bold">
                 {initials}
               </span>
@@ -205,20 +205,18 @@ export function Navbar() {
             )}
           </Link>
 
-          {isAuthed && (
-            <button
-              type="button"
-              onClick={handleLogout}
-              aria-label="Keluar dari akun"
-              title="Keluar (Logout)"
-              className={cn(
-                controlClass,
-                "text-destructive hover:bg-destructive/10 hover:text-destructive",
-              )}
-            >
-              <LogOut className="h-5 w-5" aria-hidden="true" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Keluar dari akun"
+            title="Keluar (Logout)"
+            className={cn(
+              controlClass,
+              "text-destructive hover:bg-destructive/10 hover:text-destructive",
+            )}
+          >
+            <LogOut className="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </header>

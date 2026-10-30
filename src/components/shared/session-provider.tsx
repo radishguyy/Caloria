@@ -17,6 +17,26 @@ async function hydrateStoresFromDatabase() {
   try {
     const data = await fetchAppInitialDataAction();
     if (!data || !data.authenticated || !data.user) {
+      // Fallback: check if client-side Supabase has an active session before clearing
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        const u = session.user;
+        useAuthStore.getState().setUserFromSession({
+          id: u.id,
+          email: u.email || null,
+          username:
+            u.user_metadata?.username || u.email?.split("@")[0] || "User",
+          fullName:
+            u.user_metadata?.full_name || u.user_metadata?.name || null,
+          avatarUrl:
+            u.user_metadata?.avatar_url || u.user_metadata?.picture || null,
+          isOnboardingCompleted: true,
+        });
+        return;
+      }
       useAuthStore.getState().clearUser();
       return;
     }
