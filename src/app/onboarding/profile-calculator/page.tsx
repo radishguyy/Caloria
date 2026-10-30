@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useAuthStore } from "@/store/use-auth-store";
+import { updateUsernameAction, checkUsernameAvailabilityAction } from "@/app/actions/profile";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import {
   calculateBmi,
@@ -186,7 +187,7 @@ function CompactStepper({
 export default function OnboardingProfileCalculatorPage() {
   const router = useRouter();
   const { goalPlan, setGoalPlan } = useFoodStore();
-  const { activeOnboardingStep, onboardingCompleted, setOnboardingStep } = useAuthStore();
+  const { user, activeOnboardingStep, onboardingCompleted, setOnboardingStep } = useAuthStore();
 
   // Guard: if user has already finished onboarding, redirect to dashboard
   useEffect(() => {
@@ -199,6 +200,21 @@ export default function OnboardingProfileCalculatorPage() {
       router.replace("/onboarding/projection");
     }
   }, [activeOnboardingStep, onboardingCompleted, router]);
+
+  // Username and identity customization (especially useful for Google sign-up)
+  const [usernameInput, setUsernameInput] = useState(user?.username || "");
+  const [fullNameInput, setFullNameInput] = useState(user?.fullName || "");
+  const [usernameError, setUsernameError] = useState("");
+  const [usernameChecked, setUsernameChecked] = useState(false);
+
+  useEffect(() => {
+    if (user?.username && !usernameInput) {
+      setUsernameInput(user.username);
+    }
+    if (user?.fullName && !fullNameInput) {
+      setFullNameInput(user.fullName);
+    }
+  }, [user?.username, user?.fullName, usernameInput, fullNameInput]);
 
   const [gender, setGender] = useState<Gender>(goalPlan.gender || "male");
   const [age, setAge] = useState<number>(goalPlan.age || 24);
@@ -232,11 +248,39 @@ export default function OnboardingProfileCalculatorPage() {
     [bmr, activityLevel]
   );
 
-  const handleOpenConfirm = () => {
+  const handleOpenConfirm = async () => {
+    if (usernameInput.trim()) {
+      const clean = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+      if (clean.length < 3) {
+        setUsernameError("Username minimal 3 karakter (huruf, angka, _).");
+        return;
+      }
+      const check = await checkUsernameAvailabilityAction(clean);
+      if (!check.available) {
+        setUsernameError(check.error || "Username sudah digunakan.");
+        return;
+      }
+      setUsernameError("");
+      setUsernameChecked(true);
+    }
     setShowConfirmModal(true);
   };
 
-  const handleConfirmAndProceed = () => {
+  const handleConfirmAndProceed = async () => {
+    if (usernameInput.trim()) {
+      const clean = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+      try {
+        await updateUsernameAction(clean, fullNameInput.trim());
+        useAuthStore.setState((s) => ({
+          user: s.user
+            ? { ...s.user, username: clean, fullName: fullNameInput.trim() || s.user.fullName }
+            : null,
+        }));
+      } catch (err) {
+        console.warn("Update username warning:", err);
+      }
+    }
+
     setGoalPlan({
       gender,
       age,
@@ -267,6 +311,54 @@ export default function OnboardingProfileCalculatorPage() {
       </div>
 
       <div className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 space-y-4 shadow-xs">
+        {/* Identity & Username (Required for Google signup or manual customize) */}
+        <div className="space-y-3 pb-3 border-b border-border-divider">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-text-muted">
+                Nama Panggilan / Lengkap
+              </label>
+              <input
+                type="text"
+                value={fullNameInput}
+                onChange={(e) => setFullNameInput(e.target.value)}
+                placeholder="misal: Pasha Pratama"
+                className="input-field mt-1 w-full px-3.5 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-text-muted">
+                Username Unik
+              </label>
+              <input
+                type="text"
+                value={usernameInput}
+                onChange={(e) => {
+                  setUsernameInput(e.target.value.toLowerCase().replace(/\s+/g, "_"));
+                  setUsernameError("");
+                  setUsernameChecked(false);
+                }}
+                placeholder="misal: pasha_dev"
+                required
+                className={cn(
+                  "input-field mt-1 w-full px-3.5 py-2 text-sm",
+                  usernameError && "border-destructive focus-visible:outline-destructive"
+                )}
+              />
+              {usernameError ? (
+                <p className="mt-1 text-[11px] font-semibold text-destructive">
+                  {usernameError}
+                </p>
+              ) : (
+                <p className="mt-1 text-[11px] text-text-muted">
+                  Digunakan untuk profil dan pertemanan di Caloria.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Gender Selection */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-muted">
@@ -468,6 +560,22 @@ export default function OnboardingProfileCalculatorPage() {
 
             {/* Summary Data Box */}
             <div className="rounded-navigation bg-surface-subtle border border-border-default p-3.5 space-y-2 text-xs">
+              {(usernameInput || fullNameInput) && (
+                <div className="grid grid-cols-2 gap-2 pb-1 border-b border-border-divider">
+                  {usernameInput && (
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Username:</span>
+                      <span className="font-bold text-accent-green">@{usernameInput}</span>
+                    </div>
+                  )}
+                  {fullNameInput && (
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Nama:</span>
+                      <span className="font-bold text-text-primary truncate ml-2">{fullNameInput}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex justify-between border-b border-border-divider pb-1">
                   <span className="text-text-muted">Jenis Kelamin:</span>

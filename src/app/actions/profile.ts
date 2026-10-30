@@ -81,6 +81,94 @@ export async function completeOnboarding() {
 }
 
 /**
+ * Checks whether a chosen username is available for registration or onboarding
+ */
+export async function checkUsernameAvailabilityAction(username: string): Promise<{
+  available: boolean;
+  error?: string;
+}> {
+  const clean = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  if (clean.length < 3) {
+    return { available: false, error: "Minimal 3 karakter (huruf, angka, _)" };
+  }
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const [existing] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.username, clean))
+      .limit(1);
+
+    if (existing && (!user || existing.id !== user.id)) {
+      return { available: false, error: "Username sudah digunakan" };
+    }
+
+    return { available: true };
+  } catch (err) {
+    console.error("[checkUsernameAvailabilityAction Error]:", err);
+    return { available: true };
+  }
+}
+
+/**
+ * Updates user profile username and full name during onboarding or settings
+ */
+export async function updateUsernameAction(username: string, fullName?: string): Promise<{
+  success: boolean;
+  error?: string;
+  username?: string;
+}> {
+  const clean = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  if (clean.length < 3) {
+    return { success: false, error: "Username minimal 3 karakter (huruf, angka, _)." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Harap masuk terlebih dahulu." };
+    }
+
+    const [existing] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.username, clean))
+      .limit(1);
+
+    if (existing && existing.id !== user.id) {
+      return { success: false, error: "Username sudah dipakai oleh pengguna lain." };
+    }
+
+    const updates: Record<string, any> = {
+      username: clean,
+      updatedAt: new Date(),
+    };
+    if (fullName && fullName.trim()) {
+      updates.fullName = fullName.trim();
+    }
+
+    await db.update(profiles).set(updates).where(eq(profiles.id, user.id));
+    revalidatePath("/", "layout");
+    return { success: true, username: clean };
+  } catch (err) {
+    console.error("[updateUsernameAction Error]:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Gagal memperbarui username.",
+    };
+  }
+}
+
+/**
  * Fetches all weight logs for the authenticated user from PostgreSQL
  */
 export async function fetchWeightLogsAction() {

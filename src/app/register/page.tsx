@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { registerAction } from "@/app/actions/auth";
+import { GoogleButton } from "@/components/auth/google-button";
 import { PeekingCalpal } from "@/components/auth/PeekingCalpal";
 import { useRandomLogo } from "@/lib/logos";
 
@@ -184,6 +185,14 @@ export default function RegisterPage() {
             </button>
           </div>
         </form>
+
+        <div className="flex items-center gap-3 pt-1">
+          <div className="h-px flex-1 bg-border-divider" />
+          <span className="text-[11px] font-semibold text-text-muted">atau</span>
+          <div className="h-px flex-1 bg-border-divider" />
+        </div>
+
+        <GoogleButton mode="register" label="Daftar dengan Google" />
 
         <div className="pt-2 text-center text-xs text-text-muted">
           Sudah punya akun?{" "}
