@@ -54,6 +54,19 @@ function dismissReminder(key: string) {
   } catch {}
 }
 
+interface QuickLogSuccessInfo {
+  foodNames: string[];
+  mealLabel: string;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  xpEarned: number;
+  coinsEarned: number;
+  title: string;
+  message: string;
+}
+
 export default function DashboardPage() {
   const isHydrated = useHydrated();
   const {
@@ -95,6 +108,8 @@ export default function DashboardPage() {
   const [selectedQuickItems, setSelectedQuickItems] = useState<
     (typeof FOOD_CATALOG)[0][]
   >([]);
+  const [quickSuccessModal, setQuickSuccessModal] =
+    useState<QuickLogSuccessInfo | null>(null);
 
   const unreadCount = getUnreadCount();
 
@@ -346,7 +361,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4" aria-hidden="true" />
           </div>
           <h4 className="text-sm font-bold text-text-primary">
-            Pengingat Senggolan Teman âš”ï¸
+            Pengingat Senggolan Teman ⚔️
           </h4>
         </div>
         <button
@@ -438,6 +453,26 @@ export default function DashboardPage() {
       console.error("[Dashboard] Batch quick log sync error:", err)
     );
 
+    const mealObj = MEAL_TYPES.find((m) => m.id === selectedQuickMeal);
+    const totalProt = selectedQuickItems.reduce((acc, i) => acc + i.proteinG, 0);
+    const totalCarb = selectedQuickItems.reduce((acc, i) => acc + i.carbsG, 0);
+    const totalFatVal = selectedQuickItems.reduce((acc, i) => acc + i.fatG, 0);
+
+    setQuickSuccessModal({
+      foodNames: selectedQuickItems.map((i) => i.name),
+      mealLabel: mealObj?.label || "Makan",
+      totalCalories: totalCal,
+      totalProtein: Math.round(totalProt * 10) / 10,
+      totalCarbs: Math.round(totalCarb * 10) / 10,
+      totalFat: Math.round(totalFatVal * 10) / 10,
+      xpEarned: feedback.xpEarned || selectedQuickItems.length * 15,
+      coinsEarned: selectedQuickItems.length * 10,
+      title: feedback.title || "Makanan Berhasil Dicatat! 🍽️",
+      message:
+        feedback.message ||
+        `${selectedQuickItems.length} menu berhasil dicatat untuk ${mealObj?.label || "makan"} hari ini. Pet kamu makin kenyang dan bertambah XP!`,
+    });
+
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
@@ -480,6 +515,22 @@ export default function DashboardPage() {
       console.error("[Dashboard] Quick add sync error:", err)
     );
 
+    const mealObj = MEAL_TYPES.find((m) => m.id === selectedQuickMeal);
+    setQuickSuccessModal({
+      foodNames: [foodItem.name],
+      mealLabel: mealObj?.label || "Makan",
+      totalCalories: foodItem.calories,
+      totalProtein: foodItem.proteinG,
+      totalCarbs: foodItem.carbsG,
+      totalFat: foodItem.fatG,
+      xpEarned: feedback.xpEarned || 15,
+      coinsEarned: 10,
+      title: feedback.title || "Makanan Berhasil Dicatat! 🍽️",
+      message:
+        feedback.message ||
+        `Menu ${foodItem.name} berhasil ditambahkan ke catatan ${mealObj?.label || "makan"} hari ini.`,
+    });
+
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
@@ -521,7 +572,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => setQuickLogModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 rounded-card border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-accent-green-dark active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-accent-green-dark active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             Catat Makanan
@@ -529,14 +580,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-
-
-
-
       {/* Quick Action Modal: Fast Log Food */}
       {quickLogModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-modal border border-border-divider bg-surface p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-lg rounded-3xl border border-border-divider bg-surface p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-border-divider pb-3">
               <div className="flex items-center gap-2">
                 <Utensils className="h-5 w-5 text-accent-orange" />
@@ -564,10 +611,10 @@ export default function DashboardPage() {
                   <button
                     key={m.id}
                     onClick={() => setSelectedQuickMeal(m.id)}
-                    className={`nav-item py-1.5 px-1 text-xs font-semibold border text-center transition-colors ${
+                    className={`nav-item py-1.5 px-1 text-xs font-semibold rounded-xl border text-center transition-colors ${
                       selectedQuickMeal === m.id
-                        ? "is-selected border-accent-orange font-bold"
-                        : "bg-surface-subtle text-neutral-10 border-border-default"
+                        ? "is-selected border-accent-orange font-bold shadow-2xs"
+                        : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface"
                     }`}
                   >
                     {m.label}
@@ -626,7 +673,7 @@ export default function DashboardPage() {
                   <div
                     key={food.id}
                     onClick={() => toggleQuickItem(food)}
-                    className={`flex items-center justify-between gap-2 p-2 rounded-navigation border transition-colors cursor-pointer ${
+                    className={`flex items-center justify-between gap-2 p-2.5 rounded-2xl border transition-colors cursor-pointer ${
                       isChecked
                         ? "border-accent-orange bg-accent-orange/10"
                         : "border-border-default bg-surface-subtle hover:border-accent-green/50"
@@ -641,8 +688,7 @@ export default function DashboardPage() {
                           {food.name}
                         </p>
                         <p className="text-[10px] text-text-muted">
-                          {food.calories} kcal â€¢ {food.proteinG}g P â€¢{" "}
-                          {food.carbsG}g C â€¢ {food.fatG}g F
+                          {food.calories} kcal • P: {food.proteinG}g • K: {food.carbsG}g • L: {food.fatG}g
                         </p>
                       </div>
                     </div>
@@ -659,7 +705,7 @@ export default function DashboardPage() {
                           e.stopPropagation();
                           handleQuickAdd(food);
                         }}
-                        className="rounded-lg bg-surface px-2 py-1 text-[11px] font-bold text-accent-green hover:bg-accent-green-light border border-border-default"
+                        className="rounded-xl bg-surface px-2.5 py-1 text-[11px] font-bold text-accent-green hover:bg-accent-green-light border border-border-default transition-colors shadow-2xs"
                       >
                         + 1-Klik
                       </button>
@@ -673,7 +719,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={handleBatchQuickSave}
-                className="button-primary w-full py-2.5 text-xs flex items-center justify-center gap-1.5 font-black shadow-md"
+                className="button-primary w-full py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 font-black shadow-md"
               >
                 <Plus className="h-4 w-4" />
                 <span>
@@ -696,11 +742,99 @@ export default function DashboardPage() {
                   setSelectedQuickItems([]);
                   setQuickLogModalOpen(false);
                 }}
-                className="px-4 py-1.5 rounded-button border border-border-default hover:bg-accent-green-light text-text-primary font-bold"
+                className="px-4 py-1.5 rounded-xl border border-border-default hover:bg-accent-green-light text-text-primary font-bold transition-colors"
               >
                 Tutup
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Action Success Notification Modal */}
+      {quickSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm sm:max-w-md rounded-3xl border border-border-divider bg-surface p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setQuickSuccessModal(null)}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-text-muted hover:bg-surface-subtle hover:text-text-primary transition-colors"
+              aria-label="Tutup notifikasi"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Celebratory badge */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent-green/15 text-accent-green border-2 border-accent-green/30 shadow-xs text-3xl">
+              🥑
+            </div>
+
+            <div className="space-y-1">
+              <span className="inline-block px-3 py-1 rounded-pill text-[11px] font-bold uppercase tracking-wider bg-accent-green/15 text-text-primary">
+                Berhasil Dicatat
+              </span>
+              <h3 className="text-xl font-black text-text-primary font-heading">
+                {quickSuccessModal.title}
+              </h3>
+              <p className="text-xs text-text-muted max-w-xs mx-auto">
+                {quickSuccessModal.message}
+              </p>
+            </div>
+
+            {/* Menu summary & macros */}
+            <div className="rounded-2xl border border-border-divider bg-surface-subtle p-3.5 text-xs space-y-2.5 text-left">
+              <div className="flex items-center justify-between border-b border-border-divider/60 pb-2">
+                <span className="font-bold text-text-primary truncate max-w-[210px]">
+                  {quickSuccessModal.foodNames.join(", ")}
+                </span>
+                <span className="px-2 py-0.5 rounded-pill bg-accent-orange/15 text-accent-orange-dark text-[10px] font-bold">
+                  {quickSuccessModal.mealLabel}
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 text-center">
+                <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
+                  <span className="block text-[9px] text-text-muted">Kalori</span>
+                  <span className="text-xs font-black text-accent-green">{quickSuccessModal.totalCalories} kcal</span>
+                </div>
+                <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
+                  <span className="block text-[9px] text-text-muted">Protein</span>
+                  <span className="text-xs font-black text-macro-protein">{quickSuccessModal.totalProtein}g</span>
+                </div>
+                <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
+                  <span className="block text-[9px] text-text-muted">Karbo</span>
+                  <span className="text-xs font-black text-macro-carbs">{quickSuccessModal.totalCarbs}g</span>
+                </div>
+                <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
+                  <span className="block text-[9px] text-text-muted">Lemak</span>
+                  <span className="text-xs font-black text-macro-fat">{quickSuccessModal.totalFat}g</span>
+                </div>
+              </div>
+            </div>
+
+            {/* XP & Coin Reward Showcase */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-2xl border border-accent-green/20 bg-accent-green/10 p-3 text-center">
+                <span className="text-[10px] font-semibold text-text-muted">XP Pet Diperoleh</span>
+                <p className="text-base font-black text-accent-green font-heading flex items-center justify-center gap-1 mt-0.5">
+                  <Sparkles className="h-4 w-4" />
+                  +{quickSuccessModal.xpEarned} XP
+                </p>
+              </div>
+              <div className="rounded-2xl border border-accent-orange/20 bg-accent-orange/10 p-3 text-center">
+                <span className="text-[10px] font-semibold text-text-muted">Koin Didapat</span>
+                <p className="text-base font-black text-accent-orange-dark font-heading flex items-center justify-center gap-1 mt-0.5">
+                  <Coins className="h-4 w-4 text-accent-orange" />
+                  +{quickSuccessModal.coinsEarned}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setQuickSuccessModal(null)}
+              className="button-primary w-full py-3 rounded-2xl text-xs font-black shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
+            >
+              Mantap, Lanjutkan! 🎉
+            </button>
           </div>
         </div>
       )}
