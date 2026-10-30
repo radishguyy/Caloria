@@ -277,38 +277,65 @@ export async function fetchAppInitialDataAction() {
     }
 
     // 1. Fetch Profile
-    const [profile] = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1);
+    let profile: any = null;
+    try {
+      const [p] = await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.id, user.id))
+        .limit(1);
+      profile = p;
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] profile query warning:", e);
+    }
 
     // 2. Fetch Pet
-    const [pet] = await db
-      .select()
-      .from(pets)
-      .where(eq(pets.userId, user.id))
-      .limit(1);
+    let pet: any = null;
+    try {
+      const [pt] = await db
+        .select()
+        .from(pets)
+        .where(eq(pets.userId, user.id))
+        .limit(1);
+      pet = pt;
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] pet query warning:", e);
+    }
 
     // 3. Fetch Weight Logs
-    const wLogs = await db
-      .select()
-      .from(weightLogs)
-      .where(eq(weightLogs.userId, user.id))
-      .orderBy(weightLogs.loggedDate);
+    let wLogs: any[] = [];
+    try {
+      wLogs = await db
+        .select()
+        .from(weightLogs)
+        .where(eq(weightLogs.userId, user.id))
+        .orderBy(weightLogs.loggedDate);
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] weightLogs query warning:", e);
+    }
 
     // 4. Fetch User Badges
-    const uBadges = await db
-      .select()
-      .from(userBadges)
-      .where(eq(userBadges.userId, user.id));
+    let uBadges: any[] = [];
+    try {
+      uBadges = await db
+        .select()
+        .from(userBadges)
+        .where(eq(userBadges.userId, user.id));
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] userBadges query warning:", e);
+    }
 
     // 5. Fetch User Wardrobe / Accessories
-    const wardrobeRows = await db
-      .select({ assetUrl: plazaItems.assetUrl })
-      .from(userWardrobe)
-      .innerJoin(plazaItems, eq(userWardrobe.itemId, plazaItems.id))
-      .where(eq(userWardrobe.userId, user.id));
+    let wardrobeRows: any[] = [];
+    try {
+      wardrobeRows = await db
+        .select({ assetUrl: plazaItems.assetUrl })
+        .from(userWardrobe)
+        .innerJoin(plazaItems, eq(userWardrobe.itemId, plazaItems.id))
+        .where(eq(userWardrobe.userId, user.id));
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] wardrobe query warning:", e);
+    }
 
     const ownedItemIds = Array.from(
       new Set([
@@ -318,63 +345,96 @@ export async function fetchAppInitialDataAction() {
     );
 
     // 6. Fetch User Loadout
-    const [loadoutRow] = await db
-      .select()
-      .from(userLoadouts)
-      .where(eq(userLoadouts.userId, user.id))
-      .limit(1);
+    let loadoutRow: any = null;
+    try {
+      const [lr] = await db
+        .select()
+        .from(userLoadouts)
+        .where(eq(userLoadouts.userId, user.id))
+        .limit(1);
+      loadoutRow = lr;
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] loadout query warning:", e);
+    }
 
     // 7. Fetch Recent Food Logs (from foodLogs with mealLogs fallback)
-    const recentFoodLogs = await db
-      .select()
-      .from(foodLogs)
-      .where(eq(foodLogs.userId, user.id))
-      .orderBy(desc(foodLogs.createdAt))
-      .limit(500);
-
-    let mappedFoodLogs = recentFoodLogs.map((l) => ({
-      id: l.id,
-      userId: l.userId,
-      name: l.customFoodName || "Makanan",
-      mealType: l.mealTime as any,
-      calories: Number(l.calculatedCalories),
-      proteinG: Number(l.calculatedProtein),
-      carbsG: Number(l.calculatedCarbs),
-      fatG: Number(l.calculatedFat),
-      fiberG: Number(l.calculatedFiber || 0),
-      sugarG: Number(l.calculatedSugar || 0),
-      servingSize: Number(l.servingQuantity || 1),
-      servingUnit: "porsi",
-      loggedDate: typeof l.logDate === "string" ? l.logDate : new Date(l.logDate).toISOString().split("T")[0],
-      loggedAt: l.createdAt,
-      createdAt: l.createdAt,
-    }));
-
-    if (mappedFoodLogs.length === 0) {
-      const recentMealLogs = await db
+    let mappedFoodLogs: any[] = [];
+    try {
+      const recentFoodLogs = await db
         .select()
-        .from(mealLogs)
-        .where(eq(mealLogs.userId, user.id))
-        .orderBy(desc(mealLogs.createdAt))
+        .from(foodLogs)
+        .where(eq(foodLogs.userId, user.id))
+        .orderBy(desc(foodLogs.createdAt))
         .limit(500);
 
-      mappedFoodLogs = recentMealLogs.map((m) => ({
-        id: m.id,
-        userId: m.userId,
-        name: m.customFoodName || "Makanan",
-        mealType: m.mealType as any,
-        calories: Number(m.calculatedCalories),
-        proteinG: Number(m.calculatedProtein),
-        carbsG: Number(m.calculatedCarbs),
-        fatG: Number(m.calculatedFat),
-        fiberG: 0,
-        sugarG: 0,
-        servingSize: Number(m.servings || 1),
-        servingUnit: "porsi",
-        loggedDate: typeof m.loggedDate === "string" ? m.loggedDate : new Date(m.loggedDate).toISOString().split("T")[0],
-        loggedAt: m.createdAt,
-        createdAt: m.createdAt,
-      }));
+      mappedFoodLogs = recentFoodLogs.map((l) => {
+        let loggedDateStr = new Date().toISOString().split("T")[0];
+        try {
+          if (typeof l.logDate === "string") {
+            loggedDateStr = l.logDate;
+          } else if (l.logDate) {
+            loggedDateStr = new Date(l.logDate).toISOString().split("T")[0];
+          }
+        } catch {}
+
+        return {
+          id: l.id,
+          userId: l.userId,
+          name: l.customFoodName || "Makanan",
+          mealType: l.mealTime as any,
+          calories: Number(l.calculatedCalories),
+          proteinG: Number(l.calculatedProtein),
+          carbsG: Number(l.calculatedCarbs),
+          fatG: Number(l.calculatedFat),
+          fiberG: Number(l.calculatedFiber || 0),
+          sugarG: Number(l.calculatedSugar || 0),
+          servingSize: Number(l.servingQuantity || 1),
+          servingUnit: "porsi",
+          loggedDate: loggedDateStr,
+          loggedAt: l.createdAt,
+          createdAt: l.createdAt,
+        };
+      });
+
+      if (mappedFoodLogs.length === 0) {
+        const recentMealLogs = await db
+          .select()
+          .from(mealLogs)
+          .where(eq(mealLogs.userId, user.id))
+          .orderBy(desc(mealLogs.createdAt))
+          .limit(500);
+
+        mappedFoodLogs = recentMealLogs.map((m) => {
+          let loggedDateStr = new Date().toISOString().split("T")[0];
+          try {
+            if (typeof m.loggedDate === "string") {
+              loggedDateStr = m.loggedDate;
+            } else if (m.loggedDate) {
+              loggedDateStr = new Date(m.loggedDate).toISOString().split("T")[0];
+            }
+          } catch {}
+
+          return {
+            id: m.id,
+            userId: m.userId,
+            name: m.customFoodName || "Makanan",
+            mealType: m.mealType as any,
+            calories: Number(m.calculatedCalories),
+            proteinG: Number(m.calculatedProtein),
+            carbsG: Number(m.calculatedCarbs),
+            fatG: Number(m.calculatedFat),
+            fiberG: 0,
+            sugarG: 0,
+            servingSize: Number(m.servings || 1),
+            servingUnit: "porsi",
+            loggedDate: loggedDateStr,
+            loggedAt: m.createdAt,
+            createdAt: m.createdAt,
+          };
+        });
+      }
+    } catch (e) {
+      console.warn("[fetchAppInitialDataAction] food logs query warning:", e);
     }
 
     let petExp = pet?.exp || pet?.currentXp || 0;
@@ -504,6 +564,43 @@ export async function fetchAppInitialDataAction() {
     };
   } catch (err: any) {
     console.error("[fetchAppInitialDataAction Error]:", err);
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        return {
+          authenticated: true,
+          user: {
+            id: user.id,
+            email: user.email || null,
+            username:
+              user.user_metadata?.username ||
+              user.email?.split("@")[0] ||
+              "User",
+            fullName:
+              user.user_metadata?.full_name ||
+              user.user_metadata?.name ||
+              null,
+            avatarUrl:
+              user.user_metadata?.avatar_url ||
+              user.user_metadata?.picture ||
+              null,
+            isOnboardingCompleted: true,
+          },
+          profile: null,
+          pet: null,
+          weightLogs: [],
+          unlockedBadgeIds: [],
+          cosmetics: {
+            ownedItemIds: DEFAULT_FREE_ITEM_IDS,
+            equipped: null,
+          },
+          foodLogs: [],
+        };
+      }
+    } catch {}
     return { authenticated: false };
   }
 }
