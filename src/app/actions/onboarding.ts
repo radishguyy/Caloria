@@ -90,34 +90,78 @@ export async function saveOnboardingAction(input: SaveOnboardingInput) {
       profileUpdates.fullName = input.fullName.trim();
     }
 
-    await db
-      .update(profiles)
-      .set(profileUpdates)
-      .where(eq(profiles.id, userId));
+    try {
+      await db
+        .update(profiles)
+        .set(profileUpdates)
+        .where(eq(profiles.id, userId));
 
-    // 2. Update Pet selection
-    await db
-      .insert(pets)
-      .values({
-        userId,
-        name: input.petName || "Pyro",
-        species: input.petSpecies || "flameling",
-        characterId: input.petSpecies || "flameling",
-        stage: "hatchling",
-        level: 1,
-        exp: 0,
-        currentXp: 0,
-        nextLevelXp: 100,
-      })
-      .onConflictDoUpdate({
-        target: [pets.userId],
-        set: {
+      // 2. Update Pet selection
+      await db
+        .insert(pets)
+        .values({
+          userId,
           name: input.petName || "Pyro",
           species: input.petSpecies || "flameling",
           characterId: input.petSpecies || "flameling",
-          updatedAt: new Date(),
+          stage: "hatchling",
+          level: 1,
+          exp: 0,
+          currentXp: 0,
+          nextLevelXp: 100,
+        })
+        .onConflictDoUpdate({
+          target: [pets.userId],
+          set: {
+            name: input.petName || "Pyro",
+            species: input.petSpecies || "flameling",
+            characterId: input.petSpecies || "flameling",
+            updatedAt: new Date(),
+          },
+        });
+    } catch (dbErr) {
+      console.warn("[saveOnboardingAction] fallback to Supabase REST:", dbErr);
+      await supabase
+        .from("profiles")
+        .update({
+          goal: input.goal,
+          goal_path: goalPath,
+          current_level: 1,
+          current_week: 1,
+          gender: input.gender,
+          height_cm: String(input.heightCm),
+          initial_weight_kg: String(input.initialWeightKg),
+          current_weight_kg: String(input.currentWeightKg),
+          target_weight_kg: String(input.targetWeightKg),
+          activity_level: input.activityLevel,
+          bmi_score: String(input.bmiScore),
+          tdee_kcal: input.tdeeKcal,
+          target_calories_kcal: input.targetCaloriesKcal,
+          target_protein_g: String(input.targetProteinG),
+          target_carbs_g: String(input.targetCarbsG),
+          target_fat_g: String(input.targetFatG),
+          projected_days: input.projectedDays,
+          is_onboarding_completed: true,
+          ...(profileUpdates.username ? { username: profileUpdates.username } : {}),
+          ...(profileUpdates.fullName ? { full_name: profileUpdates.fullName } : {}),
+        })
+        .eq("id", userId);
+
+      await supabase.from("pets").upsert(
+        {
+          user_id: userId,
+          name: input.petName || "Pyro",
+          species: input.petSpecies || "flameling",
+          character_id: input.petSpecies || "flameling",
+          stage: "hatchling",
+          level: 1,
+          exp: 0,
+          current_xp: 0,
+          next_level_xp: 100,
         },
-      });
+        { onConflict: "user_id" }
+      );
+    }
 
     revalidatePath("/", "layout");
     return { success: true };

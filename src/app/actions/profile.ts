@@ -276,98 +276,191 @@ export async function fetchAppInitialDataAction() {
       return { authenticated: false };
     }
 
-    // 1. Fetch Profile
-    let profile: any = null;
-    try {
-      const [p] = await db
+    // Run all 7 queries in parallel for fast initial load, with Supabase REST fallback
+    const [
+      profile,
+      rawPet,
+      wLogs,
+      uBadges,
+      wardrobeRows,
+      loadoutRow,
+      recentFoodLogs,
+    ] = await Promise.all([
+      db
         .select()
         .from(profiles)
         .where(eq(profiles.id, user.id))
-        .limit(1);
-      profile = p;
-    } catch (e) {
-      console.warn("[fetchAppInitialDataAction] profile query warning:", e);
-    }
-
-    // 2. Fetch Pet
-    let pet: any = null;
-    try {
-      const [pt] = await db
+        .limit(1)
+        .then((r) => r[0] || null)
+        .catch(async (e) => {
+          console.warn("[fetchAppInitialDataAction] profile query fallback:", e);
+          const { data } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+          return data
+            ? ({
+                id: data.id,
+                username: data.username,
+                fullName: data.full_name,
+                avatarUrl: data.avatar_url,
+                goal: data.goal,
+                goalPath: data.goal_path,
+                currentLevel: data.current_level,
+                currentWeek: data.current_week,
+                streakCount: data.streak_count,
+                streakConsecutiveLogs: data.streak_consecutive_logs,
+                heightCm: data.height_cm,
+                weightKg: data.weight_kg,
+                initialWeightKg: data.initial_weight_kg,
+                currentWeightKg: data.current_weight_kg,
+                targetWeightKg: data.target_weight_kg,
+                targetCaloriesKcal: data.target_calories_kcal,
+                targetProteinG: data.target_protein_g,
+                targetCarbsG: data.target_carbs_g,
+                targetFatG: data.target_fat_g,
+                caloriaCoins: data.caloria_coins,
+                lastLoginClaimDate: data.last_login_claim_date,
+                projectedDays: data.projected_days,
+                currentStreakDays: data.current_streak_days,
+                isOnboardingCompleted: data.is_onboarding_completed,
+                createdAt: data.created_at,
+              } as any)
+            : null;
+        }),
+      db
         .select()
         .from(pets)
         .where(eq(pets.userId, user.id))
-        .limit(1);
-      pet = pt;
-    } catch (e) {
-      console.warn("[fetchAppInitialDataAction] pet query warning:", e);
-    }
-
-    // 3. Fetch Weight Logs
-    let wLogs: any[] = [];
-    try {
-      wLogs = await db
+        .limit(1)
+        .then((r) => r[0] || null)
+        .catch(async (e) => {
+          console.warn("[fetchAppInitialDataAction] pet query fallback:", e);
+          const { data } = await supabase
+            .from("pets")
+            .select("*")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          return data
+            ? ({
+                id: data.id,
+                userId: data.user_id,
+                name: data.name,
+                species: data.species,
+                characterId: data.character_id,
+                stage: data.stage,
+                level: data.level,
+                exp: data.exp ?? data.current_xp ?? 0,
+                currentXp: data.current_xp ?? data.exp ?? 0,
+                hunger: data.hunger ?? 100,
+                happiness: data.happiness ?? 100,
+                coins: data.coins ?? 50,
+                lastFedAt: data.last_fed_at,
+                moodStatus: data.mood_status,
+                customColors: data.custom_colors,
+                createdAt: data.created_at,
+              } as any)
+            : null;
+        }),
+      db
         .select()
         .from(weightLogs)
         .where(eq(weightLogs.userId, user.id))
-        .orderBy(weightLogs.loggedDate);
-    } catch (e) {
-      console.warn("[fetchAppInitialDataAction] weightLogs query warning:", e);
-    }
-
-    // 4. Fetch User Badges
-    let uBadges: any[] = [];
-    try {
-      uBadges = await db
+        .orderBy(weightLogs.loggedDate)
+        .catch(() => [] as any[]),
+      db
         .select()
         .from(userBadges)
-        .where(eq(userBadges.userId, user.id));
-    } catch (e) {
-      console.warn("[fetchAppInitialDataAction] userBadges query warning:", e);
-    }
-
-    // 5. Fetch User Wardrobe / Accessories
-    let wardrobeRows: any[] = [];
-    try {
-      wardrobeRows = await db
+        .where(eq(userBadges.userId, user.id))
+        .catch(() => [] as any[]),
+      db
         .select({ assetUrl: plazaItems.assetUrl })
         .from(userWardrobe)
         .innerJoin(plazaItems, eq(userWardrobe.itemId, plazaItems.id))
-        .where(eq(userWardrobe.userId, user.id));
-    } catch (e) {
-      console.warn("[fetchAppInitialDataAction] wardrobe query warning:", e);
-    }
-
-    const ownedItemIds = Array.from(
-      new Set([
-        ...DEFAULT_FREE_ITEM_IDS,
-        ...wardrobeRows.map((r) => r.assetUrl),
-      ])
-    );
-
-    // 6. Fetch User Loadout
-    let loadoutRow: any = null;
-    try {
-      const [lr] = await db
+        .where(eq(userWardrobe.userId, user.id))
+        .catch(() => [] as any[]),
+      db
         .select()
         .from(userLoadouts)
         .where(eq(userLoadouts.userId, user.id))
-        .limit(1);
-      loadoutRow = lr;
-    } catch (e) {
-      console.warn("[fetchAppInitialDataAction] loadout query warning:", e);
-    }
-
-    // 7. Fetch Recent Food Logs (from foodLogs with mealLogs fallback)
-    let mappedFoodLogs: any[] = [];
-    try {
-      const recentFoodLogs = await db
+        .limit(1)
+        .then((r) => r[0] || null)
+        .catch(() => null as any),
+      db
         .select()
         .from(foodLogs)
         .where(eq(foodLogs.userId, user.id))
         .orderBy(desc(foodLogs.createdAt))
-        .limit(500);
+        .limit(500)
+        .catch(() => [] as any[]),
+    ]);
 
-      mappedFoodLogs = recentFoodLogs.map((l) => {
+    const VALID_SPECIES = [
+      "flameling",
+      "droplet",
+      "bloomie",
+      "sunny",
+      "mochi",
+      "kuma",
+      "nyx",
+      "bambi",
+      "pippin",
+      "ziggy",
+      "clover",
+      "biscuit",
+    ];
+    const rawSpecies = rawPet?.species || rawPet?.characterId;
+    const validSpecies =
+      rawSpecies && VALID_SPECIES.includes(rawSpecies)
+        ? rawSpecies
+        : VALID_SPECIES[
+            user.id
+              .split("")
+              .reduce((acc, ch) => acc + ch.charCodeAt(0), 0) %
+              VALID_SPECIES.length
+          ];
+
+    const pet = rawPet
+      ? {
+          ...rawPet,
+          name:
+            rawPet.name && rawPet.name !== "Egg Starter"
+              ? rawPet.name
+              : validSpecies.charAt(0).toUpperCase() + validSpecies.slice(1),
+          species: validSpecies,
+          characterId: validSpecies,
+        }
+      : {
+          id: user.id,
+          userId: user.id,
+          name: validSpecies.charAt(0).toUpperCase() + validSpecies.slice(1),
+          species: validSpecies,
+          characterId: validSpecies,
+          stage: "baby",
+          level: 1,
+          exp: 0,
+          currentXp: 0,
+          hunger: 100,
+          happiness: 100,
+          coins: profile?.caloriaCoins ?? 50,
+          lastFedAt: new Date(),
+          moodStatus: "happy",
+          customColors: {},
+          createdAt: new Date(),
+        };
+
+    const ownedItemIds = Array.from(
+      new Set([
+        ...DEFAULT_FREE_ITEM_IDS,
+        ...wardrobeRows.map((r: any) => r.assetUrl),
+      ])
+    );
+
+    // Map Food Logs (with mealLogs fallback if empty)
+    let mappedFoodLogs: any[] = [];
+    try {
+      mappedFoodLogs = recentFoodLogs.map((l: any) => {
         let loggedDateStr = new Date().toISOString().split("T")[0];
         try {
           if (typeof l.logDate === "string") {
@@ -402,9 +495,10 @@ export async function fetchAppInitialDataAction() {
           .from(mealLogs)
           .where(eq(mealLogs.userId, user.id))
           .orderBy(desc(mealLogs.createdAt))
-          .limit(500);
+          .limit(500)
+          .catch(() => [] as any[]);
 
-        mappedFoodLogs = recentMealLogs.map((m) => {
+        mappedFoodLogs = recentMealLogs.map((m: any) => {
           let loggedDateStr = new Date().toISOString().split("T")[0];
           try {
             if (typeof m.loggedDate === "string") {
@@ -496,9 +590,22 @@ export async function fetchAppInitialDataAction() {
       user: {
         id: user.id,
         email: user.email || null,
-        username: profile?.username || user.email?.split("@")[0] || "User",
-        fullName: profile?.fullName || user.user_metadata?.full_name || null,
-        avatarUrl: profile?.avatarUrl || user.user_metadata?.avatar_url || null,
+        username:
+          profile?.username ||
+          user.user_metadata?.username ||
+          user.email?.split("@")[0] ||
+          "user",
+        fullName:
+          profile?.fullName ||
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          profile?.username ||
+          null,
+        avatarUrl:
+          profile?.avatarUrl ||
+          user.user_metadata?.avatar_url ||
+          user.user_metadata?.picture ||
+          null,
         isOnboardingCompleted: isUserOnboardingCompleted,
       },
       profile: profile
