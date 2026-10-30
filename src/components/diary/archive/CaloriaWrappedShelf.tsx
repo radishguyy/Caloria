@@ -1,18 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Sparkles,
-  Lock,
-  ChevronRight,
-  RotateCcw,
-  Calendar,
-  Award,
-  Play,
-  CheckCircle2,
-} from "lucide-react";
+import { Play, RotateCcw, Lock } from "lucide-react";
 import { type Recap } from "@/db/schema";
-import { type RecapMilestoneStatus, formatRecapDateRange, checkRecapEligibility } from "@/lib/recaps/cadence";
+import {
+  type RecapMilestoneStatus,
+  formatRecapDateRange,
+  checkRecapEligibility,
+} from "@/lib/recaps/cadence";
 import { type RecapStoryData } from "@/lib/server/recap-ai";
 import { CaloriaWrappedModal } from "@/components/diary/archive/CaloriaWrappedModal";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -39,20 +34,39 @@ function getAuthHeaders(): HeadersInit {
   return headers;
 }
 
+const FALLBACK_START_DATE = new Date("2026-10-09T00:00:00.000Z");
+const FALLBACK_END_DATE = new Date("2026-10-16T00:00:00.000Z");
+
+const FALLBACK_STATUS: RecapsStatusResponse = {
+  success: true,
+  eligibility: {
+    isAvailable: false,
+    type: "weekly",
+    cycleNumber: 1,
+    startDate: FALLBACK_START_DATE,
+    endDate: FALLBACK_END_DATE,
+    daysRemaining: 5,
+    targetWeek: 1,
+  },
+  history: [],
+  userCreatedAt: FALLBACK_START_DATE.toISOString(),
+  daysSinceJoin: 2,
+  totalRecapsGenerated: 0,
+};
+
 export function CaloriaWrappedShelf() {
   const isHydrated = useHydrated();
   const [status, setStatus] = useState<RecapsStatusResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecap, setSelectedRecap] = useState<Recap | null>(null);
-  const [selectedStoryData, setSelectedStoryData] = useState<RecapStoryData | null>(null);
+  const [selectedStoryData, setSelectedStoryData] =
+    useState<RecapStoryData | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
-      setIsLoading(true);
       const res = await fetch("/api/recaps/status", {
         headers: getAuthHeaders(),
       });
@@ -60,7 +74,6 @@ export function CaloriaWrappedShelf() {
       if (data.success && data.eligibility) {
         setStatus(data);
       } else {
-        // Safe default fallback status based on 2-day join
         const defaultCreatedAt = new Date(Date.now() - 2 * 86400000);
         setStatus({
           success: true,
@@ -88,12 +101,31 @@ export function CaloriaWrappedShelf() {
   }, []);
 
   useEffect(() => {
-    if (isHydrated) {
-      fetchStatus();
-    }
-  }, [isHydrated, fetchStatus]);
+    if (!isHydrated) return;
+    let active = true;
+    fetch("/api/recaps/status", {
+      headers: getAuthHeaders(),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        if (data.success && data.eligibility) {
+          setStatus(data);
+        } else {
+          setStatus(FALLBACK_STATUS);
+        }
+      })
+      .catch(() => {
+        if (active) setStatus(FALLBACK_STATUS);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isHydrated]);
 
-  // Open active or unlocked recap (generates if not yet generated)
   const handleOpenActiveRecap = async () => {
     const currentEligibility = status?.eligibility || {
       isAvailable: false,
@@ -118,7 +150,6 @@ export function CaloriaWrappedShelf() {
       return;
     }
 
-    // Generate recap via API
     try {
       setIsGenerating(true);
       const res = await fetch("/api/recaps/generate", {
@@ -137,17 +168,16 @@ export function CaloriaWrappedShelf() {
         setIsModalOpen(true);
         fetchStatus();
       } else {
-        toastError(data.error || "Gagal membuat Caloria Wrapped.");
+        toastError(data.error || "Gagal membuat recap.");
       }
     } catch (err) {
       console.error("[WrappedShelf] Error generating recap:", err);
-      toastError("Gagal menghubungi server untuk membuat story.");
+      toastError("Gagal menghubungi server.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Replay past recap
   const handleReplayPastRecap = (recap: Recap) => {
     if (!recap.slidesData) return;
     setSelectedRecap(recap);
@@ -169,40 +199,19 @@ export function CaloriaWrappedShelf() {
 
   if (!isHydrated || isLoading) {
     return (
-      <div className="rounded-card border border-border-divider bg-surface p-5 space-y-3 animate-pulse shadow-xs">
-        <div className="h-5 w-48 bg-surface-subtle rounded-md" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="h-32 bg-surface-subtle rounded-card" />
-          <div className="h-32 bg-surface-subtle rounded-card" />
-          <div className="h-32 bg-surface-subtle rounded-card" />
-        </div>
-      </div>
+      <div
+        aria-hidden="true"
+        className="h-36 animate-pulse rounded-2xl border border-border-divider bg-surface-subtle"
+      />
     );
   }
 
-  // Guaranteed fallback data if status is not ready
-  const currentStatus: RecapsStatusResponse = status || {
-    success: true,
-    eligibility: {
-      isAvailable: false,
-      type: "weekly",
-      cycleNumber: 1,
-      startDate: new Date(Date.now() - 7 * 86400000),
-      endDate: new Date(),
-      daysRemaining: 5,
-      targetWeek: 1,
-    },
-    history: [],
-    userCreatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    daysSinceJoin: 2,
-    totalRecapsGenerated: 0,
-  };
+  const currentStatus: RecapsStatusResponse = status || FALLBACK_STATUS;
 
-  const { eligibility, history, userCreatedAt, daysSinceJoin } = currentStatus;
+  const { eligibility, history } = currentStatus;
   const isAvailable = eligibility.isAvailable;
   const unitLabel = eligibility.type === "monthly" ? "Bulan" : "Pekan";
 
-  // Check if current eligible milestone has already been generated
   const activeExistingRecap = history.find(
     (r) =>
       r.type === eligibility.type &&
@@ -210,215 +219,103 @@ export function CaloriaWrappedShelf() {
   );
 
   return (
-    <section className="space-y-4">
-      {/* Shelf Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-accent-orange uppercase tracking-wider font-heading">
-              <Sparkles className="h-3.5 w-3.5 text-accent-orange" />
-              <span>Story Highlights</span>
-            </span>
-            <span className="text-xs text-text-muted">•</span>
-            <span className="text-xs text-text-muted font-medium">
-              Bergabung {daysSinceJoin} hari lalu
-            </span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black text-text-primary font-heading mt-0.5">
-            Caloria Wrapped
-          </h2>
-        </div>
-
-        <p className="text-xs text-text-muted max-w-sm">
-          Recap interaktif ritme gizi & pertumbuhan pet setiap 7 hari siklus akunmu.
-        </p>
-      </div>
-
-      {/* Cards Shelf Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
-        {/* Active / Current Milestone Card (Left col-span-5) */}
-        <div className="md:col-span-5">
-          {isAvailable ? (
-            <div
-              onClick={handleOpenActiveRecap}
-              role="button"
-              tabIndex={0}
-              className="h-full rounded-card border-2 border-[#5B8E55] bg-gradient-to-br from-[#FCF8E3] to-[#FAF8F5] p-5 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between group relative overflow-hidden"
-            >
-              {/* Pulsing Green Beacon Glow */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#5B8E55]/10 rounded-full blur-2xl group-hover:bg-[#5B8E55]/20 transition-all pointer-events-none" />
-
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5B8E55] text-white text-[11px] font-bold shadow-xs animate-pulse">
-                    <Sparkles className="h-3 w-3" />
-                    <span>✨ Recap {unitLabel} {eligibility.cycleNumber} Siap Dilihat!</span>
-                  </span>
-
-                  {activeExistingRecap?.isViewed && (
-                    <span className="text-[10px] font-bold text-text-muted flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-[#5B8E55]" />
-                      <span>Sudah Dilihat</span>
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-xl font-black text-neutral-900 font-heading mt-3 group-hover:text-text-primary transition-colors">
-                  {eligibility.type === "monthly" ? "Rapor Bulanan" : "Rapor Mingguan"} Calpal
-                </h3>
-                <p className="text-xs text-neutral-600 mt-1 line-clamp-2">
-                  Lihat kepatuhan standar Depkes, menu favorit, serta perolehan EXP dan koin siklus ini!
-                </p>
-
-                <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-muted font-medium bg-white/70 px-2.5 py-1 rounded-navigation border border-border-divider/50">
-                  <Calendar className="h-3.5 w-3.5 text-[#5B8E55]" />
-                  <span>{formatRecapDateRange(eligibility.startDate, eligibility.endDate)}</span>
-                </div>
-              </div>
-
-              <div className="mt-5 pt-3 border-t border-border-divider/50 flex items-center justify-between">
-                <span className="text-xs font-bold text-text-primary group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
-                  {isGenerating ? (
-                    <>
-                      <div className="h-3.5 w-3.5 border-2 border-[#5B8E55] border-t-transparent rounded-full animate-spin" />
-                      <span>Menyiapkan Story...</span>
-                    </>
-                  ) : activeExistingRecap ? (
-                    <>
-                      <RotateCcw className="h-3.5 w-3.5 text-[#5B8E55]" />
-                      <span>Putar Ulang Story</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-3.5 w-3.5 text-[#5B8E55] fill-[#5B8E55]" />
-                      <span>Buka Caloria Wrapped</span>
-                    </>
-                  )}
-                </span>
-                <ChevronRight className="h-4 w-4 text-text-primary group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          ) : (
-            /* Locked Future Milestone Card */
-            <div className="h-full rounded-card border border-border-divider bg-surface-subtle p-5 flex flex-col justify-between opacity-95 relative overflow-hidden">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-200 text-neutral-700 text-[11px] font-bold">
-                  <Lock className="h-3 w-3" />
-                  <span>🔒 Terkunci (Cadence 7 Hari)</span>
-                </div>
-
-                <h3 className="text-lg font-black text-neutral-700 font-heading mt-3">
-                  Recap {unitLabel} ke-{eligibility.cycleNumber}
-                </h3>
-                <p className="text-xs text-text-muted mt-1 leading-relaxed">
-                  Caloria Wrapped terbuka tepat setiap 7 hari siklus pendaftaran akunmu.
-                </p>
-
-                <div className="mt-4 p-3 rounded-2xl bg-white border border-border-divider/60 space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-text-muted font-medium">Sisa Waktu Buka:</span>
-                    <span className="font-bold text-accent-orange">
-                      {eligibility.daysRemaining} hari lagi
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-text-muted">
-                    Jadwal buka: {new Date(eligibility.endDate).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 text-[11px] text-text-muted flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-text-muted" />
-                <span>Akun dibuat: {new Date(userCreatedAt).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Past Viewed Recaps Shelf (Right col-span-7) */}
-        <div className="md:col-span-7 flex flex-col justify-between rounded-card border border-border-divider bg-surface p-5 shadow-xs">
-          <div className="flex items-center justify-between pb-3 border-b border-border-divider">
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-accent-orange" />
-              <h3 className="text-sm font-black text-neutral-900 font-heading">
-                Riwayat Wrapped yang Sudah Selesai
-              </h3>
-            </div>
-            <span className="text-[11px] font-bold text-text-muted">
-              {history.length} Recap Tersimpan
-            </span>
+    <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
+      <div className="grid gap-5 lg:grid-cols-3 lg:gap-0">
+        {/* Left: Current Recap */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:col-span-2 lg:pr-6">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+              Recap {unitLabel} •{" "}
+              {formatRecapDateRange(eligibility.startDate, eligibility.endDate)}
+            </p>
+            <h2 className="font-heading text-2xl font-extrabold tracking-tight text-text-primary">
+              {unitLabel} {eligibility.cycleNumber}
+            </h2>
+            <p className="text-xs font-medium text-neutral-10">
+              {isAvailable
+                ? "Ringkasan nutrisi dan progres pet 7 hari terakhir siap dilihat."
+                : `Terbuka dalam ${eligibility.daysRemaining} hari lagi.`}
+            </p>
           </div>
 
-          {history.length === 0 ? (
-            <div className="py-8 text-center flex flex-col items-center justify-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-[#FCF8E3] text-[#FF9233] flex items-center justify-center">
-                <Sparkles className="h-6 w-6" />
+          <div className="shrink-0">
+            {isAvailable ? (
+              <button
+                type="button"
+                onClick={handleOpenActiveRecap}
+                disabled={isGenerating}
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-accent-green px-5 py-2.5 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 disabled:opacity-50"
+              >
+                {activeExistingRecap ? (
+                  <>
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>
+                      {isGenerating ? "Memuat..." : "Putar Ulang Recap"}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Play
+                      className="h-3.5 w-3.5 fill-current"
+                      aria-hidden="true"
+                    />
+                    <span>{isGenerating ? "Memuat..." : "Lihat Recap"}</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="inline-flex items-center gap-2 rounded-xl border border-border-default bg-surface-subtle px-4 py-2.5 text-xs font-bold text-text-muted">
+                <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{eligibility.daysRemaining} Hari Lagi</span>
               </div>
-              <p className="text-xs text-neutral-700 font-medium">
+            )}
+          </div>
+        </div>
+
+        {/* Right: Past Recaps List */}
+        <div className="border-t border-border-divider pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <h3 className="text-sm font-bold text-text-primary">
+            Riwayat Recap
+          </h3>
+          <div className="mt-2.5 max-h-[110px] overflow-y-auto pr-1 [scrollbar-width:thin]">
+            {history.length === 0 ? (
+              <p className="text-xs text-text-muted">
                 Belum ada riwayat recap tersimpan.
               </p>
-              <p className="text-[11px] text-text-muted max-w-xs">
-                Setelah mencapai siklus 7 hari pertamamu, recap akan otomatis diarsipkan di sini agar dapat diputar ulang kapan pun.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-3 overflow-y-auto max-h-[190px] pr-1">
-              {history.map((rec) => {
-                const story = rec.slidesData as RecapStoryData | null;
-                const recUnit = rec.type === "monthly" ? "Bulan" : "Pekan";
-                const grade = story?.grade || "B";
+            ) : (
+              <ul className="divide-y divide-border-divider/60">
+                {history.map((rec) => {
+                  const story = rec.slidesData as RecapStoryData | null;
+                  const recUnit = rec.type === "monthly" ? "Bulan" : "Pekan";
+                  const grade = story?.grade || "B";
 
-                return (
-                  <div
-                    key={rec.id}
-                    onClick={() => handleReplayPastRecap(rec)}
-                    role="button"
-                    tabIndex={0}
-                    className="p-3 rounded-2xl border border-border-divider bg-surface-subtle hover:bg-[#FCF8E3]/60 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-neutral-900 font-heading">
-                          {recUnit} {rec.cycleNumber}
-                        </span>
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-black bg-[#5B8E55]/15 text-[#5B8E55]">
-                          Grade {grade}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-text-muted line-clamp-1">
-                        {story?.archetypeTitle || "Recap Nutrisi Caloria"}
-                      </p>
-                      <span className="text-[10px] text-text-muted">
+                  return (
+                    <li
+                      key={rec.id}
+                      className="flex items-center justify-between gap-2 py-2 text-[11px] font-medium text-neutral-10"
+                    >
+                      <span className="truncate">
+                        {recUnit} {rec.cycleNumber} - Grade {grade} -{" "}
                         {formatRecapDateRange(rec.startDate, rec.endDate)}
                       </span>
-                    </div>
-
-                    <div className="w-8 h-8 rounded-full bg-white group-hover:bg-[#5B8E55] group-hover:text-white text-text-muted flex items-center justify-center border border-border-divider shrink-0 transition-colors shadow-2xs">
-                      <Play className="h-3.5 w-3.5 fill-current" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="pt-3 border-t border-border-divider flex items-center justify-between text-[11px] text-text-muted">
-            <span>✨ Seluruh data story terindeks permanen di database</span>
-            <span className="font-medium text-text-primary">Bebas putar ulang 🐾</span>
+                      <button
+                        type="button"
+                        onClick={() => handleReplayPastRecap(rec)}
+                        className="shrink-0 font-bold text-text-primary hover:underline"
+                      >
+                        Buka
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Story Viewer Modal */}
       <CaloriaWrappedModal
+        key={`${selectedRecap?.id ?? "none"}-${isModalOpen}`}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         recap={selectedRecap}
