@@ -292,19 +292,19 @@ export default function ProfileSettingsPage() {
             <div className="flex justify-between">
               <span className="text-text-muted">Nama Pengguna:</span>
               <span className="font-bold text-text-primary">
-                {user?.fullName || "Iman Nur"}
+                {user?.fullName || user?.username || "Pengguna Caloria"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-text-muted">Username:</span>
               <span className="font-mono text-foreground">
-                @{user?.username || "iman_dev"}
+                {user?.username ? `@${user.username}` : "-"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-text-muted">Email:</span>
               <span className="text-foreground">
-                {user?.email || "iman@caloria.app"}
+                {user?.email || "-"}
               </span>
             </div>
           </div>

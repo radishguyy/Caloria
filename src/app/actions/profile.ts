@@ -14,6 +14,7 @@ import {
   userLoadouts,
   userBadges,
   foodLogs,
+  mealLogs,
 } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { DEFAULT_FREE_ITEM_IDS } from "@/lib/cosmetics-catalog";
@@ -235,13 +236,58 @@ export async function fetchAppInitialDataAction() {
       .where(eq(userLoadouts.userId, user.id))
       .limit(1);
 
-    // 7. Fetch Recent Food Logs (last 30 days)
-    const recentLogs = await db
+    // 7. Fetch Recent Food Logs (from foodLogs with mealLogs fallback)
+    const recentFoodLogs = await db
       .select()
       .from(foodLogs)
       .where(eq(foodLogs.userId, user.id))
       .orderBy(desc(foodLogs.createdAt))
       .limit(100);
+
+    let mappedFoodLogs = recentFoodLogs.map((l) => ({
+      id: l.id,
+      userId: l.userId,
+      name: l.customFoodName || "Makanan",
+      mealType: l.mealTime as any,
+      calories: Number(l.calculatedCalories),
+      proteinG: Number(l.calculatedProtein),
+      carbsG: Number(l.calculatedCarbs),
+      fatG: Number(l.calculatedFat),
+      fiberG: Number(l.calculatedFiber || 0),
+      sugarG: Number(l.calculatedSugar || 0),
+      servingSize: Number(l.servingQuantity || 1),
+      servingUnit: "porsi",
+      loggedDate: typeof l.logDate === "string" ? l.logDate : new Date(l.logDate).toISOString().split("T")[0],
+      loggedAt: l.createdAt,
+      createdAt: l.createdAt,
+    }));
+
+    if (mappedFoodLogs.length === 0) {
+      const recentMealLogs = await db
+        .select()
+        .from(mealLogs)
+        .where(eq(mealLogs.userId, user.id))
+        .orderBy(desc(mealLogs.createdAt))
+        .limit(100);
+
+      mappedFoodLogs = recentMealLogs.map((m) => ({
+        id: m.id,
+        userId: m.userId,
+        name: m.customFoodName || "Makanan",
+        mealType: m.mealType as any,
+        calories: Number(m.calculatedCalories),
+        proteinG: Number(m.calculatedProtein),
+        carbsG: Number(m.calculatedCarbs),
+        fatG: Number(m.calculatedFat),
+        fiberG: 0,
+        sugarG: 0,
+        servingSize: Number(m.servings || 1),
+        servingUnit: "porsi",
+        loggedDate: typeof m.loggedDate === "string" ? m.loggedDate : new Date(m.loggedDate).toISOString().split("T")[0],
+        loggedAt: m.createdAt,
+        createdAt: m.createdAt,
+      }));
+    }
 
     let petExp = pet?.exp || pet?.currentXp || 0;
     let petMood = pet?.moodStatus || "happy";
@@ -340,23 +386,7 @@ export async function fetchAppInitialDataAction() {
           room: loadoutRow?.roomId || "room-default",
         },
       },
-      foodLogs: recentLogs.map((l) => ({
-        id: l.id,
-        userId: l.userId,
-        name: l.customFoodName || "Makanan",
-        mealType: l.mealTime as any,
-        calories: Number(l.calculatedCalories),
-        proteinG: Number(l.calculatedProtein),
-        carbsG: Number(l.calculatedCarbs),
-        fatG: Number(l.calculatedFat),
-        fiberG: Number(l.calculatedFiber),
-        sugarG: Number(l.calculatedSugar),
-        servingSize: Number(l.servingQuantity),
-        servingUnit: "porsi",
-        loggedDate: l.logDate,
-        loggedAt: l.createdAt,
-        createdAt: l.createdAt,
-      })),
+      foodLogs: mappedFoodLogs,
     };
   } catch (err: any) {
     console.error("[fetchAppInitialDataAction Error]:", err);
