@@ -70,7 +70,7 @@ export async function searchFoodsAction(query?: string): Promise<{ success: bool
       fatG: Math.round(Number(f.fat || f.fatG || 0) * 10) / 10,
       fiberG: Math.round(Number(f.fiber || f.fiberG || 0) * 10) / 10,
       sugarG: Math.round(Number(f.sugar || f.sugarG || 0) * 10) / 10,
-      defaultServingSize: Number(f.servingSize || f.servingSizeDefault || 1),
+      defaultServingSize: 1,
       servingUnit: f.servingUnit || "porsi",
       gramsPerUnit: Number(f.servingSize || f.servingSizeDefault || 100),
       brandOrSource: f.brand || undefined,
