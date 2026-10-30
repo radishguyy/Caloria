@@ -42,7 +42,7 @@ async function main() {
           .update(foods)
           .set({
             servingSize: String(item.gramsPerUnit || 100),
-            servingSizeDefault: String(item.gramsPerUnit || 100),
+            servingSizeDefault: "1",
             servingUnit: item.servingUnit,
             calories: String(item.calories),
             caloriesKcal: String(item.calories),
@@ -64,7 +64,7 @@ async function main() {
           name: item.name,
           brand: item.brandOrSource || null,
           servingSize: String(item.gramsPerUnit || 100),
-          servingSizeDefault: String(item.gramsPerUnit || 100),
+          servingSizeDefault: "1",
           servingUnit: item.servingUnit,
           calories: String(item.calories),
           caloriesKcal: String(item.calories),

@@ -308,7 +308,7 @@ function DiaryAddFoodContent() {
           baseFatG: food.fatG,
           baseFiberG: food.fiberG,
           baseSugarG: food.sugarG,
-          servingMultiplier: food.defaultServingSize || 1,
+          servingMultiplier: 1,
           servingUnit: food.servingUnit,
           gramsPerUnit: food.gramsPerUnit || 100,
         },
@@ -720,7 +720,7 @@ function DiaryAddFoodContent() {
             filteredItems.map((food) => {
               const staged = stagedItems.find((i) => i.id === food.id);
               const isChecked = !!staged;
-              const currentMultiplier = staged?.servingMultiplier ?? food.defaultServingSize ?? 1;
+              const currentMultiplier = staged?.servingMultiplier ?? 1;
 
               return (
                 <div
@@ -759,7 +759,7 @@ function DiaryAddFoodContent() {
                           </span>
                         </div>
                         <p className="text-[11px] text-text-muted mt-0.5">
-                          Basis: {food.defaultServingSize} {food.servingUnit} • P:{" "}
+                          Basis: 1 {food.servingUnit} • P:{" "}
                           <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
                           <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
                           <span className="text-macro-fat font-semibold">{food.fatG}g</span>
@@ -825,7 +825,12 @@ function DiaryAddFoodContent() {
                         <button
                           type="button"
                           onClick={() =>
-                            updatePortionMultiplier(food.id, currentMultiplier - 0.25)
+                            updatePortionMultiplier(
+                              food.id,
+                              currentMultiplier <= 1
+                                ? Math.max(0.5, currentMultiplier - 0.5)
+                                : currentMultiplier - 1
+                            )
                           }
                           className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary"
                         >
@@ -837,7 +842,10 @@ function DiaryAddFoodContent() {
                         <button
                           type="button"
                           onClick={() =>
-                            updatePortionMultiplier(food.id, currentMultiplier + 0.25)
+                            updatePortionMultiplier(
+                              food.id,
+                              currentMultiplier < 1 ? 1 : currentMultiplier + 1
+                            )
                           }
                           className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary"
                         >
@@ -956,7 +964,9 @@ function DiaryAddFoodContent() {
                           onClick={() =>
                             updatePortionMultiplier(
                               item.id,
-                              item.servingMultiplier - 0.25
+                              item.servingMultiplier <= 1
+                                ? Math.max(0.5, item.servingMultiplier - 0.5)
+                                : item.servingMultiplier - 1
                             )
                           }
                           className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
@@ -971,7 +981,7 @@ function DiaryAddFoodContent() {
                           onClick={() =>
                             updatePortionMultiplier(
                               item.id,
-                              item.servingMultiplier + 0.25
+                              item.servingMultiplier < 1 ? 1 : item.servingMultiplier + 1
                             )
                           }
                           className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
