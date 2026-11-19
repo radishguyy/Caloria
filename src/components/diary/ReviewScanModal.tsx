@@ -340,8 +340,8 @@ function ReviewScanModalBody({
       aria-label="Hasil AR Scanner Gizi"
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-start sm:items-center justify-center p-4 overflow-y-auto"
     >
-      {/* Outer wrapper reserves headroom so PeekingCalpal is never clipped */}
-      <div className="relative w-full max-w-xl pt-14 sm:pt-16 my-4 sm:my-8 animate-in zoom-in-95 duration-200">
+      {/* Outer wrapper reserves headroom so PeekingCalpal tucks cleanly behind modal top */}
+      <div className="relative w-full max-w-xl pt-16 sm:pt-20 my-4 sm:my-8 animate-in zoom-in-95 duration-200">
         <PeekingCalpal
           characterId={species}
           colors={customColors}

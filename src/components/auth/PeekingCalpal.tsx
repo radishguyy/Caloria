@@ -59,7 +59,7 @@ export function PeekingCalpal({
 
   if (isTopRight) {
     positionClasses = alwaysVisible
-      ? "-top-12 sm:-top-14 right-4 sm:right-7"
+      ? "top-0 right-4 sm:right-7"
       : "-top-2 sm:-top-5 right-4 sm:right-8";
     revealTransform = alwaysVisible
       ? "translate-y-0 scale-105"
@@ -67,7 +67,7 @@ export function PeekingCalpal({
     rotationClass = alwaysVisible ? "rotate-8" : "rotate-6 group-hover:rotate-12";
   } else if (isTopLeft) {
     positionClasses = alwaysVisible
-      ? "-top-12 sm:-top-14 left-4 sm:left-7"
+      ? "top-0 left-4 sm:left-7"
       : "-top-2 sm:-top-5 left-4 sm:left-8";
     revealTransform = alwaysVisible
       ? "translate-y-0 scale-105"
