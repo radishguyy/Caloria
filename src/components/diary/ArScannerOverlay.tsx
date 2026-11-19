@@ -13,6 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
+import { ScanWaitingCard } from "@/components/diary/ScanWaitingCard";
 import { usePetStore } from "@/store/use-pet-store";
 import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import {
@@ -36,12 +37,6 @@ const MEAL_LABELS: Record<ArScannerOverlayProps["mealTime"], string> = {
   lunch: "Makan Siang",
   dinner: "Makan Malam",
   snack: "Camilan",
-};
-
-const STAGE_LABELS: Record<ScanStage, string> = {
-  compressing: "Menyiapkan gambar label...",
-  scanning: "Membaca tabel Informasi Nilai Gizi...",
-  analyzing: "Mengevaluasi kandungan gizi...",
 };
 
 export function ArScannerOverlay(props: ArScannerOverlayProps) {
@@ -505,31 +500,10 @@ function ArScannerOverlayBody({
         )}
 
         {isProcessing && processingStage && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="relative z-20 mx-4 rounded-card bg-[#111F18]/90 backdrop-blur-md px-6 py-5 max-w-xs w-full text-center space-y-3 shadow-2xl"
-          >
-            <Loader2 className="h-8 w-8 animate-spin text-accent-green-light mx-auto" />
-            <p className="text-sm font-extrabold text-white">
-              {STAGE_LABELS[processingStage]}
-            </p>
-            <div className="flex justify-center gap-1.5">
-              {(["compressing", "scanning", "analyzing"] as ScanStage[]).map(
-                (stage) => (
-                  <span
-                    key={stage}
-                    className={cn(
-                      "h-1.5 w-8 rounded-full transition-colors",
-                      stage === processingStage
-                        ? "bg-accent-green-light"
-                        : "bg-white/25"
-                    )}
-                  />
-                )
-              )}
-            </div>
-          </div>
+          <ScanWaitingCard
+            stage={processingStage}
+            previewUrl={frozenPreviewUrl}
+          />
         )}
 
         {scanError && !isProcessing && (

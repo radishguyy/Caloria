@@ -423,3 +423,23 @@
 :root {
   --brand-green-dark: #4f7a2a;
 }
+
+@keyframes caloriaScanBeam {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(340%);
+  }
+}
+
+.caloria-scan-beam {
+  animation: caloriaScanBeam 1.9s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caloria-scan-beam {
+    animation: none;
+    transform: translateY(170%);
+  }
+}
