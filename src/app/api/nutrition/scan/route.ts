@@ -7,6 +7,10 @@ import {
   isSupabaseAuthEnforced,
   validateScanFile,
 } from "@/lib/nutrition/scan-guard";
+import {
+  extractNutritionWithFallback,
+  MissingVisionApiKeyError,
+} from "@/lib/nutrition/scan-provider";
 import { createClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT = `You are an expert nutrition label OCR and food packaging parser.
@@ -193,14 +197,12 @@ export async function POST(request: NextRequest) {
     const openAiApiKey = process.env.OPENAI_API_KEY;
 
     let rawJsonResult: unknown = null;
-
-    if (geminiApiKey) {
-      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-      const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
-
-      let lastError: unknown = null;
-      for (const modelName of candidateModels) {
-        try {
+    try {
+      rawJsonResult = await extractNutritionWithFallback({
+        geminiApiKey,
+        openAiApiKey,
+        callGeminiModel: async (modelName) => {
+          const ai = new GoogleGenAI({ apiKey: geminiApiKey! });
           const response = await ai.models.generateContent({
             model: modelName,
             contents: [
@@ -220,131 +222,117 @@ export async function POST(request: NextRequest) {
             config: {
               responseMimeType: "application/json",
               responseSchema: geminiResponseSchema,
-              temperature: 0.1,
-              ...(modelName === "gemini-2.5-flash"
-                ? { thinkingConfig: { thinkingBudget: 0 } }
-                : {}),
+              temperature: 0,
             },
           });
 
-          const responseText = response.text;
-          if (responseText) {
-            rawJsonResult = JSON.parse(responseText);
-            break;
-          }
-        } catch (err) {
-          lastError = err;
-          console.warn(`[Gemini] model ${modelName} failed, trying next...:`, err);
-        }
-      }
-
-      if (!rawJsonResult && lastError) {
-        throw lastError;
-      }
-    } else if (openAiApiKey) {
-      const openAiRes = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${openAiApiKey}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            temperature: 0.1,
-            messages: [
-              {
-                role: "system",
-                content: SYSTEM_PROMPT,
+          return response.text ? JSON.parse(response.text) : null;
+        },
+        callOpenAi: async () => {
+          const openAiRes = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${openAiApiKey}`,
               },
-              {
-                role: "user",
-                content: [
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0,
+                messages: [
                   {
-                    type: "text",
-                    text: "Extract the nutrition facts from this food label image into JSON.",
+                    role: "system",
+                    content: SYSTEM_PROMPT,
                   },
                   {
-                    type: "image_url",
-                    image_url: {
-                      url: `data:${mimeType};base64,${base64Image}`,
-                      detail: "high",
-                    },
+                    role: "user",
+                    content: [
+                      {
+                        type: "text",
+                        text: "Extract the nutrition facts from this food label image into JSON.",
+                      },
+                      {
+                        type: "image_url",
+                        image_url: {
+                          url: `data:${mimeType};base64,${base64Image}`,
+                          detail: "high",
+                        },
+                      },
+                    ],
                   },
                 ],
-              },
-            ],
-            response_format: {
-              type: "json_schema",
-              json_schema: {
-                name: "nutrition_label_schema",
-                strict: true,
-                schema: {
-                  type: "object",
-                  properties: {
-                    foodName: { type: "string" },
-                    servingSize: { type: ["number", "null"] },
-                    servingUnit: { type: "string" },
-                    servingsPerContainer: { type: ["number", "null"] },
-                    caloriesKcal: { type: "number" },
-                    proteinG: { type: "number" },
-                    carbsG: { type: "number" },
-                    fatG: { type: "number" },
-                    fiberG: { type: "number" },
-                    sugarG: { type: "number" },
-                    saturatedFatG: { type: ["number", "null"] },
-                    sodiumMg: { type: ["number", "null"] },
-                    productCategory: {
-                      type: "string",
-                      enum: [...PRODUCT_CATEGORIES],
+                response_format: {
+                  type: "json_schema",
+                  json_schema: {
+                    name: "nutrition_label_schema",
+                    strict: true,
+                    schema: {
+                      type: "object",
+                      properties: {
+                        foodName: { type: "string" },
+                        servingSize: { type: ["number", "null"] },
+                        servingUnit: { type: "string" },
+                        servingsPerContainer: { type: ["number", "null"] },
+                        caloriesKcal: { type: "number" },
+                        proteinG: { type: "number" },
+                        carbsG: { type: "number" },
+                        fatG: { type: "number" },
+                        fiberG: { type: "number" },
+                        sugarG: { type: "number" },
+                        saturatedFatG: { type: ["number", "null"] },
+                        sodiumMg: { type: ["number", "null"] },
+                        productCategory: {
+                          type: "string",
+                          enum: [...PRODUCT_CATEGORIES],
+                        },
+                        confidenceScore: { type: "number" },
+                      },
+                      required: [
+                        "foodName",
+                        "servingSize",
+                        "servingUnit",
+                        "servingsPerContainer",
+                        "caloriesKcal",
+                        "proteinG",
+                        "carbsG",
+                        "fatG",
+                        "fiberG",
+                        "sugarG",
+                        "saturatedFatG",
+                        "sodiumMg",
+                        "productCategory",
+                        "confidenceScore",
+                      ],
+                      additionalProperties: false,
                     },
-                    confidenceScore: { type: "number" },
                   },
-                  required: [
-                    "foodName",
-                    "servingSize",
-                    "servingUnit",
-                    "servingsPerContainer",
-                    "caloriesKcal",
-                    "proteinG",
-                    "carbsG",
-                    "fatG",
-                    "fiberG",
-                    "sugarG",
-                    "saturatedFatG",
-                    "sodiumMg",
-                    "productCategory",
-                    "confidenceScore",
-                  ],
-                  additionalProperties: false,
                 },
-              },
-            },
-          }),
-        }
-      );
+              }),
+            }
+          );
 
-      if (!openAiRes.ok) {
-        const errBody = await openAiRes.text();
-        throw new Error(`OpenAI API error (${openAiRes.status}): ${errBody}`);
-      }
+          if (!openAiRes.ok) {
+            const errBody = await openAiRes.text();
+            throw new Error(`OpenAI API error (${openAiRes.status}): ${errBody}`);
+          }
 
-      const completion = await openAiRes.json();
-      const content = completion.choices?.[0]?.message?.content;
-      if (!content) {
-        throw new Error("Empty response from OpenAI vision model.");
-      }
-      rawJsonResult = JSON.parse(content);
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Missing Vision AI API key. Please set GEMINI_API_KEY (or OPENAI_API_KEY) in your environment variables (.env.local).",
+          const completion = await openAiRes.json();
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new Error("Empty response from OpenAI vision model.");
+          }
+          return JSON.parse(content);
         },
-        { status: 500 }
-      );
+      });
+    } catch (providerErr) {
+      if (providerErr instanceof MissingVisionApiKeyError) {
+        return NextResponse.json(
+          { success: false, error: providerErr.message },
+          { status: 500 }
+        );
+      }
+      throw providerErr;
     }
 
     const parsed = NutritionLabelSchema.safeParse(rawJsonResult);
