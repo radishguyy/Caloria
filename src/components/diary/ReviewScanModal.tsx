@@ -172,7 +172,8 @@ function ReviewScanModalBody({
       : ""
   );
 
-  const [isEditExpanded, setIsEditExpanded] = useState(false);
+  const isLowConfidence = (initialData.confidenceScore ?? 1) < 0.75;
+  const [isEditExpanded, setIsEditExpanded] = useState(isLowConfidence);
   const [saveToCatalog, setSaveToCatalog] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -429,8 +430,30 @@ function ReviewScanModalBody({
                     {assessment.personalNote}
                   </p>
                 )}
+
+                {initialData.rawLabelExcerpt?.trim() && (
+                  <p className="text-xs font-medium text-[#334155] bg-white/80 rounded-xl px-3 py-1.5">
+                    <span className="font-bold">Teks terbaca dari foto:</span>{" "}
+                    &ldquo;{initialData.rawLabelExcerpt.trim()}&rdquo;
+                  </p>
+                )}
               </div>
             </div>
+
+            {isLowConfidence && (
+              <div
+                role="status"
+                className="rounded-2xl bg-[#FEF3C7] text-[#632D09] px-4 py-3 flex items-start gap-2.5 text-xs sm:text-sm font-medium leading-relaxed"
+              >
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-[#7C3A0D]" />
+                <div>
+                  <span className="font-extrabold">
+                    Akurasi pembacaan foto rendah ({confidencePercent}%).
+                  </span>{" "}
+                  Teks label kurang tajam atau terlalu jauh, sehingga form koreksi di bawah otomatis dibuka. Cek kembali angka sebelum mencatat.
+                </div>
+              </div>
+            )}
 
             {/* 2. Warning Signs & Positives (icon + label, filled chips, no heavy borders) */}
             {(assessment.warnings.length > 0 || assessment.positives.length > 0) && (

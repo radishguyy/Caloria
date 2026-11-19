@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { createScanClient, fitWithinMaxDimension } from "../scan-client";
+import {
+  computeReticleCropRect,
+  createScanClient,
+  fitWithinMaxDimension,
+} from "../scan-client";
 import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 
 console.log("\n=== SUITE: Nutrition Scan Client & Cache ===");
@@ -8,6 +12,24 @@ assert.deepEqual(fitWithinMaxDimension(1920, 1080, 960), { width: 960, height: 5
 assert.deepEqual(fitWithinMaxDimension(720, 1440, 960), { width: 480, height: 960 });
 assert.deepEqual(fitWithinMaxDimension(640, 480, 960), { width: 640, height: 480 });
 console.log("  ✓ fitWithinMaxDimension preserves aspect ratio within max bound");
+
+// Reticle crop mapping under object-cover on portrait mobile viewport
+{
+  // Video is 1280x720 (16:9 landscape), displayed in 390x700 (tall mobile) with object-cover
+  // Scale = max(390/1280, 700/720) = 700/720 = 0.9722; renderedW = 1244.44, offsetX = 427.22
+  const crop = computeReticleCropRect({
+    videoWidth: 1280,
+    videoHeight: 720,
+    videoRect: { left: 0, top: 0, width: 390, height: 700 },
+    reticleRect: { left: 30, top: 220, width: 330, height: 247.5 },
+    paddingRatio: 0,
+  });
+  assert.ok(crop.sx > 400 && crop.sx < 500, `Expected centered sx, got ${crop.sx}`);
+  assert.ok(crop.sy > 200 && crop.sy < 260, `Expected centered sy, got ${crop.sy}`);
+  assert.ok(crop.sw > 300 && crop.sw < 380, `Expected mapped sw, got ${crop.sw}`);
+  assert.ok(crop.sx + crop.sw <= 1280 && crop.sy + crop.sh <= 720);
+  console.log("  ✓ computeReticleCropRect maps object-cover reticle box to raw video pixels");
+}
 
 async function run() {
   const sampleData: NutritionLabelData = {
@@ -24,6 +46,7 @@ async function run() {
     saturatedFatG: 2.5,
     sodiumMg: 90,
     productCategory: "dairy",
+    isReadableNutritionLabel: true,
   };
 
   let fetchCalls = 0;

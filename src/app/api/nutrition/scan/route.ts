@@ -32,7 +32,9 @@ Strict Extraction Guidelines:
 5. Extract servingsPerContainer as a number ("Jumlah Sajian per Kemasan", "Servings Per Container"). Set to null ONLY if absent.
 6. Infer foodName from visible product title/branding, or provide a descriptive name (e.g., "Scanned Food Product").
 7. Classify productCategory strictly as one of: ${PRODUCT_CATEGORIES.join(", ")}. Use "other" if unclear.
-8. Set confidenceScore between 0.0 and 1.0 reflecting label legibility.`;
+8. Set confidenceScore between 0.0 and 1.0 reflecting actual visual legibility of the printed nutrition numbers.
+9. Anti-hallucination check (CRITICAL): Set isReadableNutritionLabel to true ONLY if an actual Nutrition Facts / Informasi Nilai Gizi table with legible numbers is visible in the photo. If no nutrition table is visible, or numbers are too blurry, tiny, dark, or obstructed to read directly, set isReadableNutritionLabel to false, provide a short Indonesian guidance in unreadableReason, set rawLabelExcerpt to null, and set all macro numbers to 0 (NEVER guess or invent values).
+10. When isReadableNutritionLabel is true, set rawLabelExcerpt to 1 or 2 short exact phrases read verbatim from the label (for example: "Takaran saji 250 ml, Energi total 150 kkal, Gula 10 g") so the user can verify extraction directly against the packaging.`;
 
 const geminiResponseSchema: Schema = {
   type: Type.OBJECT,
@@ -100,6 +102,23 @@ const geminiResponseSchema: Schema = {
       type: Type.NUMBER,
       description: "Confidence score from 0 to 1 for the extraction accuracy.",
     },
+    isReadableNutritionLabel: {
+      type: Type.BOOLEAN,
+      description:
+        "True ONLY if a legible Nutrition Facts / Informasi Nilai Gizi table is visible and readable; false if absent or too blurry/small.",
+    },
+    unreadableReason: {
+      type: Type.STRING,
+      nullable: true,
+      description:
+        "Short Indonesian guidance when isReadableNutritionLabel is false; null otherwise.",
+    },
+    rawLabelExcerpt: {
+      type: Type.STRING,
+      nullable: true,
+      description:
+        "1-2 short verbatim phrases read from the nutrition table (e.g., 'Takaran saji 250 ml, Energi total 150 kkal'); null if unreadable.",
+    },
   },
   required: [
     "foodName",
@@ -115,6 +134,10 @@ const geminiResponseSchema: Schema = {
     "saturatedFatG",
     "sodiumMg",
     "productCategory",
+    "confidenceScore",
+    "isReadableNutritionLabel",
+    "unreadableReason",
+    "rawLabelExcerpt",
   ],
 };
 
@@ -287,6 +310,9 @@ export async function POST(request: NextRequest) {
                           enum: [...PRODUCT_CATEGORIES],
                         },
                         confidenceScore: { type: "number" },
+                        isReadableNutritionLabel: { type: "boolean" },
+                        unreadableReason: { type: ["string", "null"] },
+                        rawLabelExcerpt: { type: ["string", "null"] },
                       },
                       required: [
                         "foodName",
@@ -303,6 +329,9 @@ export async function POST(request: NextRequest) {
                         "sodiumMg",
                         "productCategory",
                         "confidenceScore",
+                        "isReadableNutritionLabel",
+                        "unreadableReason",
+                        "rawLabelExcerpt",
                       ],
                       additionalProperties: false,
                     },
@@ -344,6 +373,19 @@ export async function POST(request: NextRequest) {
           details: parsed.error.flatten(),
         },
         { status: 400 }
+      );
+    }
+
+    if (!parsed.data.isReadableNutritionLabel) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "UNREADABLE_LABEL",
+          error:
+            parsed.data.unreadableReason?.trim() ||
+            "Tabel Informasi Nilai Gizi tidak terbaca jelas. Coba foto lebih dekat dan pastikan teks fokus.",
+        },
+        { status: 422 }
       );
     }
 

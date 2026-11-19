@@ -17,6 +17,7 @@ import { usePetStore } from "@/store/use-pet-store";
 import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import {
   compressImageFile,
+  computeReticleCropRect,
   defaultScanClient,
   fitWithinMaxDimension,
   type ScanStage,
@@ -63,6 +64,7 @@ function ArScannerOverlayBody({
   } = usePetStore();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const reticleRef = useRef<HTMLDivElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -239,11 +241,17 @@ function ArScannerOverlayBody({
     setProcessingStage("compressing");
     setScanError(null);
 
-    const { width, height } = fitWithinMaxDimension(
-      video.videoWidth,
-      video.videoHeight,
-      960
-    );
+    const crop = reticleRef.current
+      ? computeReticleCropRect({
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+          videoRect: video.getBoundingClientRect(),
+          reticleRect: reticleRef.current.getBoundingClientRect(),
+          paddingRatio: 0.12,
+        })
+      : { sx: 0, sy: 0, sw: video.videoWidth, sh: video.videoHeight };
+
+    const { width, height } = fitWithinMaxDimension(crop.sw, crop.sh, 960);
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -255,7 +263,17 @@ function ArScannerOverlayBody({
       return;
     }
 
-    ctx.drawImage(video, 0, 0, width, height);
+    ctx.drawImage(
+      video,
+      crop.sx,
+      crop.sy,
+      crop.sw,
+      crop.sh,
+      0,
+      0,
+      width,
+      height
+    );
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob((result) => resolve(result), "image/jpeg", 0.75)
     );
@@ -424,7 +442,10 @@ function ArScannerOverlayBody({
         )}
 
         {cameraStatus === "ready" && !frozenPreviewUrl && (
-          <div className="pointer-events-none relative z-10 w-[86%] max-w-sm aspect-[4/3] flex flex-col items-center justify-center">
+          <div
+            ref={reticleRef}
+            className="pointer-events-none relative z-10 w-[86%] max-w-sm aspect-[4/3] flex flex-col items-center justify-center"
+          >
             <span className="absolute top-0 left-0 h-9 w-9 rounded-tl-2xl border-t-4 border-l-4 border-accent-green-light" />
             <span className="absolute top-0 right-0 h-9 w-9 rounded-tr-2xl border-t-4 border-r-4 border-accent-green-light" />
             <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-2xl border-b-4 border-l-4 border-accent-green-light" />

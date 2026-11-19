@@ -27,6 +27,73 @@ export function fitWithinMaxDimension(
   };
 }
 
+export interface ReticleCropInput {
+  videoWidth: number;
+  videoHeight: number;
+  videoRect: { left: number; top: number; width: number; height: number };
+  reticleRect: { left: number; top: number; width: number; height: number };
+  paddingRatio?: number;
+}
+
+/**
+ * Maps a DOM scan-reticle bounding box over an `object-cover` video element
+ * back into raw video pixel coordinates so captured frames exclude surrounding clutter.
+ */
+export function computeReticleCropRect({
+  videoWidth,
+  videoHeight,
+  videoRect,
+  reticleRect,
+  paddingRatio = 0.12,
+}: ReticleCropInput): { sx: number; sy: number; sw: number; sh: number } {
+  const fullFrame = {
+    sx: 0,
+    sy: 0,
+    sw: Math.max(1, Math.round(videoWidth)),
+    sh: Math.max(1, Math.round(videoHeight)),
+  };
+
+  if (
+    videoWidth <= 0 ||
+    videoHeight <= 0 ||
+    videoRect.width <= 0 ||
+    videoRect.height <= 0 ||
+    reticleRect.width <= 0 ||
+    reticleRect.height <= 0
+  ) {
+    return fullFrame;
+  }
+
+  const scale = Math.max(videoRect.width / videoWidth, videoRect.height / videoHeight);
+  const offsetX = (videoWidth * scale - videoRect.width) / 2;
+  const offsetY = (videoHeight * scale - videoRect.height) / 2;
+
+  const rawX = (reticleRect.left - videoRect.left + offsetX) / scale;
+  const rawY = (reticleRect.top - videoRect.top + offsetY) / scale;
+  const rawW = reticleRect.width / scale;
+  const rawH = reticleRect.height / scale;
+
+  const safePadding = Math.max(0, paddingRatio);
+  const padX = rawW * safePadding;
+  const padY = rawH * safePadding;
+
+  const left = Math.max(0, rawX - padX);
+  const top = Math.max(0, rawY - padY);
+  const right = Math.min(videoWidth, rawX + rawW + padX);
+  const bottom = Math.min(videoHeight, rawY + rawH + padY);
+
+  if (right <= left || bottom <= top) {
+    return fullFrame;
+  }
+
+  const sx = Math.round(left);
+  const sy = Math.round(top);
+  const sw = Math.max(1, Math.min(videoWidth - sx, Math.round(right - left)));
+  const sh = Math.max(1, Math.min(videoHeight - sy, Math.round(bottom - top)));
+
+  return { sx, sy, sw, sh };
+}
+
 export async function hashBlobSha256(blob: Blob): Promise<string> {
   if (typeof crypto !== "undefined" && crypto.subtle) {
     const buffer = await blob.arrayBuffer();

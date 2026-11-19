@@ -16,6 +16,9 @@ export const NutritionLabelSchema = z.object({
   sodiumMg: z.number().nullable().optional(),
   productCategory: z.enum(PRODUCT_CATEGORIES).nullable().optional().catch("other"),
   confidenceScore: z.number().min(0).max(1).optional(),
+  isReadableNutritionLabel: z.boolean().default(true),
+  unreadableReason: z.string().nullable().optional(),
+  rawLabelExcerpt: z.string().nullable().optional(),
 });
 
 export type NutritionLabelData = z.infer<typeof NutritionLabelSchema>;

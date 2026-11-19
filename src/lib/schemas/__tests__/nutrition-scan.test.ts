@@ -21,6 +21,7 @@ console.log("\n=== SUITE: NutritionLabelSchema ===");
   assert.equal(parsed.foodName, "Susu UHT");
   assert.equal(parsed.saturatedFatG, undefined);
   assert.equal(parsed.sodiumMg, undefined);
+  assert.equal(parsed.isReadableNutritionLabel, true);
   console.log("  ✓ legacy nutrition scan payload remains valid");
 }
 
@@ -40,13 +41,37 @@ console.log("\n=== SUITE: NutritionLabelSchema ===");
     saturatedFatG: 0,
     sodiumMg: 25,
     productCategory: "beverage",
+    isReadableNutritionLabel: true,
+    unreadableReason: null,
+    rawLabelExcerpt: "Takaran saji 350 ml, Energi total 140 kkal, Gula 32 g",
     confidenceScore: 0.94,
   });
 
   assert.equal(parsed.saturatedFatG, 0);
   assert.equal(parsed.sodiumMg, 25);
   assert.equal(parsed.productCategory, "beverage");
-  console.log("  ✓ extended payload retains saturatedFatG, sodiumMg, productCategory");
+  assert.equal(parsed.isReadableNutritionLabel, true);
+  assert.ok(parsed.rawLabelExcerpt?.includes("140 kkal"));
+  console.log("  ✓ extended payload retains saturatedFatG, sodiumMg, category, and excerpt");
+}
+
+// 2b. Unreadable label flag preserves reason
+{
+  const parsed = NutritionLabelSchema.parse({
+    foodName: "Scanned Food",
+    servingSize: null,
+    servingUnit: "g",
+    servingsPerContainer: null,
+    caloriesKcal: 0,
+    isReadableNutritionLabel: false,
+    unreadableReason: "Teks tabel gizi terlalu buram untuk dibaca.",
+    rawLabelExcerpt: null,
+    confidenceScore: 0.25,
+  });
+
+  assert.equal(parsed.isReadableNutritionLabel, false);
+  assert.ok(parsed.unreadableReason?.includes("buram"));
+  console.log("  ✓ unreadable label flag and reason validate cleanly");
 }
 
 // 3. Unknown category falls back gracefully instead of failing whole scan
