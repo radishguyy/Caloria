@@ -365,14 +365,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Nutrition Scan API Error]:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected server error while scanning nutrition label.";
     return NextResponse.json(
       {
         success: false,
-        error: message,
+        error:
+          "Gagal memproses foto label nutrisi. Coba ulangi beberapa saat lagi.",
       },
       { status: 500 }
     );

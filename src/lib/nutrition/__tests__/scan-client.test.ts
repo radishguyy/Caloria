@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
-import { createScanClient } from "../scan-client";
+import { createScanClient, fitWithinMaxDimension } from "../scan-client";
 import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 
 console.log("\n=== SUITE: Nutrition Scan Client & Cache ===");
+
+assert.deepEqual(fitWithinMaxDimension(1920, 1080, 960), { width: 960, height: 540 });
+assert.deepEqual(fitWithinMaxDimension(720, 1440, 960), { width: 480, height: 960 });
+assert.deepEqual(fitWithinMaxDimension(640, 480, 960), { width: 640, height: 480 });
+console.log("  ✓ fitWithinMaxDimension preserves aspect ratio within max bound");
 
 async function run() {
   const sampleData: NutritionLabelData = {

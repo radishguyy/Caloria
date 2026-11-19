@@ -540,9 +540,9 @@ function DiaryAddFoodContent() {
           <button
             type="button"
             onClick={() => setIsArScannerOpen(true)}
-            className="px-4 py-2.5 rounded-button bg-accent-green-light/85 hover:bg-accent-green-light text-text-primary text-xs sm:text-sm font-black flex items-center justify-center gap-2 shrink-0 transition-colors"
+            className="px-4 py-2.5 min-h-11 rounded-button bg-accent-green-light/85 hover:bg-accent-green-light text-[#244710] text-xs sm:text-sm font-black flex items-center justify-center gap-2 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
           >
-            <Camera className="h-4 w-4 text-text-primary" />
+            <Camera className="h-4 w-4 text-[#244710]" />
             <span>AR Scan Label</span>
           </button>
         </div>

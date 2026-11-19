@@ -6,6 +6,27 @@ const DEFAULT_MAX_DIMENSION = 960;
 const DEFAULT_JPEG_QUALITY = 0.75;
 const DEFAULT_CACHE_LIMIT = 20;
 
+export function fitWithinMaxDimension(
+  width: number,
+  height: number,
+  maxDimension = DEFAULT_MAX_DIMENSION
+): { width: number; height: number } {
+  if (width <= 0 || height <= 0) return { width: 1, height: 1 };
+  if (width <= maxDimension && height <= maxDimension) {
+    return { width, height };
+  }
+  if (width >= height) {
+    return {
+      width: maxDimension,
+      height: Math.round((height * maxDimension) / width),
+    };
+  }
+  return {
+    width: Math.round((width * maxDimension) / height),
+    height: maxDimension,
+  };
+}
+
 export async function hashBlobSha256(blob: Blob): Promise<string> {
   if (typeof crypto !== "undefined" && crypto.subtle) {
     const buffer = await blob.arrayBuffer();
@@ -30,16 +51,11 @@ export async function compressImageFile(
     const objectUrl = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      let { width, height } = img;
-      if (width > maxDimension || height > maxDimension) {
-        if (width >= height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
+      const { width, height } = fitWithinMaxDimension(
+        img.width,
+        img.height,
+        maxDimension
+      );
 
       const canvas = document.createElement("canvas");
       canvas.width = width;

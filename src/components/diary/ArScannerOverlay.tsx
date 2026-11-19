@@ -18,6 +18,7 @@ import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import {
   compressImageFile,
   defaultScanClient,
+  fitWithinMaxDimension,
   type ScanStage,
 } from "@/lib/nutrition/scan-client";
 import { cn } from "@/lib/utils";
@@ -238,17 +239,11 @@ function ArScannerOverlayBody({
     setProcessingStage("compressing");
     setScanError(null);
 
-    const maxDim = 960;
-    let { videoWidth: width, videoHeight: height } = video;
-    if (width > maxDim || height > maxDim) {
-      if (width >= height) {
-        height = Math.round((height * maxDim) / width);
-        width = maxDim;
-      } else {
-        width = Math.round((width * maxDim) / height);
-        height = maxDim;
-      }
-    }
+    const { width, height } = fitWithinMaxDimension(
+      video.videoWidth,
+      video.videoHeight,
+      960
+    );
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -353,7 +348,7 @@ function ArScannerOverlayBody({
       />
 
       {/* Top AR HUD Bar */}
-      <header className="relative z-20 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 bg-black/45 backdrop-blur-md">
+      <header className="relative z-20 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 bg-black/75">
         <button
           type="button"
           onClick={handleClose}
@@ -435,9 +430,9 @@ function ArScannerOverlayBody({
             <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-2xl border-b-4 border-l-4 border-accent-green-light" />
             <span className="absolute bottom-0 right-0 h-9 w-9 rounded-br-2xl border-b-4 border-r-4 border-accent-green-light" />
 
-            <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/85 shadow-[0_0_14px_rgba(186,220,88,0.9)] motion-safe:animate-pulse" />
+            <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/90" />
 
-            <div className="mt-4 px-3.5 py-1.5 rounded-pill bg-black/65 backdrop-blur-xs text-xs font-bold text-white text-center">
+            <div className="mt-4 px-3.5 py-1.5 rounded-pill bg-black/75 text-xs font-bold text-white text-center">
               Posisikan tabel Informasi Nilai Gizi di dalam bingkai
             </div>
           </div>
@@ -471,7 +466,7 @@ function ArScannerOverlayBody({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="button-primary w-full min-h-12 px-5 py-3 text-sm flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                className="button-primary !text-[#244710] w-full min-h-12 px-5 py-3 text-sm flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
                 <ImagePlus className="h-4 w-4" />
                 <span>Pilih Foto dari Galeri</span>
@@ -544,7 +539,7 @@ function ArScannerOverlayBody({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 min-h-11 px-3 py-2 rounded-2xl bg-accent-green-light text-text-primary text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                className="flex-1 min-h-11 px-3 py-2 rounded-2xl bg-accent-green-light text-[#244710] text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
                 <ImagePlus className="h-3.5 w-3.5" />
                 <span>Dari Galeri</span>
@@ -576,7 +571,7 @@ function ArScannerOverlayBody({
       </div>
 
       {/* Bottom Camera Controls */}
-      <footer className="relative z-20 bg-black/60 backdrop-blur-md px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <footer className="relative z-20 bg-black/80 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="mx-auto max-w-md flex items-center justify-between gap-4">
           <button
             type="button"
@@ -604,7 +599,7 @@ function ArScannerOverlayBody({
               disabled={cameraStatus !== "ready"}
               aria-label="Jepret dan analisis label gizi"
               className={cn(
-                "h-16 w-16 rounded-full bg-accent-green-light text-text-primary flex items-center justify-center shadow-[0_0_0_5px_rgba(255,255,255,0.28)] transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
+                "h-16 w-16 rounded-full bg-accent-green-light text-[#244710] flex items-center justify-center shadow-[0_0_0_5px_rgba(255,255,255,0.28)] transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
                 cameraStatus !== "ready" && "opacity-40 cursor-not-allowed"
               )}
             >

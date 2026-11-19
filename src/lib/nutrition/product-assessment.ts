@@ -1,20 +1,13 @@
 /**
  * Product Assessment Engine (AR Scanner draft)
  *
- * Deterministic, rule-based evaluation of a scanned packaged product.
- * No ML model: the AI (Gemini Vision) only *reads* the label; the verdict,
- * warnings and suggestions are computed here so they are instant,
- * explainable, testable and easy for the nutritionist to tune.
+ * Deterministic evaluation of a scanned packaged product without training an ML model:
+ * Vision API reads the nutrition table, and this module evaluates the product locally.
  *
- * ⚠️ DRAFT THRESHOLDS — must be reviewed by Hima (ahli gizi) before release.
- * Every constant lives in `NUTRITION_THRESHOLDS` so the review is one file.
+ * DRAFT THRESHOLDS: must be reviewed by Hima (ahli gizi) before release.
  */
 
 import type { GoalProgramType } from "@/types";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export const PRODUCT_CATEGORIES = [
   "beverage",
@@ -91,26 +84,22 @@ export interface ProductAssessment {
   calpalReaction: CalpalReaction;
 }
 
-// ---------------------------------------------------------------------------
-// Thresholds (DRAFT — review with Hima)
-// ---------------------------------------------------------------------------
-
+/** Draft thresholds (review with Hima before release). */
 export const NUTRITION_THRESHOLDS = {
   version: "draft-2026-11",
   /**
-   * Per 100 g (food) — adapted from UK FSA front-of-pack "traffic light"
-   * criteria. Sodium = salt / 2.5 (salt 1.5 g → 600 mg, 0.3 g → 120 mg).
-   * `medium` = above "low", `high` = above "high".
+   * Per 100 g (food), adapted from UK FSA front-of-pack traffic light criteria.
+   * Sodium = salt / 2.5 (salt 1.5 g -> 600 mg, 0.3 g -> 120 mg).
    */
   food: {
     sugar: { medium: 5, high: 22.5 },
     fat: { medium: 3, high: 17.5 },
     saturatedFat: { medium: 1.5, high: 5 },
     sodium: { medium: 120, high: 600 },
-    /** Energy density (kcal/100 g). Not FSA — common "energy dense" cut-off. */
+    /** Energy density (kcal/100 g), common cut-off outside FSA. */
     calories: { medium: 275, high: 400 },
   },
-  /** Per 100 ml (drinks) — FSA drink criteria (half of food). */
+  /** Per 100 ml (drinks), FSA drink criteria (half of food). */
   beverage: {
     sugar: { medium: 2.5, high: 11.25 },
     fat: { medium: 1.5, high: 8.75 },
@@ -137,10 +126,6 @@ export const NUTRITION_THRESHOLDS = {
   /** Personal note: product uses more than X% of today's remaining calories. */
   personalBudgetWarnPct: 35,
 } as const;
-
-// ---------------------------------------------------------------------------
-// Copy (Bahasa Indonesia, Calpal voice)
-// ---------------------------------------------------------------------------
 
 const NUTRIENT_LABEL: Record<FlaggedNutrient, string> = {
   sugar: "Gula",
@@ -206,10 +191,6 @@ const CATEGORY_ALTERNATIVES: Partial<Record<ProductCategory, Partial<Record<Flag
   },
 };
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const safe = (n: number | null | undefined) =>
   typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : 0;
@@ -245,10 +226,6 @@ function joinId(items: string[]): string {
   if (items.length <= 1) return items.join("");
   return `${items.slice(0, -1).join(", ")} dan ${items[items.length - 1]}`;
 }
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
 
 export function assessProduct(
   input: ProductNutritionInput,
@@ -299,7 +276,7 @@ export function assessProduct(
         : `${round1(value)} ${unit}/sajian`;
     const pctText =
       dailyLimitPct !== null && nutrient !== "calories"
-        ? ` — ${dailyLimitPct}% batas harian per sajian`
+        ? `, ${dailyLimitPct}% batas harian/sajian`
         : "";
     const levelText = level === "high" ? "tinggi" : level === "medium" ? "sedang" : "rendah";
 
@@ -317,7 +294,7 @@ export function assessProduct(
     });
   });
 
-  // Calories alone should not make a product "poor" — they only inform.
+  // Calories alone should not make a product "poor"; they only inform.
   const scored = flags.filter((f) => f.nutrient !== "calories");
   const highs = scored.filter((f) => f.level === "high").length;
   const mediums = scored.filter((f) => f.level === "medium").length;
@@ -330,7 +307,7 @@ export function assessProduct(
     .filter((f) => f.level !== "low")
     .sort((a, b) => (a.level === b.level ? 0 : a.level === "high" ? -1 : 1));
 
-  // Positives -------------------------------------------------------------
+  // Positive highlights
   const positives: string[] = [];
   const fiberPer100 = factor ? safe(input.fiberG) * factor : null;
   if (fiberPer100 !== null && fiberPer100 >= T.positives.fiberHighPer100) {
@@ -352,7 +329,7 @@ export function assessProduct(
   const sodiumFlag = flags.find((f) => f.nutrient === "sodium");
   if (sodiumFlag?.level === "low" && sodiumFlag.per100 !== null) positives.push("Rendah garam");
 
-  // Suggestions ----------------------------------------------------------
+  // Alternative suggestions
   const suggestions: string[] = [];
   const category = input.category ?? "other";
   for (const w of warnings) {
@@ -361,7 +338,7 @@ export function assessProduct(
     else if (w.nutrient !== "calories") suggestions.push(NUTRIENT_TIP[w.nutrient]);
   }
 
-  // Personal note ---------------------------------------------------------
+  // Personal budget context
   const servings = Math.max(0.25, ctx.servingsConsumed ?? 1);
   const totalKcal = Math.round(kcal * servings);
   let personalNote: string | null = null;
@@ -381,7 +358,7 @@ export function assessProduct(
     positives.push("Cocok untuk misi bulking kamu");
   }
 
-  // Summary sentence --------------------------------------------------------
+  // Summary sentence
   const highLabels = warnings
     .filter((w) => w.level === "high" && w.nutrient !== "calories")
     .map((w) => w.label.toLowerCase());

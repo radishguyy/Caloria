@@ -36,6 +36,7 @@ console.log("  ✓ servingToBaseUnits handles g/ml/non-mass units");
   const sugarWarning = res.warnings.find((w) => w.nutrient === "sugar");
   assert.ok(sugarWarning && sugarWarning.level === "high", "Sugar should be high");
   assert.equal(sugarWarning?.dailyLimitPct, 56);
+  assert.ok(!sugarWarning?.message.includes("—"), "Warning message must avoid em dash");
   assert.ok(res.suggestions.some((s) => /air putih|teh|infused/i.test(s)));
   assert.equal(res.calpalReaction.expression, "idle");
   assert.ok(res.calpalReaction.bubbleText.length > 0);
