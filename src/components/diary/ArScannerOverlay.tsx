@@ -42,8 +42,12 @@ const STAGE_LABELS: Record<ScanStage, string> = {
   analyzing: "Mengevaluasi kandungan gizi...",
 };
 
-export function ArScannerOverlay({
-  isOpen,
+export function ArScannerOverlay(props: ArScannerOverlayProps) {
+  if (!props.isOpen) return null;
+  return <ArScannerOverlayBody {...props} />;
+}
+
+function ArScannerOverlayBody({
   mealTime,
   onClose,
   onScanComplete,
@@ -64,6 +68,7 @@ export function ArScannerOverlay({
   const ownedPreviewUrlRef = useRef<string | null>(null);
 
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [cameraRetryTick, setCameraRetryTick] = useState(0);
   const [cameraStatus, setCameraStatus] = useState<"initializing" | "ready" | "fallback">(
     "initializing"
   );
@@ -82,8 +87,6 @@ export function ArScannerOverlay({
       }
       streamRef.current = null;
     }
-    setTorchSupported(false);
-    setTorchEnabled(false);
   }, []);
 
   const clearOwnedPreview = useCallback(() => {
@@ -94,86 +97,93 @@ export function ArScannerOverlay({
     setFrozenPreviewUrl(null);
   }, []);
 
-  const startCamera = useCallback(async () => {
-    stopCameraTracks();
-    setCameraStatus("initializing");
-    setCameraMessage(null);
+  useEffect(() => {
+    let cancelled = false;
 
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.mediaDevices ||
-      typeof navigator.mediaDevices.getUserMedia !== "function"
-    ) {
-      setCameraStatus("fallback");
-      setCameraMessage(
-        "Kamera live tidak tersedia di browser ini. Pilih foto kemasan dari galeri."
-      );
-      return;
-    }
+    const initCamera = async () => {
+      stopCameraTracks();
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: facingMode },
-          width: { ideal: 1280 },
-          height: { ideal: 960 },
-        },
-        audio: false,
-      });
-
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => {});
+      if (
+        typeof navigator === "undefined" ||
+        !navigator.mediaDevices ||
+        typeof navigator.mediaDevices.getUserMedia !== "function"
+      ) {
+        if (!cancelled) {
+          setTorchSupported(false);
+          setTorchEnabled(false);
+          setCameraStatus("fallback");
+          setCameraMessage(
+            "Kamera live tidak tersedia di browser ini. Pilih foto kemasan dari galeri."
+          );
+        }
+        return;
       }
 
-      const [videoTrack] = stream.getVideoTracks();
-      const caps = videoTrack?.getCapabilities?.() as
-        | (MediaTrackCapabilities & { torch?: boolean })
-        | undefined;
-      setTorchSupported(Boolean(caps?.torch));
-      setCameraStatus("ready");
-    } catch (err) {
-      const name = err instanceof Error ? err.name : "";
-      const friendly =
-        name === "NotAllowedError" || name === "PermissionDeniedError"
-          ? "Izin kamera ditolak. Kamu tetap bisa unggah foto label dari galeri."
-          : "Kamera tidak terdeteksi di perangkat ini. Unggah foto label dari galeri saja ya.";
-      setCameraStatus("fallback");
-      setCameraMessage(friendly);
-    }
-  }, [facingMode, stopCameraTracks]);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 960 },
+          },
+          audio: false,
+        });
+
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+        }
+
+        const [videoTrack] = stream.getVideoTracks();
+        const caps = videoTrack?.getCapabilities?.() as
+          | (MediaTrackCapabilities & { torch?: boolean })
+          | undefined;
+        setTorchSupported(Boolean(caps?.torch));
+        setTorchEnabled(false);
+        setCameraMessage(null);
+        setCameraStatus("ready");
+      } catch (err) {
+        if (cancelled) return;
+        const name = err instanceof Error ? err.name : "";
+        const friendly =
+          name === "NotAllowedError" || name === "PermissionDeniedError"
+            ? "Izin kamera ditolak. Kamu tetap bisa unggah foto label dari galeri."
+            : "Kamera tidak terdeteksi di perangkat ini. Unggah foto label dari galeri saja ya.";
+        setTorchSupported(false);
+        setTorchEnabled(false);
+        setCameraStatus("fallback");
+        setCameraMessage(friendly);
+      }
+    };
+
+    void initCamera();
+
+    return () => {
+      cancelled = true;
+      abortRef.current?.abort();
+      stopCameraTracks();
+      if (ownedPreviewUrlRef.current) {
+        URL.revokeObjectURL(ownedPreviewUrlRef.current);
+        ownedPreviewUrlRef.current = null;
+      }
+    };
+  }, [facingMode, cameraRetryTick, stopCameraTracks]);
 
   const handleClose = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
     stopCameraTracks();
     clearOwnedPreview();
-    setProcessingStage(null);
-    setScanError(null);
     onClose();
   }, [clearOwnedPreview, onClose, stopCameraTracks]);
 
   useEffect(() => {
-    if (!isOpen) {
-      stopCameraTracks();
-      return;
-    }
-
-    setScanError(null);
-    setProcessingStage(null);
-    clearOwnedPreview();
-    void startCamera();
-
-    return () => {
-      abortRef.current?.abort();
-      stopCameraTracks();
-      clearOwnedPreview();
-    };
-  }, [isOpen, startCamera, stopCameraTracks, clearOwnedPreview]);
-
-  useEffect(() => {
-    if (!isOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         handleClose();
@@ -181,7 +191,7 @@ export function ArScannerOverlay({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, handleClose]);
+  }, [handleClose]);
 
   const runScanWithBlob = async (blob: Blob, previewUrl: string) => {
     abortRef.current?.abort();
@@ -310,11 +320,15 @@ export function ArScannerOverlay({
     clearOwnedPreview();
     setScanError(null);
     if (cameraStatus === "fallback") {
-      void startCamera();
+      setCameraStatus("initializing");
+      setCameraRetryTick((n) => n + 1);
     }
   };
 
-  if (!isOpen) return null;
+  const handleFlipCamera = () => {
+    setCameraStatus("initializing");
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
+  };
 
   const isProcessing = processingStage !== null;
   const calpalBubble = scanError
@@ -330,7 +344,6 @@ export function ArScannerOverlay({
       aria-label="AR Scanner Label Gizi"
       className="fixed inset-0 z-50 bg-[#0B1410] text-white flex flex-col overflow-hidden"
     >
-      {/* Hidden gallery / file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -383,11 +396,7 @@ export function ArScannerOverlay({
           {cameraStatus === "ready" && !isProcessing && (
             <button
               type="button"
-              onClick={() =>
-                setFacingMode((prev) =>
-                  prev === "environment" ? "user" : "environment"
-                )
-              }
+              onClick={handleFlipCamera}
               aria-label="Ganti kamera depan atau belakang"
               className="min-h-11 min-w-11 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
             >
@@ -399,7 +408,6 @@ export function ArScannerOverlay({
 
       {/* Main Camera / AR Viewfinder Stage */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-[#0F1B14]">
-        {/* Live video feed */}
         <video
           ref={videoRef}
           playsInline
@@ -411,7 +419,6 @@ export function ArScannerOverlay({
           )}
         />
 
-        {/* Frozen frame preview during OCR processing or error */}
         {frozenPreviewUrl && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -421,16 +428,13 @@ export function ArScannerOverlay({
           />
         )}
 
-        {/* AR Reticle Overlay when camera is active and not yet frozen */}
         {cameraStatus === "ready" && !frozenPreviewUrl && (
           <div className="pointer-events-none relative z-10 w-[86%] max-w-sm aspect-[4/3] flex flex-col items-center justify-center">
-            {/* Corner Brackets */}
             <span className="absolute top-0 left-0 h-9 w-9 rounded-tl-2xl border-t-4 border-l-4 border-accent-green-light" />
             <span className="absolute top-0 right-0 h-9 w-9 rounded-tr-2xl border-t-4 border-r-4 border-accent-green-light" />
             <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-2xl border-b-4 border-l-4 border-accent-green-light" />
             <span className="absolute bottom-0 right-0 h-9 w-9 rounded-br-2xl border-b-4 border-r-4 border-accent-green-light" />
 
-            {/* Subtle AR scan beam */}
             <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/85 shadow-[0_0_14px_rgba(186,220,88,0.9)] motion-safe:animate-pulse" />
 
             <div className="mt-4 px-3.5 py-1.5 rounded-pill bg-black/65 backdrop-blur-xs text-xs font-bold text-white text-center">
@@ -439,7 +443,6 @@ export function ArScannerOverlay({
           </div>
         )}
 
-        {/* Initializing Camera */}
         {cameraStatus === "initializing" && !frozenPreviewUrl && (
           <div className="relative z-10 flex flex-col items-center gap-3 px-6 text-center">
             <Loader2 className="h-9 w-9 animate-spin text-accent-green-light" />
@@ -449,7 +452,6 @@ export function ArScannerOverlay({
           </div>
         )}
 
-        {/* Camera Fallback Panel */}
         {cameraStatus === "fallback" && !frozenPreviewUrl && (
           <div className="relative z-10 mx-4 w-full max-w-sm rounded-card bg-[#182920] p-6 text-center space-y-4 shadow-2xl">
             <div className="mx-auto h-14 w-14 rounded-2xl bg-accent-green/25 text-accent-green-light flex items-center justify-center">
@@ -476,7 +478,7 @@ export function ArScannerOverlay({
               </button>
               <button
                 type="button"
-                onClick={() => void startCamera()}
+                onClick={handleRetryCamera}
                 className="w-full min-h-11 px-4 py-2.5 rounded-button bg-white/10 hover:bg-white/20 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -486,7 +488,6 @@ export function ArScannerOverlay({
           </div>
         )}
 
-        {/* Processing Overlay */}
         {isProcessing && processingStage && (
           <div
             role="status"
@@ -515,7 +516,6 @@ export function ArScannerOverlay({
           </div>
         )}
 
-        {/* Error Toast inside AR Stage */}
         {scanError && !isProcessing && (
           <div
             role="alert"
