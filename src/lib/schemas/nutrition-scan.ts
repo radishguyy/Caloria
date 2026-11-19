@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PRODUCT_CATEGORIES } from "@/lib/nutrition/product-assessment";
 
 export const NutritionLabelSchema = z.object({
   foodName: z.string().default("Scanned Food"),
@@ -11,8 +12,10 @@ export const NutritionLabelSchema = z.object({
   fatG: z.number().default(0),
   fiberG: z.number().default(0),
   sugarG: z.number().default(0),
+  saturatedFatG: z.number().nullable().optional(),
+  sodiumMg: z.number().nullable().optional(),
+  productCategory: z.enum(PRODUCT_CATEGORIES).nullable().optional().catch("other"),
   confidenceScore: z.number().min(0).max(1).optional(),
 });
 
 export type NutritionLabelData = z.infer<typeof NutritionLabelSchema>;
-
