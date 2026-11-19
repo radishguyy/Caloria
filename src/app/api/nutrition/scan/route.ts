@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { NutritionLabelSchema } from "@/lib/schemas/nutrition-scan";
+import { PRODUCT_CATEGORIES } from "@/lib/nutrition/product-assessment";
+import {
+  checkScanRateLimit,
+  isSupabaseAuthEnforced,
+  validateScanFile,
+} from "@/lib/nutrition/scan-guard";
+import { createClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT = `You are an expert nutrition label OCR and food packaging parser.
 Analyze the provided image of a food packaging's Nutrition Facts / Informasi Nilai Gizi table and extract the nutritional values into structured JSON.
@@ -15,10 +22,13 @@ Strict Extraction Guidelines:
    - fatG: Total Fat (Lemak Total) per serving (in grams).
    - fiberG: Dietary Fiber (Serat Pangan) per serving (in grams). Default to 0 if not listed.
    - sugarG: Total Sugars (Gula) per serving (in grams). Default to 0 if not listed.
+   - saturatedFatG: Saturated Fat (Lemak Jenuh) per serving (in grams). Set to null if not listed.
+   - sodiumMg: Sodium (Natrium / Garam converted: 1 g salt = 400 mg sodium) per serving (in mg). Set to null if not listed.
 4. Extract servingSize (numeric amount, e.g., 30) and servingUnit (e.g., "g", "ml", "oz", "keping", "bungkus").
-5. Extract servingsPerContainer as a number. Carefully check for text like "Jumlah Sajian per Kemasan", "Sajian per kemasan", "Jumlah sajian dalam kemasan", "Servings Per Container", "Servings Per Pack", or "Servings approx". For example: if it says "2 sajian per kemasan", "sekitar 2.5", or "approx. 3 servings", extract the numeric value (e.g. 2, 2.5, 3). Set to null ONLY if completely absent.
-6. Infer foodName from any visible product title, branding, or packaging context. If only the nutrition table is visible without branding, provide a descriptive name (e.g., "Scanned Food Product").
-7. Set confidenceScore between 0.0 and 1.0 reflecting how legible and complete the nutrition label is in the image.`;
+5. Extract servingsPerContainer as a number ("Jumlah Sajian per Kemasan", "Servings Per Container"). Set to null ONLY if absent.
+6. Infer foodName from visible product title/branding, or provide a descriptive name (e.g., "Scanned Food Product").
+7. Classify productCategory strictly as one of: ${PRODUCT_CATEGORIES.join(", ")}. Use "other" if unclear.
+8. Set confidenceScore between 0.0 and 1.0 reflecting label legibility.`;
 
 const geminiResponseSchema: Schema = {
   type: Type.OBJECT,
@@ -67,6 +77,21 @@ const geminiResponseSchema: Schema = {
       type: Type.NUMBER,
       description: "Total sugars in grams per single serving.",
     },
+    saturatedFatG: {
+      type: Type.NUMBER,
+      nullable: true,
+      description: "Saturated fat in grams per single serving. Null if absent.",
+    },
+    sodiumMg: {
+      type: Type.NUMBER,
+      nullable: true,
+      description: "Sodium (Natrium) in mg per single serving. Null if absent.",
+    },
+    productCategory: {
+      type: Type.STRING,
+      enum: [...PRODUCT_CATEGORIES],
+      description: "Best matching packaged product category.",
+    },
     confidenceScore: {
       type: Type.NUMBER,
       description: "Confidence score from 0 to 1 for the extraction accuracy.",
@@ -83,11 +108,58 @@ const geminiResponseSchema: Schema = {
     "fatG",
     "fiberG",
     "sugarG",
+    "saturatedFatG",
+    "sodiumMg",
+    "productCategory",
   ],
 };
 
 export async function POST(request: NextRequest) {
   try {
+    let userId: string | null = null;
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      userId = user?.id ?? null;
+    } catch {
+      if (isSupabaseAuthEnforced()) {
+        return NextResponse.json(
+          { success: false, error: "Gagal memverifikasi sesi pengguna." },
+          { status: 401 }
+        );
+      }
+    }
+
+    if (isSupabaseAuthEnforced() && !userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Silakan login terlebih dahulu untuk memindai label nutrisi.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const identityKey =
+      userId ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "local-guest";
+    const rate = checkScanRateLimit(identityKey);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Terlalu banyak permintaan scan. Coba lagi dalam ${rate.retryAfterSec} detik.`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rate.retryAfterSec) },
+        }
+      );
+    }
+
     const formData = await request.formData();
     const imageFile = formData.get("image");
 
@@ -101,13 +173,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (imageFile.size === 0) {
+    const fileCheck = validateScanFile({
+      size: imageFile.size,
+      type: imageFile.type,
+    });
+    if (!fileCheck.ok) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Uploaded image file is empty.",
-        },
-        { status: 400 }
+        { success: false, error: fileCheck.error },
+        { status: fileCheck.status }
       );
     }
 
@@ -123,12 +196,7 @@ export async function POST(request: NextRequest) {
 
     if (geminiApiKey) {
       const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-      const candidateModels = [
-        "gemini-3.5-flash",
-        "gemini-3.8-flash",
-        "gemini-3.1-flash-image",
-        "gemini-2.5-flash",
-      ];
+      const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
       let lastError: unknown = null;
       for (const modelName of candidateModels) {
@@ -153,6 +221,9 @@ export async function POST(request: NextRequest) {
               responseMimeType: "application/json",
               responseSchema: geminiResponseSchema,
               temperature: 0.1,
+              ...(modelName === "gemini-2.5-flash"
+                ? { thinkingConfig: { thinkingBudget: 0 } }
+                : {}),
             },
           });
 
@@ -222,6 +293,12 @@ export async function POST(request: NextRequest) {
                     fatG: { type: "number" },
                     fiberG: { type: "number" },
                     sugarG: { type: "number" },
+                    saturatedFatG: { type: ["number", "null"] },
+                    sodiumMg: { type: ["number", "null"] },
+                    productCategory: {
+                      type: "string",
+                      enum: [...PRODUCT_CATEGORIES],
+                    },
                     confidenceScore: { type: "number" },
                   },
                   required: [
@@ -235,6 +312,9 @@ export async function POST(request: NextRequest) {
                     "fatG",
                     "fiberG",
                     "sugarG",
+                    "saturatedFatG",
+                    "sodiumMg",
+                    "productCategory",
                     "confidenceScore",
                   ],
                   additionalProperties: false,
@@ -298,4 +378,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
