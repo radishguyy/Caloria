@@ -158,24 +158,40 @@ export function toastShopPurchased(price: number) {
 }
 
 /** 4. Calpal Interaction Triggers */
-export function toastPetPetted(exp: number = 10) {
+export function toastPetPetted(exp: number = 10, countToday?: number) {
+  const countLabel = countToday ? ` (${countToday}/3 hari ini)` : "";
   return toastSuccess(
-    "Calpal Senang Di-elus! ❤️✨",
-    `Kebahagiaan bertambah & +${exp} EXP didapatkan!`,
+    `CalPal Senang Di-elus! ❤️✨${countLabel}`,
+    `Perhatian bertambah & +${exp} EXP didapatkan!`,
   );
 }
 
-export function toastFeedingSuccess() {
+export function toastPetBlocked(message: string) {
+  return toastWarning("Belum Bisa Mengelus CalPal 🐾", message, {
+    duration: 4500,
+  });
+}
+
+export function toastFeedingSuccess(slotLabel?: string) {
+  const title = slotLabel
+    ? `Nyam nyam! ${slotLabel} selesai (-5 Koin) 🐾✨`
+    : "Nyam nyam! CalPal kenyang & ceria! (-5 Koin) 🐾✨";
   return toastSuccess(
-    "Nom nom! Calpal is full and happy! (-5 Coins) 🐾✨",
-    "Calpal kenyang, suasana hatinya kembali ceria!",
+    title,
+    "CalPal kenyang, suasana hatinya kembali ceria!",
   );
+}
+
+export function toastFeedBlocked(message: string) {
+  return toastInfo("Belum Waktunya Makan 🍽️", message, {
+    duration: 4000,
+  });
 }
 
 export function toastInsufficientCoins() {
   return toastWarning(
-    "Not enough coins!",
-    "You need at least 5 coins to feed Calpal. Log food or claim daily login to earn coins.",
+    "Koin Tidak Cukup!",
+    "Butuh minimal 5 koin untuk memberi makan CalPal. Catat makanan atau klaim login harian untuk dapat koin.",
   );
 }
 

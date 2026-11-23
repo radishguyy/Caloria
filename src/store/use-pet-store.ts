@@ -11,6 +11,16 @@ import {
   getCharacterDefinition,
 } from "@/lib/character-assets/catalog";
 import { evaluatePetCondition, PetConditionResult } from "@/lib/pet/decay-evaluator";
+import {
+  type MainMealSlot,
+  MAX_DAILY_FEEDS,
+  MAX_DAILY_PETS,
+  evaluateFeedEligibility,
+  evaluatePetEligibility,
+  normalizeDailyFedSlots,
+  normalizeDailyPetCount,
+} from "@/lib/pet/needs-engine";
+import { formatDateKey } from "@/lib/date-utils";
 
 interface PetStoreState {
   name: string;
@@ -24,6 +34,10 @@ interface PetStoreState {
   health: number;
   animationState: PetAnimationState;
   lastFedAt: string;
+  lastPettedAt: string;
+  fedSlotsToday: MainMealSlot[];
+  petCountToday: number;
+  needsResetDate: string | null;
   moodStatus: "happy" | "neutral" | "complaining";
 
   // Modular Character Customization State
@@ -32,15 +46,38 @@ interface PetStoreState {
   tailVariant?: CharacterId;
   faceVariant?: CharacterId;
 
+  // Soulbound NFT State (Phase 2)
+  nftTokenId: number | null;
+  nftContractAddress: string | null;
+  nftChainId: number | null;
+  mintTxHash: string | null;
+  mintStatus: "unminted" | "minting" | "minted";
+
   // Actions
   feedPet: (
     caloriesFed?: number,
     xpReward?: number,
     coinReward?: number,
   ) => void;
-  feedWithCoins: (cost?: number) => { success: boolean; error?: string };
+  feedWithCoins: (
+    cost?: number,
+    now?: Date,
+  ) => {
+    success: boolean;
+    error?: string;
+    message?: string;
+    slot?: MainMealSlot;
+  };
   checkAndApplyDecay: () => PetConditionResult;
-  petInteract: () => void;
+  petInteract: (
+    loggedMainMealsToday?: MainMealSlot[],
+    now?: Date,
+  ) => {
+    success: boolean;
+    error?: string;
+    message?: string;
+    petCountToday?: number;
+  };
   toggleSleep: () => void;
   gainExp: (amount: number) => void;
   addCoins: (amount: number) => void;
@@ -78,11 +115,20 @@ export const usePetStore = create<PetStoreState>()(
       health: 100,
       animationState: "idle",
       lastFedAt: "2026-10-30T00:00:00.000Z",
+      lastPettedAt: "2026-10-30T00:00:00.000Z",
+      fedSlotsToday: [],
+      petCountToday: 0,
+      needsResetDate: null,
       moodStatus: "happy",
       customColors: {},
       earsVariant: undefined,
       tailVariant: undefined,
       faceVariant: undefined,
+      nftTokenId: null,
+      nftContractAddress: null,
+      nftChainId: null,
+      mintTxHash: null,
+      mintStatus: "unminted",
 
       setPetState: (data) => set((state) => ({ ...state, ...data })),
 
@@ -133,28 +179,60 @@ export const usePetStore = create<PetStoreState>()(
         }, 1500);
       },
 
-      feedWithCoins: (cost = 5) => {
+      feedWithCoins: (cost = 5, now = new Date()) => {
         const current = get();
+        const todayKey = formatDateKey(now);
+        const currentFedSlots = normalizeDailyFedSlots(
+          current.fedSlotsToday,
+          current.needsResetDate,
+          todayKey,
+        );
+        const currentPetCount = normalizeDailyPetCount(
+          current.petCountToday,
+          current.needsResetDate,
+          todayKey,
+        );
+
+        const eligibility = evaluateFeedEligibility(currentFedSlots, now);
+        if (!eligibility.canFeed || !eligibility.currentSlot) {
+          return {
+            success: false,
+            error: eligibility.reason ?? "FEED_BLOCKED",
+            message: eligibility.message,
+          };
+        }
+
         if (current.coins < cost) {
-          return { success: false, error: "INSUFFICIENT_COINS" };
+          return {
+            success: false,
+            error: "INSUFFICIENT_COINS",
+            message: "Koin tidak cukup! Butuh minimal 5 koin untuk memberi makan.",
+          };
         }
 
         const newCoins = current.coins - cost;
+        const updatedFedSlots: MainMealSlot[] = [
+          ...currentFedSlots,
+          eligibility.currentSlot,
+        ].slice(0, MAX_DAILY_FEEDS);
         const newHunger = Math.min(
           PET_CONFIG.MAX_HUNGER,
-          current.hunger + 30,
+          Math.round((updatedFedSlots.length / MAX_DAILY_FEEDS) * 100),
         );
         const newHappiness = Math.min(
           PET_CONFIG.MAX_HAPPINESS,
-          current.happiness + 20,
+          current.happiness + 15,
         );
-        const nowIso = new Date().toISOString();
+        const nowIso = now.toISOString();
 
         set({
           coins: newCoins,
           hunger: newHunger,
           happiness: newHappiness,
           lastFedAt: nowIso,
+          fedSlotsToday: updatedFedSlots,
+          petCountToday: currentPetCount,
+          needsResetDate: todayKey,
           moodStatus: "happy",
           animationState: "eating",
         });
@@ -166,7 +244,10 @@ export const usePetStore = create<PetStoreState>()(
           }, 1800);
         }, 1500);
 
-        return { success: true };
+        return {
+          success: true,
+          slot: eligibility.currentSlot,
+        };
       },
 
       checkAndApplyDecay: () => {
@@ -192,15 +273,49 @@ export const usePetStore = create<PetStoreState>()(
         return evaluation;
       },
 
-      petInteract: () => {
+      petInteract: (loggedMainMealsToday = [], now = new Date()) => {
         const current = get();
+        const todayKey = formatDateKey(now);
+        const currentPetCount = normalizeDailyPetCount(
+          current.petCountToday,
+          current.needsResetDate,
+          todayKey,
+        );
+        const currentFedSlots = normalizeDailyFedSlots(
+          current.fedSlotsToday,
+          current.needsResetDate,
+          todayKey,
+        );
+
+        const eligibility = evaluatePetEligibility(
+          currentPetCount,
+          loggedMainMealsToday,
+        );
+
+        if (!eligibility.canPet) {
+          return {
+            success: false,
+            error: eligibility.reason ?? "PET_BLOCKED",
+            message: eligibility.message,
+            petCountToday: currentPetCount,
+          };
+        }
+
+        const nextPetCount = Math.min(MAX_DAILY_PETS, currentPetCount + 1);
         const newHappiness = Math.min(
           PET_CONFIG.MAX_HAPPINESS,
-          current.happiness + 15,
+          Math.max(
+            current.happiness,
+            Math.round((nextPetCount / MAX_DAILY_PETS) * 100),
+          ),
         );
 
         set({
           happiness: newHappiness,
+          petCountToday: nextPetCount,
+          fedSlotsToday: currentFedSlots,
+          needsResetDate: todayKey,
+          lastPettedAt: now.toISOString(),
           animationState: "happy",
         });
 
@@ -209,6 +324,11 @@ export const usePetStore = create<PetStoreState>()(
         setTimeout(() => {
           set({ animationState: "idle" });
         }, 2000);
+
+        return {
+          success: true,
+          petCountToday: nextPetCount,
+        };
       },
 
       toggleSleep: () => {

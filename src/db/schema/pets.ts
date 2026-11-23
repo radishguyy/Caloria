@@ -5,6 +5,7 @@ import {
   text,
   integer,
   timestamp,
+  date,
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
@@ -31,6 +32,10 @@ export const pets = pgTable(
     happiness: integer("happiness").default(100).notNull(),
     coins: integer("coins").default(0).notNull(),
     lastFedAt: timestamp("last_fed_at", { withTimezone: true }).defaultNow().notNull(),
+    lastPettedAt: timestamp("last_petted_at", { withTimezone: true }).defaultNow().notNull(),
+    fedSlotsToday: jsonb("fed_slots_today").$type<string[]>().default([]).notNull(),
+    petCountToday: integer("pet_count_today").default(0).notNull(),
+    needsResetDate: date("needs_reset_date"),
     moodStatus: text("mood_status").default("happy").notNull(), // 'happy' | 'neutral' | 'complaining'
     customColors: jsonb("custom_colors").$type<Record<string, string>>().default({}),
     equippedHatId: uuid("equipped_hat_id"),
@@ -40,6 +45,12 @@ export const pets = pgTable(
     equippedRoomId: uuid("equipped_room_id"),
     skinColor: varchar("skin_color", { length: 50 }).default("default").notNull(),
     renderedAvatarIconUrl: text("rendered_avatar_icon_url"),
+    nftTokenId: integer("nft_token_id").unique(),
+    nftContractAddress: varchar("nft_contract_address", { length: 42 }),
+    nftChainId: integer("nft_chain_id"),
+    mintTxHash: varchar("mint_tx_hash", { length: 66 }),
+    mintStatus: text("mint_status").default("unminted").notNull(), // 'unminted' | 'minting' | 'minted'
+    mintedAt: timestamp("minted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

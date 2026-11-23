@@ -28,6 +28,7 @@ async function hydrateStoresFromDatabase() {
           supabase
             .from("profiles")
             .select("username, full_name, avatar_url, caloria_coins")
+            .select("username, full_name, avatar_url, caloria_coins, wallet_address, wallet_chain_id")
             .eq("id", u.id)
             .maybeSingle(),
           supabase
@@ -56,6 +57,8 @@ async function hydrateStoresFromDatabase() {
             u.user_metadata?.avatar_url ||
             u.user_metadata?.picture ||
             null,
+          walletAddress: prof?.wallet_address ?? null,
+          walletChainId: prof?.wallet_chain_id ?? null,
           isOnboardingCompleted: true,
         });
 
@@ -70,8 +73,19 @@ async function hydrateStoresFromDatabase() {
             happiness: petRow.happiness ?? 100,
             coins: prof?.caloria_coins ?? petRow.coins ?? 50,
             lastFedAt: petRow.last_fed_at || new Date().toISOString(),
+            lastPettedAt: petRow.last_petted_at || new Date().toISOString(),
+            fedSlotsToday: Array.isArray(petRow.fed_slots_today)
+              ? petRow.fed_slots_today
+              : [],
+            petCountToday: petRow.pet_count_today ?? 0,
+            needsResetDate: petRow.needs_reset_date ?? null,
             moodStatus: (petRow.mood_status as any) || "happy",
             customColors: (petRow.custom_colors as any) || {},
+            nftTokenId: petRow.nft_token_id ?? null,
+            nftContractAddress: petRow.nft_contract_address ?? null,
+            nftChainId: petRow.nft_chain_id ?? null,
+            mintTxHash: petRow.mint_tx_hash ?? null,
+            mintStatus: (petRow.mint_status as any) || "unminted",
           });
         }
         return;
@@ -138,8 +152,17 @@ async function hydrateStoresFromDatabase() {
         happiness: data.pet.happiness,
         coins: data.pet.coins,
         lastFedAt: data.pet.lastFedAt,
+        lastPettedAt: data.pet.lastPettedAt,
+        fedSlotsToday: data.pet.fedSlotsToday,
+        petCountToday: data.pet.petCountToday,
+        needsResetDate: data.pet.needsResetDate,
         moodStatus: data.pet.moodStatus,
         customColors: data.pet.customColors,
+        nftTokenId: data.pet.nftTokenId,
+        nftContractAddress: data.pet.nftContractAddress,
+        nftChainId: data.pet.nftChainId,
+        mintTxHash: data.pet.mintTxHash,
+        mintStatus: data.pet.mintStatus,
       });
     }
 
@@ -174,10 +197,20 @@ async function hydrateStoresFromDatabase() {
       useAchievementsStore.getState().setUnlockedBadgeIds(data.unlockedBadgeIds);
     }
 
-    // 7. Hydrate Social Hub Store
+    // 7. Hydrate Social Hub Store & Streak Metadata
     useSocialStore.getState().fetchSocialData();
     if (data.profile) {
       useSocialStore.getState().setStreak(data.profile.streakCount);
+      useSocialStore.getState().setStreakMeta({
+        longestStreakDays: data.profile.longestStreakDays,
+        streakFreezes: data.profile.streakFreezes,
+        lastFreezeUsedDate: data.profile.lastFreezeUsedDate,
+        restPasses: data.profile.restPasses,
+        lastRestDayDate: data.profile.lastRestDayDate,
+        brokenStreakCount: data.profile.brokenStreakCount,
+        brokenStreakAt: data.profile.brokenStreakAt,
+        lastLoggedDate: data.profile.lastLoggedDate,
+      });
     }
   } catch (err) {
     console.error("[SessionProvider] Hydration error:", err);

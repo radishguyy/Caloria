@@ -14,6 +14,7 @@ import {
 } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { triggerFriendLoggedNotification } from "@/lib/server/push-service";
+import { recordFoodLogStreak } from "@/lib/server/streak-service";
 import { FoodCatalogItem } from "@/types";
 
 export interface LogFoodItemInput {
@@ -319,26 +320,8 @@ export async function batchLogFoodsAction(
       })
       .where(eq(pets.userId, userId));
 
-    // 6. Update Profile streak & last_logged_date
-    const prevLoggedDate = userProfile?.lastLoggedDate;
-    const isNewDay = prevLoggedDate !== targetDate;
-    await db
-      .update(profiles)
-      .set({
-        lastLoggedDate: targetDate,
-        caloriaCoins: sql`${profiles.caloriaCoins} + 10`,
-        currentStreakDays: isNewDay
-          ? sql`${profiles.currentStreakDays} + 1`
-          : profiles.currentStreakDays,
-        streakCount: isNewDay
-          ? sql`${profiles.streakCount} + 1`
-          : profiles.streakCount,
-        streakConsecutiveLogs: isNewDay
-          ? sql`${profiles.streakConsecutiveLogs} + 1`
-          : profiles.streakConsecutiveLogs,
-        updatedAt: new Date(),
-      })
-      .where(eq(profiles.id, userId));
+    // 6. Update Profile streak, longest_streak, coins & co-op party progress
+    await recordFoodLogStreak(userId, targetDate, { bonusCoins: 10 });
 
     // 7. Trigger Peer Pressure notification
     triggerFriendLoggedNotification(userId).catch((err) => {

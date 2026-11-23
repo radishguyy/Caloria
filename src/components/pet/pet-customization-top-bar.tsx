@@ -10,6 +10,7 @@ import {
   SegmentedToggleOption,
 } from "@/components/shared/segmented-toggle";
 import { getPetCustomizationStateAction } from "@/app/actions/pet-customization";
+import { WalletConnectButton } from "@/components/web3/wallet-connect-button";
 
 const TOGGLES: SegmentedToggleOption[] = [
   {
@@ -77,6 +78,9 @@ export function PetCustomizationTopBar() {
             {coins} Koin
           </span>
         </div>
+
+        {/* Wallet Connect / Link Status */}
+        <WalletConnectButton />
 
         {/* Page Toggle Pill (Squircle) */}
         <SegmentedToggle

@@ -277,14 +277,21 @@ export async function purchaseAccessoryAction(
  * Saves equipped accessories to the database `pets` table.
  * Strictly verifies that any equipped item is owned by the user.
  */
-export async function savePetEquippedAction(equippedLoadout: {
-  head?: string | null;
-  glasses?: string | null;
-  body?: string | null;
-  held?: string | null;
-  skin?: string | null;
-  room?: string | null;
-}): Promise<{ success: boolean; message: string }> {
+export async function savePetEquippedAction(
+  equippedLoadout: {
+    head?: string | null;
+    glasses?: string | null;
+    body?: string | null;
+    held?: string | null;
+    skin?: string | null;
+    room?: string | null;
+  },
+  appearance?: {
+    species?: string;
+    name?: string;
+    customColors?: Record<string, string>;
+  },
+): Promise<{ success: boolean; message: string; nftTokenId?: number | null }> {
   try {
     const supabase = await createClient();
     const {
@@ -353,18 +360,32 @@ export async function savePetEquippedAction(equippedLoadout: {
         ? ownedMap.get(equippedLoadout.room)
         : null;
 
-    await db
+    const petUpdatePayload: Partial<typeof pets.$inferInsert> = {
+      equippedHatId: headPlazaId,
+      equippedGlassesId: glassesPlazaId,
+      equippedOutfitId: bodyPlazaId,
+      equippedAccessoryId: heldPlazaId,
+      equippedRoomId: roomPlazaId,
+      skinColor: equippedLoadout.skin || "default",
+      updatedAt: new Date(),
+    };
+
+    if (appearance?.species) {
+      petUpdatePayload.species = appearance.species;
+      petUpdatePayload.characterId = appearance.species;
+    }
+    if (appearance?.name && appearance.name.trim()) {
+      petUpdatePayload.name = appearance.name.trim().slice(0, 50);
+    }
+    if (appearance?.customColors) {
+      petUpdatePayload.customColors = appearance.customColors;
+    }
+
+    const [updatedPet] = await db
       .update(pets)
-      .set({
-        equippedHatId: headPlazaId,
-        equippedGlassesId: glassesPlazaId,
-        equippedOutfitId: bodyPlazaId,
-        equippedAccessoryId: heldPlazaId,
-        equippedRoomId: roomPlazaId,
-        skinColor: equippedLoadout.skin || "default",
-        updatedAt: new Date(),
-      })
-      .where(eq(pets.userId, user.id));
+      .set(petUpdatePayload)
+      .where(eq(pets.userId, user.id))
+      .returning({ nftTokenId: pets.nftTokenId });
 
     try {
       await db
@@ -394,9 +415,13 @@ export async function savePetEquippedAction(equippedLoadout: {
       // user_loadouts fallback
     }
 
+    const nftTokenId = updatedPet?.nftTokenId ?? null;
     return {
       success: true,
-      message: "Kustomisasi Calpal berhasil disimpan ke profil!",
+      nftTokenId,
+      message: nftTokenId
+        ? `Kustomisasi Calpal & metadata NFT #${nftTokenId} berhasil diperbarui!`
+        : "Kustomisasi Calpal berhasil disimpan ke profil!",
     };
   } catch (err) {
     console.error("[savePetEquippedAction] Error:", err);

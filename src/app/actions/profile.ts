@@ -19,6 +19,9 @@ import {
 import { eq, desc } from "drizzle-orm";
 import { DEFAULT_FREE_ITEM_IDS } from "@/lib/cosmetics-catalog";
 import { evaluatePetCondition } from "@/lib/pet/decay-evaluator";
+import { stageSlugToNumber } from "@/lib/pet/evolution";
+import { STREAK_RULES } from "@/lib/constants";
+import { evaluateEffectiveStreak } from "@/lib/server/streak-service";
 
 /**
  * Returns the authenticated user's profile data for client-side rendering.
@@ -54,6 +57,8 @@ export async function getProfileData() {
     username: profileRow.profile.username,
     fullName: profileRow.profile.fullName,
     avatarUrl: profileRow.profile.avatarUrl,
+    walletAddress: profileRow.profile.walletAddress ?? null,
+    walletChainId: profileRow.profile.walletChainId ?? null,
     isOnboardingCompleted: profileRow.profile.isOnboardingCompleted,
   };
 }
@@ -585,6 +590,55 @@ export async function fetchAppInitialDataAction() {
         .catch((e) => console.warn("[fetchAppInitialDataAction] update onboarding status warning:", e));
     }
 
+    const rawStreak = profile
+      ? Math.max(profile.streakCount || 0, profile.currentStreakDays || 0)
+      : 0;
+    const streakEval = profile
+      ? evaluateEffectiveStreak({
+          lastLoggedDate: profile.lastLoggedDate,
+          currentStreak: rawStreak,
+          streakFreezes: profile.streakFreezes,
+          lastRestDayDate: profile.lastRestDayDate,
+        })
+      : {
+          effectiveStreak: 0,
+          isExpired: false,
+          isFreezeProtected: false,
+          isRestProtected: false,
+        };
+
+    const expiredBrokenCount =
+      profile &&
+      streakEval.isExpired &&
+      rawStreak >= STREAK_RULES.REPAIR_MIN_BROKEN_STREAK
+        ? rawStreak
+        : profile?.brokenStreakCount || 0;
+    const expiredBrokenAt =
+      profile &&
+      streakEval.isExpired &&
+      rawStreak >= STREAK_RULES.REPAIR_MIN_BROKEN_STREAK
+        ? new Date()
+        : profile?.brokenStreakAt || null;
+
+    if (profile && streakEval.isExpired) {
+      db.update(profiles)
+        .set({
+          currentStreakDays: 0,
+          streakCount: 0,
+          streakConsecutiveLogs: 0,
+          brokenStreakCount: expiredBrokenCount,
+          brokenStreakAt: expiredBrokenAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(profiles.id, user.id))
+        .catch((e) =>
+          console.warn(
+            "[fetchAppInitialDataAction] reset expired streak warning:",
+            e
+          )
+        );
+    }
+
     return {
       authenticated: true,
       user: {
@@ -606,6 +660,8 @@ export async function fetchAppInitialDataAction() {
           user.user_metadata?.avatar_url ||
           user.user_metadata?.picture ||
           null,
+        walletAddress: profile?.walletAddress ?? null,
+        walletChainId: profile?.walletChainId ?? null,
         isOnboardingCompleted: isUserOnboardingCompleted,
       },
       profile: profile
@@ -619,8 +675,25 @@ export async function fetchAppInitialDataAction() {
             goalPath: profile.goalPath || "lose_weight",
             currentLevel: profile.currentLevel || 1,
             currentWeek: profile.currentWeek || 1,
-            streakCount: profile.streakCount || profile.currentStreakDays || 0,
-            streakConsecutiveLogs: profile.streakConsecutiveLogs || 0,
+            streakCount: streakEval.effectiveStreak,
+            streakConsecutiveLogs: streakEval.isExpired
+              ? 0
+              : profile.streakConsecutiveLogs || 0,
+            longestStreakDays: Math.max(
+              profile.longestStreakDays || 0,
+              streakEval.effectiveStreak
+            ),
+            streakFreezes: profile.streakFreezes ?? 1,
+            lastFreezeUsedDate: profile.lastFreezeUsedDate || null,
+            restPasses: profile.restPasses ?? 1,
+            lastRestDayDate: profile.lastRestDayDate || null,
+            brokenStreakCount: expiredBrokenCount,
+            brokenStreakAt: expiredBrokenAt
+              ? expiredBrokenAt instanceof Date
+                ? expiredBrokenAt.toISOString()
+                : new Date(expiredBrokenAt).toISOString()
+              : null,
+            lastLoggedDate: profile.lastLoggedDate || null,
             targetCaloriesKcal: profile.targetCaloriesKcal || 2000,
             targetProteinG: Number(profile.targetProteinG) || 125,
             targetCarbsG: Number(profile.targetCarbsG) || 250,
@@ -635,7 +708,7 @@ export async function fetchAppInitialDataAction() {
         ? {
             name: pet.name || "Pyro",
             species: (pet.species || pet.characterId || "flameling") as any,
-            stage: pet.stage === "juvenile" ? 2 : 1,
+            stage: stageSlugToNumber(pet.stage, pet.level || 1),
             level: pet.level || 1,
             exp: petExp,
             hunger: pet.hunger ?? 100,
@@ -645,8 +718,25 @@ export async function fetchAppInitialDataAction() {
               petLastFed instanceof Date
                 ? petLastFed.toISOString()
                 : new Date(petLastFed).toISOString(),
+            lastPettedAt: pet.lastPettedAt
+              ? pet.lastPettedAt instanceof Date
+                ? pet.lastPettedAt.toISOString()
+                : new Date(pet.lastPettedAt).toISOString()
+              : new Date().toISOString(),
+            fedSlotsToday: Array.isArray(pet.fedSlotsToday)
+              ? (pet.fedSlotsToday as any)
+              : [],
+            petCountToday: pet.petCountToday ?? 0,
+            needsResetDate: pet.needsResetDate ?? null,
             moodStatus: petMood as "happy" | "neutral" | "complaining",
             customColors: (pet.customColors as any) || {},
+            nftTokenId: pet.nftTokenId ?? null,
+            nftContractAddress: pet.nftContractAddress ?? null,
+            nftChainId: pet.nftChainId ?? null,
+            mintTxHash: pet.mintTxHash ?? null,
+            mintStatus:
+              (pet.mintStatus as "unminted" | "minting" | "minted") ||
+              "unminted",
           }
         : null,
       weightLogs: wLogs.map((r) => ({

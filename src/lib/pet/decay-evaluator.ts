@@ -35,12 +35,18 @@ export function evaluatePetCondition(
     const expPenalty = hoursOverdue * 2; // -2 EXP per hour overdue
     const newExp = Math.max(0, pet.exp - expPenalty);
 
+    const overdueMessages = [
+      `Perutku keroncongan... sudah ${roundedHoursSinceFed} jam belum makan 🥺`,
+      `Badanku lemas sekali... tolong beri aku makan! (-${expPenalty} EXP)`,
+      `Halo? Sudah ${roundedHoursSinceFed} jam aku nunggu makanan nih! 🍽️😤`,
+      "Perutku keroncongan... Aku belum makan selama 20 jam 🥺",
+    ];
     const dialogueMessage =
       roundedHoursSinceFed >= 24
-        ? `Perutku keroncongan... sudah ${roundedHoursSinceFed} jam belum makan 🥺`
+        ? overdueMessages[roundedHoursSinceFed % 2 === 0 ? 0 : 2]
         : hoursOverdue > 0
-          ? `Badanku lemas sekali... tolong beri aku makan! (-${expPenalty} EXP)`
-          : "Perutku keroncongan... Aku belum makan selama 20 jam 🥺";
+          ? overdueMessages[1]
+          : overdueMessages[3];
 
     return {
       isComplaining: true,

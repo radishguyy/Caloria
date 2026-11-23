@@ -6,6 +6,7 @@ import {
   type PetCustomizationStateResult,
   type PurchaseResult,
 } from "@/lib/cosmetics-catalog";
+import { getAccessoryTokenId } from "@/lib/web3/accessory-tokens";
 
 export type { PetCustomizationStateResult, PurchaseResult };
 
@@ -28,6 +29,7 @@ export async function ensurePlazaItemsSeeded(): Promise<void> {
       description: item.description,
       priceCoins: item.priceCoins,
       assetUrl: item.id,
+      tokenId1155: getAccessoryTokenId(item.id),
       isAvailable: true,
       isEventItem: false,
     }));

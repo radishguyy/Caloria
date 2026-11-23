@@ -9,7 +9,12 @@ import {
   Check,
   Flame,
   ArrowRight,
+  Snowflake,
+  Moon,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   getWeekDays,
   formatDateKey,
@@ -19,6 +24,8 @@ import {
 import { useFoodStore } from "@/store/use-food-store";
 import { useSocialStore } from "@/store/use-social-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { activateRestDayAction } from "@/app/actions/streak";
+import { getStreakSocietyTier } from "@/lib/streak-utils";
 import { cn } from "@/lib/utils";
 
 interface DashboardCalendarStripProps {
@@ -32,9 +39,42 @@ export function DashboardCalendarStrip({
 }: DashboardCalendarStripProps) {
   const isHydrated = useHydrated();
   const { selectedDate, setSelectedDate, getDailySummary } = useFoodStore();
-  const { coopStreakDays } = useSocialStore();
+  const {
+    coopStreakDays,
+    streakFreezes,
+    lastFreezeUsedDate,
+    restPasses,
+    lastRestDayDate,
+    setStreakMeta,
+  } = useSocialStore();
 
   const [weekOffset, setWeekOffset] = useState(0);
+  const [isActivatingRest, setIsActivatingRest] = useState(false);
+
+  const todayKey = isHydrated ? formatDateKey(new Date()) : "";
+  const societyTier = getStreakSocietyTier(coopStreakDays);
+  const isRestToday = Boolean(todayKey && lastRestDayDate === todayKey);
+
+  const handleActivateRestDay = async () => {
+    setIsActivatingRest(true);
+    try {
+      const res = await activateRestDayAction();
+      if (res.success) {
+        setStreakMeta({
+          restPasses: res.restPasses,
+          lastRestDayDate: res.lastRestDayDate ?? todayKey,
+          ...(coopStreakDays > 0 ? { lastLoggedDate: todayKey } : {}),
+        });
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Gagal mengaktifkan Rest Day.");
+    } finally {
+      setIsActivatingRest(false);
+    }
+  };
 
   const baseDate = isHydrated ? addDays(new Date(), weekOffset * 7) : null;
   const weekDays = baseDate ? getWeekDays(baseDate) : [];
@@ -150,6 +190,66 @@ export function DashboardCalendarStrip({
         </div>
       </div>
 
+      {/* Streak Protection & Society Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border-divider/70 bg-surface-subtle/60 px-3 py-2 text-[11px]">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {societyTier && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-pill px-2 py-0.5 font-bold border",
+                societyTier.tier === "gold"
+                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                  : societyTier.tier === "silver"
+                    ? "bg-slate-100 border-slate-300 text-slate-800"
+                    : "bg-orange-100 border-orange-300 text-orange-900"
+              )}
+              title={`Streak Society: ${societyTier.label} (≥ ${societyTier.minDays} hari)`}
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>{societyTier.label}</span>
+            </span>
+          )}
+          <Link
+            href="/pet-customization/shop"
+            className="inline-flex items-center gap-1 rounded-pill bg-sky-50 border border-sky-200 px-2 py-0.5 font-bold text-sky-700 hover:bg-sky-100 transition-colors"
+            title="Stok Streak Freeze kamu (kelola di Plaza Shop)"
+          >
+            <Snowflake className="h-3 w-3 text-sky-500" />
+            <span>Freeze: {streakFreezes}</span>
+          </Link>
+        </div>
+
+        {isRestToday ? (
+          <span className="inline-flex items-center gap-1 rounded-pill bg-indigo-100 border border-indigo-200 px-2.5 py-0.5 font-bold text-indigo-700">
+            <Moon className="h-3 w-3" />
+            <span>Rest Day Aktif</span>
+          </span>
+        ) : restPasses > 0 ? (
+          <button
+            type="button"
+            onClick={handleActivateRestDay}
+            disabled={isActivatingRest}
+            className="inline-flex items-center gap-1 rounded-pill bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 font-bold text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50 cursor-pointer"
+            title="Gunakan 1 Rest Day Pass agar streak aman hari ini tanpa log"
+          >
+            {isActivatingRest ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Moon className="h-3 w-3" />
+            )}
+            <span>Rest Day ({restPasses})</span>
+          </button>
+        ) : (
+          <Link
+            href="/pet-customization/shop"
+            className="inline-flex items-center gap-1 rounded-pill bg-surface border border-border-default px-2 py-0.5 font-semibold text-text-muted hover:text-text-primary transition-colors"
+          >
+            <Moon className="h-3 w-3" />
+            <span>Beli Rest Pass</span>
+          </Link>
+        )}
+      </div>
+
       {/* 7-Day Horizontal Strip */}
       <div className="grid grid-cols-7 gap-1.5 sm:gap-2.5">
         {weekDays.map((day) => {
@@ -206,10 +306,24 @@ export function DashboardCalendarStrip({
                 {day.dayNumber}
               </span>
 
-              {/* Status Indicator Dot or Checkmark */}
+              {/* Status Indicator Dot, Freeze, Rest Day, or Checkmark */}
               <div className="h-3.5 flex items-center justify-center">
                 {!isCellFuture ? (
-                  status === "hit" ? (
+                  day.dateKey === lastFreezeUsedDate ? (
+                    <span
+                      className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-sky-100 text-sky-600"
+                      title="Dilindungi Streak Freeze"
+                    >
+                      <Snowflake className="h-2.5 w-2.5" />
+                    </span>
+                  ) : day.dateKey === lastRestDayDate ? (
+                    <span
+                      className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-indigo-100 text-indigo-600"
+                      title="Hari Istirahat (Rest Day)"
+                    >
+                      <Moon className="h-2.5 w-2.5" />
+                    </span>
+                  ) : status === "hit" ? (
                     <span className="flex items-center justify-center w-3 h-3 rounded-full bg-[#5B8E55] text-white">
                       <Check className="h-2 w-2 stroke-[3]" />
                     </span>
