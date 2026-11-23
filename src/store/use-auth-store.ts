@@ -7,6 +7,8 @@ export interface AuthUser {
   username: string;
   fullName: string;
   avatarUrl?: string;
+  walletAddress?: string | null;
+  walletChainId?: number | null;
 }
 
 interface AuthStoreState {
@@ -22,6 +24,7 @@ interface AuthStoreState {
   setOnboardingStep: (step: number) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
+  setWalletInfo: (walletAddress: string | null, walletChainId?: number | null) => void;
   /** Hydrate the store from a verified Supabase session (used by SessionProvider). */
   setUserFromSession: (input: {
     id: string;
@@ -29,6 +32,8 @@ interface AuthStoreState {
     username: string;
     fullName: string | null;
     avatarUrl: string | null;
+    walletAddress?: string | null;
+    walletChainId?: number | null;
     isOnboardingCompleted: boolean;
   }) => void;
   /** Clear the store on sign-out. */
@@ -102,6 +107,17 @@ export const useAuthStore = create<AuthStoreState>()(
           activeOnboardingStep: 1,
         }),
 
+      setWalletInfo: (walletAddress, walletChainId = null) =>
+        set((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                walletAddress,
+                walletChainId,
+              }
+            : null,
+        })),
+
       setUserFromSession: (input) =>
         set({
           isAuthenticated: true,
@@ -113,6 +129,8 @@ export const useAuthStore = create<AuthStoreState>()(
             username: input.username,
             fullName: input.fullName || input.username,
             avatarUrl: input.avatarUrl || undefined,
+            walletAddress: input.walletAddress ?? null,
+            walletChainId: input.walletChainId ?? null,
           },
         }),
 

@@ -9,7 +9,18 @@ import {
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
 
-export interface SocialStoreState {
+export interface StreakMetaState {
+  longestStreakDays: number;
+  streakFreezes: number;
+  lastFreezeUsedDate: string | null;
+  restPasses: number;
+  lastRestDayDate: string | null;
+  brokenStreakCount: number;
+  brokenStreakAt: string | null;
+  lastLoggedDate: string | null;
+}
+
+export interface SocialStoreState extends StreakMetaState {
   // Friends & Invitations
   friends: Friend[];
   pendingRequests: FriendRequest[];
@@ -43,6 +54,7 @@ export interface SocialStoreState {
   joinPartyByCode: (code: string) => boolean;
   clearPokeToast: () => void;
   setStreak: (days: number) => void;
+  setStreakMeta: (meta: Partial<StreakMetaState>) => void;
   setFriends: (friends: Friend[]) => void;
 }
 
@@ -73,6 +85,14 @@ export const useSocialStore = create<SocialStoreState>()(
       partyCode: "CAL-COOP",
       coopStreakDays: 0,
       highestCoopStreak: 0,
+      longestStreakDays: 0,
+      streakFreezes: 1,
+      lastFreezeUsedDate: null,
+      restPasses: 1,
+      lastRestDayDate: null,
+      brokenStreakCount: 0,
+      brokenStreakAt: null,
+      lastLoggedDate: null,
       pokeHistory: [],
       activePokeToast: null,
 
@@ -301,13 +321,18 @@ export const useSocialStore = create<SocialStoreState>()(
           coopStreakDays: days,
           highestCoopStreak: Math.max(state.highestCoopStreak, days),
         })),
+      setStreakMeta: (meta: Partial<StreakMetaState>) =>
+        set((state) => ({
+          ...state,
+          ...meta,
+        })),
       setFriends: (friends: Friend[]) => set({ friends }),
     }),
     {
       name: "caloria-social-storage",
-      version: 5,
+      version: 6,
       migrate: (persistedState: any, version: number) => {
-        if (!persistedState || version < 5) {
+        if (!persistedState || version < 6) {
           return {
             friends: [],
             pendingRequests: [],
@@ -318,6 +343,14 @@ export const useSocialStore = create<SocialStoreState>()(
             partyCode: "CAL-COOP",
             coopStreakDays: 0,
             highestCoopStreak: 0,
+            longestStreakDays: 0,
+            streakFreezes: 1,
+            lastFreezeUsedDate: null,
+            restPasses: 1,
+            lastRestDayDate: null,
+            brokenStreakCount: 0,
+            brokenStreakAt: null,
+            lastLoggedDate: null,
             pokeHistory: [],
             activePokeToast: null,
             ...persistedState,

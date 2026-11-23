@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Check, AlertCircle } from "lucide-react";
 import { AvatarPreview } from "@/components/pet/avatar-preview";
 import { AccessorySelector } from "@/components/pet/accessory-selector";
+import { MintCalPalCard } from "@/components/web3/mint-calpal-card";
 import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -205,9 +206,21 @@ export default function PetWardrobePage() {
     // 2. Commit to useCosmeticsStore
     setEquippedLoadout(draftState.equipped);
 
-    // 3. Persist to PostgreSQL database
+    // 3. Persist to PostgreSQL database (also refreshes live Dynamic NFT SVG & metadata)
+    let savedMessage = "Perubahan penampilan Calpal berhasil disimpan!";
     try {
-      const serverResult = await savePetEquippedAction(draftState.equipped);
+      const serverResult = await savePetEquippedAction(draftState.equipped, {
+        species: draftState.characterId,
+        name:
+          draftState.characterId !== species
+            ? getCharacterDefinition(draftState.characterId).defaultNickname
+            : draftState.name,
+        customColors: Object.fromEntries(
+          Object.entries(draftState.colors || {}).filter(
+            (entry): entry is [string, string] => typeof entry[1] === "string",
+          ),
+        ),
+      });
       if (!serverResult.success) {
         if (!serverResult.message.includes("login")) {
           setSaveToast({
@@ -217,6 +230,8 @@ export default function PetWardrobePage() {
           setTimeout(() => setSaveToast(null), 4000);
           return;
         }
+      } else if (serverResult.message) {
+        savedMessage = serverResult.message;
       }
     } catch (err) {
       console.warn("[PetWardrobePage] Backend persistence skipped:", err);
@@ -233,7 +248,7 @@ export default function PetWardrobePage() {
 
     setSaveToast({
       success: true,
-      message: "Perubahan penampilan Calpal berhasil disimpan!",
+      message: savedMessage,
     });
     setTimeout(() => setSaveToast(null), 3500);
   }, [
@@ -266,6 +281,7 @@ export default function PetWardrobePage() {
             onSave={handleSaveAvatar}
             onCancel={handleRevertDraft}
           />
+          <MintCalPalCard />
         </div>
 
         {/* Right Column: Dandani Calpal Wardrobe */}

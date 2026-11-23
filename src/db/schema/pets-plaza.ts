@@ -22,6 +22,7 @@ export const plazaItems = pgTable(
     description: text("description"),
     priceCoins: integer("price_coins").default(0).notNull(),
     assetUrl: text("asset_url").notNull(),
+    tokenId1155: integer("token_id_1155").unique(),
     isEventItem: boolean("is_event_item").default(false).notNull(),
     isAvailable: boolean("is_available").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -45,6 +46,9 @@ export const userWardrobe = pgTable(
     purchasedAt: timestamp("purchased_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    isMintedOnChain: boolean("is_minted_on_chain").default(false).notNull(),
+    mintTxHash: varchar("mint_tx_hash", { length: 66 }),
+    mintedAt: timestamp("minted_at", { withTimezone: true }),
   },
   (table) => [
     unique("user_wardrobe_user_id_item_id_unique").on(

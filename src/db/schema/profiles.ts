@@ -54,9 +54,17 @@ export const profiles = pgTable("profiles", {
   currentStreakDays: integer("current_streak_days").default(0).notNull(),
   longestStreakDays: integer("longest_streak_days").default(0).notNull(),
   lastLoggedDate: date("last_logged_date"),
+  streakFreezes: integer("streak_freezes").default(1).notNull(),
+  lastFreezeUsedDate: date("last_freeze_used_date"),
+  restPasses: integer("rest_passes").default(1).notNull(),
+  lastRestDayDate: date("last_rest_day_date"),
+  brokenStreakCount: integer("broken_streak_count").default(0).notNull(),
+  brokenStreakAt: timestamp("broken_streak_at", { withTimezone: true }),
   isOnboardingCompleted: boolean("is_onboarding_completed")
     .default(false)
     .notNull(),
+  walletAddress: varchar("wallet_address", { length: 42 }).unique(),
+  walletChainId: integer("wallet_chain_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

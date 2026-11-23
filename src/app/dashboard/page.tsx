@@ -16,7 +16,10 @@ import {
   Users,
   ArrowRight,
   Flame,
+  ShieldCheck,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { PetRenderer } from "@/components/pet/pet-renderer";
 import { PetShowcase } from "@/components/dashboard/PetShowcase";
 import { MacroBar } from "@/components/diary/macro-bar";
@@ -28,12 +31,14 @@ import { useSocialStore } from "@/stores/social-store";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
-import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
+import { MEAL_TYPES, MealTypeId, STREAK_RULES } from "@/lib/constants";
+import { isRepairEligible } from "@/lib/streak-utils";
 import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReminderStackStore } from "@/store/use-reminder-stack-store";
 import { batchLogFoodsAction } from "@/app/actions/diary";
+import { repairStreakAction } from "@/app/actions/streak";
 import { cn } from "@/lib/utils";
 
 const PUSH_REMINDER_DISMISS_KEY = "caloria-dismissed-push-reminder";
@@ -78,8 +83,19 @@ export default function DashboardPage() {
     getRecentFoods,
     getFrequentFoods,
   } = useFoodStore();
-  const { name, feedPet } = usePetStore();
-  const { coopStreakDays, partyName, friends } = useSocialStore();
+  const { name, feedPet, setCoins } = usePetStore();
+  const {
+    coopStreakDays,
+    partyName,
+    friends,
+    brokenStreakCount,
+    brokenStreakAt,
+    setStreak,
+    setStreakMeta,
+  } = useSocialStore();
+  const [repairLoading, setRepairLoading] = useState<"coins" | "quest" | null>(
+    null,
+  );
   const { toggleDrawer, getUnreadCount, notifications, markAsRead } =
     useNotificationStore();
   const {
@@ -473,8 +489,36 @@ export default function DashboardPage() {
         `${selectedQuickItems.length} menu berhasil dicatat untuk ${mealObj?.label || "makan"} hari ini. Pet kamu makin kenyang dan bertambah XP!`,
     });
 
+    setStreakMeta({ lastLoggedDate: todayStr });
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
+  };
+
+  const handleRepairStreak = async (method: "coins" | "quest") => {
+    setRepairLoading(method);
+    try {
+      const res = await repairStreakAction(method);
+      if (res.success) {
+        if (res.restoredStreak !== undefined) {
+          setStreak(res.restoredStreak);
+        }
+        if (res.newCoins !== undefined) {
+          setCoins(res.newCoins);
+        }
+        setStreakMeta({
+          brokenStreakCount: 0,
+          brokenStreakAt: null,
+          lastLoggedDate: getTodayKey(),
+        });
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Gagal memulihkan streak. Coba lagi nanti.");
+    } finally {
+      setRepairLoading(null);
+    }
   };
 
   const handleQuickAdd = (foodItem: (typeof FOOD_CATALOG)[0]) => {
@@ -531,6 +575,7 @@ export default function DashboardPage() {
         `Menu ${foodItem.name} berhasil ditambahkan ke catatan ${mealObj?.label || "makan"} hari ini.`,
     });
 
+    setStreakMeta({ lastLoggedDate: todayStr });
     setSelectedQuickItems([]);
     setQuickLogModalOpen(false);
   };
@@ -557,6 +602,54 @@ export default function DashboardPage() {
             coopReminderCard
           ) : null}
         </div>
+      )}
+
+      {/* Streak Repair Banner (48h recovery window when streak >= 3 days recently broke) */}
+      {isHydrated && isRepairEligible(brokenStreakCount, brokenStreakAt) && (
+        <section className="rounded-3xl border-2 border-accent-orange/40 bg-gradient-to-r from-[#FCF8E3] via-surface to-accent-orange/10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-orange/15 text-accent-orange-dark border border-accent-orange/30">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-text-primary font-heading">
+                Selamatkan Streak {brokenStreakCount} Harimu! 🔥
+              </h2>
+              <p className="text-xs text-text-muted mt-0.5">
+                Streak-mu baru saja terputus. Kamu punya waktu 48 jam untuk memulihkannya gratis lewat misi 2x log hari ini atau tebus dengan {STREAK_RULES.REPAIR_PRICE_COINS} Koin.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleRepairStreak("quest")}
+              disabled={repairLoading !== null}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-accent-green hover:bg-accent-green/90 text-text-inverse px-3.5 py-2 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {repairLoading === "quest" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              <span>Pulihkan Gratis (Misi 2x Log)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRepairStreak("coins")}
+              disabled={repairLoading !== null}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-accent-orange/40 bg-surface hover:bg-[#FCF8E3] text-accent-orange-dark px-3.5 py-2 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {repairLoading === "coins" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Coins className="h-3.5 w-3.5 text-accent-orange" />
+              )}
+              <span>Tebus {STREAK_RULES.REPAIR_PRICE_COINS} Koin</span>
+            </button>
+          </div>
+        </section>
       )}
 
       {/* CalPal (Virtual Pet) + Daily Nutrition Target Side-by-Side */}

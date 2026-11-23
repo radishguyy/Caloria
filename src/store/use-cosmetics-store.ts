@@ -11,6 +11,7 @@ export { DEFAULT_FREE_ITEM_IDS };
 
 interface CosmeticsStoreState {
   ownedItemIds: string[];
+  mintedItemIds: string[];
   equipped: EquippedCosmetics;
   selectedCategory: CosmeticCategory;
 
@@ -18,6 +19,8 @@ interface CosmeticsStoreState {
   setSelectedCategory: (category: CosmeticCategory) => void;
   setOwnedItemIds: (ids: string[]) => void;
   addOwnedItem: (itemId: string) => void;
+  setMintedItemIds: (ids: string[]) => void;
+  addMintedItem: (itemId: string) => void;
   buyItem: (
     itemId: string,
     userCoins: number,
@@ -37,6 +40,7 @@ export const useCosmeticsStore = create<CosmeticsStoreState>()(
     (set, get) => ({
       // Every accessory starts locked and unowned by default; only free defaults are owned
       ownedItemIds: DEFAULT_FREE_ITEM_IDS,
+      mintedItemIds: [],
       equipped: {
         head: "head-none",
         body: "body-none",
@@ -60,6 +64,16 @@ export const useCosmeticsStore = create<CosmeticsStoreState>()(
           ownedItemIds: state.ownedItemIds.includes(itemId)
             ? state.ownedItemIds
             : [...state.ownedItemIds, itemId],
+        })),
+
+      setMintedItemIds: (ids) =>
+        set({ mintedItemIds: Array.from(new Set(ids)) }),
+
+      addMintedItem: (itemId) =>
+        set((state) => ({
+          mintedItemIds: state.mintedItemIds.includes(itemId)
+            ? state.mintedItemIds
+            : [...state.mintedItemIds, itemId],
         })),
 
       buyItem: (itemId, userCoins, deductCoins) => {

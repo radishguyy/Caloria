@@ -12,6 +12,10 @@ import {
 } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { triggerFriendLoggedNotification } from "@/lib/server/push-service";
+import {
+  getJakartaTodayStr,
+  recordFoodLogStreak,
+} from "@/lib/server/streak-service";
 
 export interface LogScannedNutritionInput {
   foodName: string;
@@ -61,7 +65,7 @@ export async function logScannedNutritionAction(
   };
 
   const baseXpEarned = 10;
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getJakartaTodayStr();
 
   try {
     const supabase = await createClient();
@@ -191,12 +195,15 @@ export async function logScannedNutritionAction(
       })
       .where(eq(pets.userId, userId));
 
-    // 5. Trigger Peer Pressure notification to co-op teammates
+    // 5. Update Profile & Co-op streak
+    await recordFoodLogStreak(userId, todayStr, { bonusCoins: 10 });
+
+    // 6. Trigger Peer Pressure notification to co-op teammates
     triggerFriendLoggedNotification(userId).catch((err) => {
       console.warn("[logScannedNutritionAction] Failed to trigger friend event notification:", err.message);
     });
 
-    // 6. Revalidate paths
+    // 7. Revalidate paths
     revalidatePath("/diary");
     revalidatePath("/dashboard");
 

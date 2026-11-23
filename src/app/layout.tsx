@@ -5,6 +5,7 @@ import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
 import { SessionProvider } from "@/components/shared/session-provider";
+import { Web3Provider } from "@/components/shared/web3-provider";
 import { AppToaster } from "@/components/shared/app-toaster";
 
 const openRunde = localFont({
@@ -48,13 +49,15 @@ export default function RootLayout({
       className={`h-full antialiased ${openRunde.variable} ${secuela.variable}`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        <SessionProvider>
-          <Navbar />
-          <main className="flex-1 pb-24 lg:pb-12">{children}</main>
-          <BottomNav />
-          <NotificationDrawer />
-          <AppToaster />
-        </SessionProvider>
+        <Web3Provider>
+          <SessionProvider>
+            <Navbar />
+            <main className="flex-1 pb-24 lg:pb-12">{children}</main>
+            <BottomNav />
+            <NotificationDrawer />
+            <AppToaster />
+          </SessionProvider>
+        </Web3Provider>
       </body>
     </html>
   );

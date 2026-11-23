@@ -7,6 +7,7 @@ import {
 } from "@/db/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { sendNotificationToUser } from "@/lib/server/push-service";
+import { syncExpiredStreaks } from "@/lib/server/streak-service";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -40,7 +41,10 @@ export async function GET(request: NextRequest) {
     const forceEvening = request.nextUrl.searchParams.get("evening") === "true";
     const forceReengagement = request.nextUrl.searchParams.get("reengagement") === "true";
 
+    const expiredReset = await syncExpiredStreaks(todayStr);
+
     const stats = {
+      expiredReset,
       mealtimePushSent: 0,
       mealtimeEmailSent: 0,
       streakSaver10PmSelfPushSent: 0,

@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
+import { useFoodStore } from "@/store/use-food-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { COSMETICS_CATALOG } from "@/lib/cosmetics-catalog";
 import { PET_CONFIG, PET_SPECIES } from "@/lib/constants";
@@ -20,11 +21,15 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 import {
   toastPetPetted,
+  toastPetBlocked,
+  toastFeedBlocked,
   toastMealsCommitted,
   toastFeedingSuccess,
   toastInsufficientCoins,
 } from "@/lib/toast";
-import { feedPetAction } from "@/server/actions/pet-actions";
+import { feedPetAction, petCalpalAction } from "@/server/actions/pet-actions";
+import { extractLoggedMainMealSlots } from "@/lib/pet/needs-engine";
+import { formatDateKey } from "@/lib/date-utils";
 
 interface PetRendererProps {
   interactive?: boolean;
@@ -66,6 +71,7 @@ export function PetRenderer({
   } = usePetStore();
 
   const { equipped } = useCosmeticsStore();
+  const foodLogs = useFoodStore((s) => s.logs);
 
   const [floatingHearts, setFloatingHearts] = useState<
     { id: number; x: number }[]
@@ -118,9 +124,20 @@ export function PetRenderer({
 
   const roomItem = COSMETICS_CATALOG.find((i) => i.id === equipped.room);
 
-  const handlePetClick = () => {
+  const handlePetClick = async () => {
     if (!interactive || animationState === "sleeping") return;
-    petInteract();
+    const now = new Date();
+    const todayKey = formatDateKey(now);
+    const loggedMainMeals = extractLoggedMainMealSlots(foodLogs, todayKey);
+    const res = petInteract(loggedMainMeals, now);
+
+    if (!res.success) {
+      toastPetBlocked(
+        res.message ||
+          "Catat data makanan utama (Pagi, Siang, atau Malam) dulu untuk mengelus CalPal!",
+      );
+      return;
+    }
 
     const id = Date.now();
     const newHeart = { id, x: (Math.random() - 0.5) * 60 };
@@ -129,7 +146,14 @@ export function PetRenderer({
       setFloatingHearts((prev) => prev.filter((h) => h.id !== id));
     }, 1200);
 
-    toastPetPetted(10);
+    toastPetPetted(10, res.petCountToday);
+
+    try {
+      await petCalpalAction({
+        clientDateKey: todayKey,
+        loggedMainMealCount: loggedMainMeals.length,
+      });
+    } catch {}
   };
 
   return (
@@ -286,18 +310,24 @@ export function PetRenderer({
             {/* Makan */}
             <button
               onClick={async () => {
-                if (coins < 5) {
-                  toastInsufficientCoins();
+                const now = new Date();
+                const res = feedWithCoins(5, now);
+                if (!res.success) {
+                  if (res.error === "INSUFFICIENT_COINS") {
+                    toastInsufficientCoins();
+                  } else {
+                    toastFeedBlocked(res.message || "Belum waktunya makan!");
+                  }
                   return;
                 }
-                const res = feedWithCoins(5);
-                if (res.success) {
-                  toastFeedingSuccess();
-                  try {
-                    await feedPetAction();
-                  } catch (e) {
-                    console.warn(e);
-                  }
+                toastFeedingSuccess();
+                try {
+                  await feedPetAction({
+                    clientDateKey: formatDateKey(now),
+                    clientHour: now.getHours(),
+                  });
+                } catch (e) {
+                  console.warn(e);
                 }
               }}
               disabled={animationState === "sleeping"}
@@ -481,18 +511,24 @@ export function PetRenderer({
         <div className="flex items-center gap-3 mt-5">
           <button
             onClick={async () => {
-              if (coins < 5) {
-                toastInsufficientCoins();
+              const now = new Date();
+              const res = feedWithCoins(5, now);
+              if (!res.success) {
+                if (res.error === "INSUFFICIENT_COINS") {
+                  toastInsufficientCoins();
+                } else {
+                  toastFeedBlocked(res.message || "Belum waktunya makan!");
+                }
                 return;
               }
-              const res = feedWithCoins(5);
-              if (res.success) {
-                toastFeedingSuccess();
-                try {
-                  await feedPetAction();
-                } catch (e) {
-                  console.warn(e);
-                }
+              toastFeedingSuccess();
+              try {
+                await feedPetAction({
+                  clientDateKey: formatDateKey(now),
+                  clientHour: now.getHours(),
+                });
+              } catch (e) {
+                console.warn(e);
               }
             }}
             disabled={animationState === "sleeping"}
