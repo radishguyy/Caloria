@@ -3,6 +3,7 @@ import {
   PawPrint,
   UtensilsCrossed,
   Users,
+  Stethoscope,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,12 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Users,
     matchPrefixes: ["/social"],
     showStreak: true,
+  },
+  {
+    href: "/consult",
+    label: "Konsultasi",
+    icon: Stethoscope,
+    matchPrefixes: ["/consult"],
   },
 ];
 

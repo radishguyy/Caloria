@@ -54,11 +54,17 @@ export function CalendarGrid({
     const start = days[0].dateKey;
     const end = days[days.length - 1].dateKey;
 
-    fetchUserArchiveSummariesAction(start, end).then((res) => {
-      if (!isCancelled && res.success && res.data) {
-        setServerSummaries(res.data);
-      }
-    });
+    fetchUserArchiveSummariesAction(start, end)
+      .then((res) => {
+        if (!isCancelled && res.success && res.data) {
+          setServerSummaries(res.data);
+        }
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          console.warn("[CalendarGrid] fetchUserArchiveSummariesAction failed:", err);
+        }
+      });
 
     return () => {
       isCancelled = true;
@@ -176,9 +182,6 @@ export function CalendarGrid({
             <h2 className="text-xl sm:text-2xl font-black text-text-primary font-heading tracking-tight">
               {formatDateDisplay(currentMonthDate, "monthYear")}
             </h2>
-            <p className="text-xs text-text-muted font-medium">
-              Riwayat nutrisi & progres misi RPG harian
-            </p>
           </div>
         </div>
 
@@ -219,7 +222,7 @@ export function CalendarGrid({
             <div
               key={day}
               className={cn(
-                "py-1.5 text-xs font-bold uppercase tracking-wider rounded-input font-heading",
+                "py-1.5 text-sm sm:text-base font-bold uppercase tracking-wider rounded-input font-heading",
                 isWeekend ? "text-accent-orange-dark/80" : "text-text-muted"
               )}
             >
@@ -284,7 +287,7 @@ export function CalendarGrid({
                 {/* Coin / XP mini badge if logged & earned XP */}
                 {hasLogs && (summary?.xpEarned ?? 0) > 0 && !isCellFuture && (
                   <span
-                    className="hidden sm:inline-flex items-center text-[9px] font-bold text-accent-orange bg-accent-yellow/70 px-1 py-0.2 rounded-pill"
+                    className="hidden sm:inline-flex items-center text-xs font-bold text-accent-orange leading-none"
                     title={`+${summary?.xpEarned} XP diperoleh`}
                   >
                     ★
@@ -310,10 +313,10 @@ export function CalendarGrid({
               <div className="flex items-center justify-between w-full pt-0.5">
                 {/* Status Dot */}
                 {!isCellFuture && cell.isCurrentMonth ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <span
                       className={cn(
-                        "inline-block w-2 h-2 rounded-full transition-transform",
+                        "inline-block w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full transition-transform",
                         status === "hit" && "bg-[#5B8E55] ring-2 ring-[#5B8E55]/30",
                         status === "under" && "bg-[#F59E0B]",
                         status === "over" && "bg-[#F43F5E]",
@@ -332,10 +335,10 @@ export function CalendarGrid({
 
                     {/* Macro mini 3 dots indicator for Hit/Logged days */}
                     {hasLogs && (
-                      <div className="hidden md:flex items-center gap-0.5">
+                      <div className="hidden md:flex items-center gap-1">
                         <span
                           className={cn(
-                            "w-1 h-1 rounded-full",
+                            "w-2 h-2 rounded-full",
                             summary?.macroStatus.protein === "hit"
                               ? "bg-[#10B981]"
                               : "bg-[#10B981]/40"
@@ -344,7 +347,7 @@ export function CalendarGrid({
                         />
                         <span
                           className={cn(
-                            "w-1 h-1 rounded-full",
+                            "w-2 h-2 rounded-full",
                             summary?.macroStatus.carbs === "hit"
                               ? "bg-[#38BDF8]"
                               : "bg-[#38BDF8]/40"
@@ -353,7 +356,7 @@ export function CalendarGrid({
                         />
                         <span
                           className={cn(
-                            "w-1 h-1 rounded-full",
+                            "w-2 h-2 rounded-full",
                             summary?.macroStatus.fat === "hit"
                               ? "bg-[#F43F5E]"
                               : "bg-[#F43F5E]/40"
@@ -364,13 +367,13 @@ export function CalendarGrid({
                     )}
                   </div>
                 ) : (
-                  <div className="w-2 h-2" />
+                  <div className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 )}
 
                 {/* Checkmark icon for Hit */}
                 {status === "hit" && !isCellFuture && (
                   <span className="text-[#5B8E55]">
-                    <Check className="h-3 w-3 stroke-[3]" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" />
                   </span>
                 )}
               </div>
@@ -382,10 +385,10 @@ export function CalendarGrid({
       {/* Legend & Month Summary Card */}
       <div className="pt-3 border-t border-border-divider space-y-3">
         {/* Color Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-4 text-[11px] text-text-muted">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-4 text-[11px] text-text-primary font-semibold">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#5B8E55] ring-2 ring-[#5B8E55]/30 inline-block" />
-            <span className="font-semibold text-text-primary">Target Tercapai</span>
+            <span>Target Tercapai</span>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -412,35 +415,35 @@ export function CalendarGrid({
         {/* Month Quick Metric Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
           <div className="p-2.5 rounded-navigation bg-surface-subtle border border-border-divider/70">
-            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider">
+            <span className="text-[10px] text-text-primary uppercase font-bold tracking-wider">
               Hari Tercatat
             </span>
             <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
-              {monthStats.daysLogged} <span className="text-xs font-normal text-text-muted">Hari</span>
+              {monthStats.daysLogged} <span className="text-xs font-semibold text-text-primary">Hari</span>
             </p>
           </div>
 
           <div className="p-2.5 rounded-navigation bg-surface-subtle border border-border-divider/70">
-            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider">
+            <span className="text-[10px] text-text-primary uppercase font-bold tracking-wider">
               Target Dipenuhi
             </span>
-            <p className="text-base font-extrabold text-[#5B8E55] font-heading mt-0.5">
-              {monthStats.daysHit} <span className="text-xs font-normal text-text-muted">Hari</span>
+            <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
+              {monthStats.daysHit} <span className="text-xs font-semibold text-text-primary">Hari</span>
             </p>
           </div>
 
           <div className="p-2.5 rounded-navigation bg-surface-subtle border border-border-divider/70">
-            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider">
+            <span className="text-[10px] text-text-primary uppercase font-bold tracking-wider">
               Rata-rata Kalori
             </span>
-            <p className="text-base font-extrabold text-accent-orange-dark font-heading mt-0.5">
+            <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
               {monthStats.avgCalories}{" "}
-              <span className="text-xs font-normal text-text-muted">kcal</span>
+              <span className="text-xs font-semibold text-text-primary">kcal</span>
             </p>
           </div>
 
           <div className="p-2.5 rounded-navigation bg-surface-subtle border border-border-divider/70">
-            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider">
+            <span className="text-[10px] text-text-primary uppercase font-bold tracking-wider">
               Total XP Bulan Ini
             </span>
             <p className="text-base font-extrabold text-text-primary font-heading mt-0.5 flex items-center gap-1">

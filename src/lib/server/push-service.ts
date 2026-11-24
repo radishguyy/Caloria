@@ -54,7 +54,15 @@ export async function sendNotificationToUser(
   userId: string,
   payload: NotificationPayload,
   options: { sendPush?: boolean; sendEmail?: boolean } = { sendPush: true, sendEmail: true }
-): Promise<{ success: boolean; sentCount: number; prunedCount: number; emailSent: boolean }> {
+): Promise<{
+  success: boolean;
+  sentCount: number;
+  prunedCount: number;
+  emailSent: boolean;
+  emailSimulated?: boolean;
+  emailError?: string;
+  emailAddress?: string;
+}> {
   ensureVapidDetails();
 
   const shouldSendPush = options.sendPush !== false;
@@ -65,6 +73,10 @@ export async function sendNotificationToUser(
   let prunedCount = 0;
 
   // Run Email notification dispatch in parallel if enabled
+  let emailSimulated = false;
+  let emailError: string | undefined;
+  let emailAddress: string | undefined;
+
   const emailPromise = shouldSendEmail
     ? sendEmailNotificationToUser(userId, {
         title: payload.title,
@@ -73,10 +85,14 @@ export async function sendNotificationToUser(
         actionText: payload.actionText,
       })
         .then((res) => {
-          emailSent = !!res.success;
+          emailSent = !!res.success && !res.simulated;
+          emailSimulated = !!res.simulated;
+          emailError = res.error;
+          emailAddress = res.email;
         })
         .catch((err) => {
           console.warn(`[PushService] Failed to send email to user ${userId}:`, err);
+          emailError = err?.message || "Failed to send email";
         })
     : Promise.resolve();
 
@@ -131,8 +147,8 @@ export async function sendNotificationToUser(
     const notificationString = JSON.stringify({
       title: payload.title,
       body: payload.body,
-      icon: payload.icon || "/icons/icon-192x192.png",
-      badge: payload.badge || "/icons/icon-192x192.png",
+      icon: payload.icon || "/logos/caloria-01.svg",
+      badge: payload.badge || "/logos/caloria-01.svg",
       url: payload.url || "/dashboard",
       tag: payload.tag || "caloria-notification",
     });
@@ -181,7 +197,15 @@ export async function sendNotificationToUser(
 
   await Promise.allSettled([pushPromise, emailPromise]);
 
-  return { success: sentCount > 0 || emailSent, sentCount, prunedCount, emailSent };
+  return {
+    success: sentCount > 0 || emailSent,
+    sentCount,
+    prunedCount,
+    emailSent,
+    emailSimulated,
+    emailError,
+    emailAddress,
+  };
 }
 
 /**

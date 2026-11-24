@@ -50,6 +50,7 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
   });
 
   const handlePoke = (friend: Friend) => {
+    const targetId = friend.userId || friend.id;
     const poke = pokeFriend(friend.id || friend.userId);
     if (poke) {
       addNotification({
@@ -59,6 +60,19 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
         actionUrl: "/social",
       });
       toastNudgeSent(friend.fullName || friend.username);
+
+      if (targetId) {
+        fetch("/api/notifications/test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetUserId: targetId,
+            type: "poke",
+          }),
+        }).catch((err) => {
+          console.warn("[FriendList] Failed to dispatch poke push/email:", err);
+        });
+      }
     }
   };
 

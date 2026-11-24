@@ -21,6 +21,7 @@ import {
 } from "@/lib/date-utils";
 import { useFoodStore } from "@/store/use-food-store";
 import { MEAL_TYPES } from "@/lib/constants";
+import { MACRO_STYLES } from "@/lib/design-tokens";
 import { CharacterSvg } from "@/components/pet/character-svg";
 import { usePetStore } from "@/store/use-pet-store";
 import { fetchUserArchiveSummariesAction } from "@/app/actions/diary";
@@ -50,13 +51,19 @@ export function DailyArchiveDetail({
       setServerSummary(null);
       return;
     }
-    fetchUserArchiveSummariesAction(selectedDate, selectedDate).then((res) => {
-      if (!isCancelled && res.success && res.data && res.data[selectedDate]) {
-        setServerSummary(res.data[selectedDate]);
-      } else if (!isCancelled) {
-        setServerSummary(null);
-      }
-    });
+    fetchUserArchiveSummariesAction(selectedDate, selectedDate)
+      .then((res) => {
+        if (!isCancelled && res.success && res.data && res.data[selectedDate]) {
+          setServerSummary(res.data[selectedDate]);
+        } else if (!isCancelled) {
+          setServerSummary(null);
+        }
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          console.warn("[DailyArchiveDetail] fetchUserArchiveSummariesAction failed:", err);
+        }
+      });
     return () => {
       isCancelled = true;
     };
@@ -74,18 +81,27 @@ export function DailyArchiveDetail({
   const activeFat = summary.hasLogs
     ? summary.consumed.fat
     : serverSummary?.totalFat || 0;
+  const activeFiber = summary.hasLogs
+    ? summary.consumed.fiber
+    : serverSummary?.totalFiber || 0;
+  const activeSugar = summary.hasLogs
+    ? summary.consumed.sugar
+    : serverSummary?.totalSugar || 0;
 
   const consumed = {
     calories: activeCalories,
     protein: activeProtein,
     carbs: activeCarbs,
     fat: activeFat,
+    fiber: activeFiber,
+    sugar: activeSugar,
   };
 
   const hasLogs = summary.hasLogs || activeCalories > 0;
   const percentage = targets.calories > 0
     ? Math.round((activeCalories / targets.calories) * 100)
     : 0;
+  const caloriePercent = Math.min(100, percentage);
 
   const status = summary.hasLogs
     ? summary.status
@@ -101,6 +117,9 @@ export function DailyArchiveDetail({
 
   const effectiveColors = getEffectiveColors();
 
+  const fiberTarget = targets.fiber ?? 28;
+  const sugarTarget = targets.sugar ?? 45;
+
   // Macro percentages
   const proteinPercent = Math.min(
     100,
@@ -114,26 +133,22 @@ export function DailyArchiveDetail({
     100,
     Math.round((activeFat / (targets.fat || 55)) * 100)
   );
+  const fiberPercent = Math.min(
+    100,
+    Math.round((activeFiber / (fiberTarget || 28)) * 100)
+  );
+  const sugarPercent = Math.min(
+    100,
+    Math.round((activeSugar / (sugarTarget || 45)) * 100)
+  );
 
   return (
     <div className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 shadow-xs space-y-5">
       {/* Date Header & Jump to Today */}
-      <div className="flex items-start justify-between gap-3 pb-3 border-b border-border-divider">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-accent-orange uppercase tracking-wider font-heading">
-              Inspektur Diary Harian
-            </span>
-            {isSelectedToday && (
-              <span className="px-2 py-0.5 rounded-pill text-[10px] font-black bg-accent-green text-text-inverse tracking-wide">
-                HARI INI
-              </span>
-            )}
-          </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-text-primary font-heading mt-0.5">
-            {formatDateDisplay(selectedDate, "full")}
-          </h3>
-        </div>
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-border-divider">
+        <h3 className="text-lg sm:text-xl font-extrabold text-text-primary font-heading">
+          Hari Ini
+        </h3>
 
         {!isSelectedToday && (
           <button
@@ -163,18 +178,13 @@ export function DailyArchiveDetail({
             ) : (
               <TrendingUp className="h-5 w-5 text-macro-fat shrink-0" />
             )}
-            <div>
-              <p className="text-xs font-bold text-foreground">
-                {status === "hit"
-                  ? "Target Kalori Tercapai (Goal Met)!"
-                  : status === "under"
-                  ? "Asupan Kalori Belum Mencapai Target"
-                  : "Asupan Melebihi Batas Kalori Target"}
-              </p>
-              <p className="text-[11px] text-text-muted mt-0.5">
-                {consumed.calories} dari target {targets.calories} kcal ({percentage}%)
-              </p>
-            </div>
+            <p className="text-xs font-bold text-foreground">
+              {status === "hit"
+                ? "Target Kalori Tercapai (Goal Met)!"
+                : status === "under"
+                ? "Asupan Kalori Belum Mencapai Target"
+                : "Asupan Melebihi Batas Kalori Target"}
+            </p>
           </div>
 
           {/* Gamification Reward Badge */}
@@ -188,104 +198,275 @@ export function DailyArchiveDetail({
         </div>
       ) : null}
 
-      {/* Calories & Macro Breakdown Card */}
-      <div className="p-4 rounded-2xl bg-surface-subtle border border-border-divider space-y-3.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-text-primary">
-            <Flame className="h-4 w-4 text-accent-green fill-accent-green" />
-            <span>Total Kalori Terhitung</span>
-          </div>
-          <div className="text-right">
-            <span className="text-lg font-black text-text-primary font-heading">
-              {consumed.calories}{" "}
-              <span className="text-xs font-normal text-text-muted font-sans">
-                / {targets.calories} kcal
-              </span>
+      {/* Calories & Macro Breakdown Card (Dashboard Style - All Nutrients as Progress Bars) */}
+      <div className="rounded-3xl border border-border-divider bg-surface p-5 shadow-xs space-y-4">
+        {/* Top Calorie Progress Bar */}
+        <div className="space-y-2 pb-4 border-b border-border-divider">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-text-muted text-xs font-semibold uppercase tracking-wider">
+              <Flame className="h-4 w-4 text-accent-green fill-accent-green" />
+              <span>Total Kalori Terhitung</span>
+            </div>
+            <span className="text-xs font-bold text-text-primary">
+              {caloriePercent}%
             </span>
           </div>
-        </div>
 
-        {/* Progress bar */}
-        <div className="h-2 w-full rounded-pill bg-surface border border-border-divider overflow-hidden">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-primary font-heading">
+              {consumed.calories}
+            </span>
+            <span className="text-text-muted text-sm font-medium">
+              / {targets.calories} kcal
+            </span>
+          </div>
+
           <div
             className={cn(
-              "h-full transition-all duration-500 rounded-pill",
-              status === "hit"
-                ? "bg-[#5B8E55]"
-                : status === "over"
-                ? "bg-macro-fat"
-                : "bg-accent-orange"
+              "h-2.5 w-full rounded-pill overflow-hidden",
+              MACRO_STYLES.calories.trackClass
             )}
-            style={{ width: `${Math.min(100, percentage)}%` }}
-          />
+          >
+            <div
+              className={cn(
+                "h-full transition-all duration-500 rounded-pill",
+                status === "over"
+                  ? "bg-macro-fat"
+                  : status === "under" && hasLogs
+                  ? "bg-accent-orange"
+                  : MACRO_STYLES.calories.bgClass
+              )}
+              style={{ width: `${caloriePercent}%` }}
+            />
+          </div>
         </div>
 
-        {/* 3 Macro Breakdown Bars */}
-        <div className="grid grid-cols-3 gap-2 pt-2 text-xs">
+        {/* 3 Main Macro Breakdown Progress Bars */}
+        <div className="grid grid-cols-3 gap-2.5">
           {/* Protein */}
-          <div className="p-2.5 rounded-navigation bg-surface border border-macro-protein/25 space-y-1">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-bold text-macro-protein flex items-center gap-1">
-                <Beef className="h-3 w-3" /> Protein
+          <div
+            className={cn(
+              "flex flex-col gap-1.5 p-3 rounded-2xl border transition-all",
+              MACRO_STYLES.protein.subtleBgClass,
+              MACRO_STYLES.protein.borderClass
+            )}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span
+                className={cn(
+                  "flex items-center gap-1 font-semibold",
+                  MACRO_STYLES.protein.textClass
+                )}
+              >
+                <Beef className="h-3.5 w-3.5" />
+                {MACRO_STYLES.protein.label}
               </span>
-              <span className="text-[10px] text-text-muted">{proteinPercent}%</span>
+              <span className="text-[11px] text-text-muted">
+                {proteinPercent}%
+              </span>
             </div>
-            <div className="h-1.5 w-full rounded-pill bg-macro-protein/20 overflow-hidden">
+            <div
+              className={cn(
+                "h-1.5 w-full rounded-pill overflow-hidden",
+                MACRO_STYLES.protein.trackClass
+              )}
+            >
               <div
-                className="h-full bg-macro-protein rounded-pill transition-all"
+                className={cn(
+                  "h-full transition-all duration-500 rounded-pill",
+                  MACRO_STYLES.protein.bgClass
+                )}
                 style={{ width: `${proteinPercent}%` }}
               />
             </div>
-            <p className="text-[11px] font-extrabold text-foreground pt-0.5">
-              {consumed.protein}{" "}
-              <span className="text-[9px] font-normal text-text-muted">
+            <div className="text-xs font-bold text-foreground">
+              {consumed.protein}
+              <span className="text-[10px] text-text-muted font-normal">
+                {" "}
                 / {targets.protein}g
               </span>
-            </p>
+            </div>
           </div>
 
           {/* Carbs */}
-          <div className="p-2.5 rounded-navigation bg-surface border border-accent-orange/25 space-y-1">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-bold text-accent-orange-dark flex items-center gap-1">
-                <Wheat className="h-3 w-3" /> Karbo
+          <div
+            className={cn(
+              "flex flex-col gap-1.5 p-3 rounded-2xl border transition-all",
+              MACRO_STYLES.carbs.subtleBgClass,
+              MACRO_STYLES.carbs.borderClass
+            )}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span
+                className={cn(
+                  "flex items-center gap-1 font-semibold",
+                  MACRO_STYLES.carbs.textClass
+                )}
+              >
+                <Wheat className="h-3.5 w-3.5" />
+                {MACRO_STYLES.carbs.label}
               </span>
-              <span className="text-[10px] text-text-muted">{carbsPercent}%</span>
+              <span className="text-[11px] text-text-muted">
+                {carbsPercent}%
+              </span>
             </div>
-            <div className="h-1.5 w-full rounded-pill bg-accent-orange/20 overflow-hidden">
+            <div
+              className={cn(
+                "h-1.5 w-full rounded-pill overflow-hidden",
+                MACRO_STYLES.carbs.trackClass
+              )}
+            >
               <div
-                className="h-full bg-accent-orange rounded-pill transition-all"
+                className={cn(
+                  "h-full transition-all duration-500 rounded-pill",
+                  MACRO_STYLES.carbs.bgClass
+                )}
                 style={{ width: `${carbsPercent}%` }}
               />
             </div>
-            <p className="text-[11px] font-extrabold text-foreground pt-0.5">
-              {consumed.carbs}{" "}
-              <span className="text-[9px] font-normal text-text-muted">
+            <div className="text-xs font-bold text-foreground">
+              {consumed.carbs}
+              <span className="text-[10px] text-text-muted font-normal">
+                {" "}
                 / {targets.carbs}g
               </span>
-            </p>
+            </div>
           </div>
 
           {/* Fat */}
-          <div className="p-2.5 rounded-navigation bg-surface border border-macro-fat/25 space-y-1">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-bold text-macro-fat flex items-center gap-1">
-                <Droplets className="h-3 w-3" /> Lemak
+          <div
+            className={cn(
+              "flex flex-col gap-1.5 p-3 rounded-2xl border transition-all",
+              MACRO_STYLES.fat.subtleBgClass,
+              MACRO_STYLES.fat.borderClass
+            )}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span
+                className={cn(
+                  "flex items-center gap-1 font-semibold",
+                  MACRO_STYLES.fat.textClass
+                )}
+              >
+                <Droplets className="h-3.5 w-3.5" />
+                {MACRO_STYLES.fat.label}
               </span>
-              <span className="text-[10px] text-text-muted">{fatPercent}%</span>
+              <span className="text-[11px] text-text-muted">
+                {fatPercent}%
+              </span>
             </div>
-            <div className="h-1.5 w-full rounded-pill bg-macro-fat/20 overflow-hidden">
+            <div
+              className={cn(
+                "h-1.5 w-full rounded-pill overflow-hidden",
+                MACRO_STYLES.fat.trackClass
+              )}
+            >
               <div
-                className="h-full bg-macro-fat rounded-pill transition-all"
+                className={cn(
+                  "h-full transition-all duration-500 rounded-pill",
+                  MACRO_STYLES.fat.bgClass
+                )}
                 style={{ width: `${fatPercent}%` }}
               />
             </div>
-            <p className="text-[11px] font-extrabold text-foreground pt-0.5">
-              {consumed.fat}{" "}
-              <span className="text-[9px] font-normal text-text-muted">
+            <div className="text-xs font-bold text-foreground">
+              {consumed.fat}
+              <span className="text-[10px] text-text-muted font-normal">
+                {" "}
                 / {targets.fat}g
               </span>
-            </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Fiber & Sugar Progress Bars */}
+        <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-border-divider">
+          {/* Fiber */}
+          <div
+            className={cn(
+              "flex flex-col gap-1.5 p-3 rounded-2xl border transition-all",
+              MACRO_STYLES.fiber.subtleBgClass,
+              MACRO_STYLES.fiber.borderClass
+            )}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span
+                className={cn(
+                  "font-semibold",
+                  MACRO_STYLES.fiber.textClass
+                )}
+              >
+                Serat (Fiber)
+              </span>
+              <span className="text-[11px] text-text-muted">
+                {fiberPercent}%
+              </span>
+            </div>
+            <div
+              className={cn(
+                "h-1.5 w-full rounded-pill overflow-hidden",
+                MACRO_STYLES.fiber.trackClass
+              )}
+            >
+              <div
+                className={cn(
+                  "h-full transition-all duration-500 rounded-pill",
+                  MACRO_STYLES.fiber.bgClass
+                )}
+                style={{ width: `${fiberPercent}%` }}
+              />
+            </div>
+            <div className="text-xs font-bold text-foreground">
+              {consumed.fiber}
+              <span className="text-[10px] text-text-muted font-normal">
+                {" "}
+                / {fiberTarget}g
+              </span>
+            </div>
+          </div>
+
+          {/* Sugar */}
+          <div
+            className={cn(
+              "flex flex-col gap-1.5 p-3 rounded-2xl border transition-all",
+              MACRO_STYLES.sugar.subtleBgClass,
+              MACRO_STYLES.sugar.borderClass
+            )}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span
+                className={cn(
+                  "font-semibold",
+                  MACRO_STYLES.sugar.textClass
+                )}
+              >
+                Gula (Sugar)
+              </span>
+              <span className="text-[11px] text-text-muted">
+                {sugarPercent}%
+              </span>
+            </div>
+            <div
+              className={cn(
+                "h-1.5 w-full rounded-pill overflow-hidden",
+                MACRO_STYLES.sugar.trackClass
+              )}
+            >
+              <div
+                className={cn(
+                  "h-full transition-all duration-500 rounded-pill",
+                  MACRO_STYLES.sugar.bgClass
+                )}
+                style={{ width: `${sugarPercent}%` }}
+              />
+            </div>
+            <div className="text-xs font-bold text-foreground">
+              {consumed.sugar}
+              <span className="text-[10px] text-text-muted font-normal">
+                {" "}
+                / {sugarTarget}g
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -294,7 +475,7 @@ export function DailyArchiveDetail({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-bold text-text-primary">
-            Menu Makanan per Waktu Makan
+            Menu Makanan
           </h4>
           <span className="text-xs text-text-muted font-medium">
             {logs.length} item dicatat
@@ -324,10 +505,10 @@ export function DailyArchiveDetail({
             {!isSelectedFuture && (
               <Link
                 href={`/diary/add?date=${selectedDate}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-navigation bg-accent-green hover:bg-accent-green/90 text-text-inverse text-xs font-bold transition-all active:scale-95 shadow-xs"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-navigation bg-accent-green hover:bg-accent-green/90 text-text-inverse text-xs font-bold transition-all active:scale-95"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>+ Catat Makanan Tanggal Ini</span>
+                <span>Catat Makanan</span>
               </Link>
             )}
           </div>
@@ -363,23 +544,9 @@ export function DailyArchiveDetail({
                         <div>
                           <p className="font-semibold text-foreground">{item.name}</p>
                           <p className="text-[11px] text-text-muted">
-                            {item.servingSize} {item.servingUnit} •{" "}
-                            <span className="text-macro-protein font-medium">
-                              P: {item.proteinG}g
-                            </span>{" "}
-                            •{" "}
-                            <span className="text-accent-orange-dark font-medium">
-                              K: {item.carbsG}g
-                            </span>{" "}
-                            •{" "}
-                            <span className="text-macro-fat font-medium">
-                              L: {item.fatG}g
-                            </span>
+                            {item.servingSize} {item.servingUnit}
                           </p>
                         </div>
-                        <span className="text-xs font-bold text-text-primary shrink-0">
-                          {item.calories} kcal
-                        </span>
                       </div>
                     ))}
                   </div>
@@ -395,10 +562,10 @@ export function DailyArchiveDetail({
         {!isSelectedFuture && (
           <Link
             href={`/diary/add?date=${selectedDate}`}
-            className="w-full sm:flex-1 button-primary flex items-center justify-center gap-2 py-2.5 text-xs"
+            className="w-full sm:flex-1 rounded-button bg-accent-green-light hover:bg-accent-green-light/85 text-text-primary font-bold transition-colors flex items-center justify-center gap-2 py-2.5 text-xs shadow-none"
           >
             <Plus className="h-4 w-4" />
-            <span>+ Catat Makanan untuk Tanggal Ini</span>
+            <span>Catat Makanan</span>
           </Link>
         )}
 

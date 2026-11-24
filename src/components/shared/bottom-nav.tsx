@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, UtensilsCrossed, Award, Users, UserCircle } from "lucide-react";
+import { Sparkles, UtensilsCrossed, Award, Users, UserCircle, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const APP_ROUTE_PREFIXES = [
@@ -14,6 +14,8 @@ const APP_ROUTE_PREFIXES = [
   "/quests",
   "/settings",
   "/social",
+  "/consult",
+  "/consultant",
 ];
 
 export function BottomNav() {
@@ -36,6 +38,7 @@ export function BottomNav() {
     { href: "/diary", label: "Diary", icon: UtensilsCrossed },
     { href: "/pet-customization/wardrobe", label: "Wardrobe", icon: Award },
     { href: "/social", label: "Sosial", icon: Users },
+    { href: "/consult", label: "Konsultasi", icon: Stethoscope },
     { href: "/profile/overview", label: "Profil", icon: UserCircle },
   ];
 

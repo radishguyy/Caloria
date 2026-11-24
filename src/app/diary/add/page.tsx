@@ -139,7 +139,6 @@ function DiaryAddFoodContent() {
     "all" | "recent" | "frequent" | "saved" | "branded"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
 
   // Multi-Select Staging Tray State (FatSecret-Style Staging)
   const [stagedItems, setStagedItems] = useState<StagedFoodItem[]>([]);
@@ -176,11 +175,16 @@ function DiaryAddFoodContent() {
     let active = true;
     const fetchDbFoods = async () => {
       setIsSearchingDb(true);
-      const res = await searchFoodsAction(searchQuery);
-      if (active && res.success && res.data && res.data.length > 0) {
-        setDbCatalogItems(res.data);
+      try {
+        const res = await searchFoodsAction(searchQuery);
+        if (active && res.success && res.data && res.data.length > 0) {
+          setDbCatalogItems(res.data);
+        }
+      } catch (err) {
+        console.warn("[DiaryAdd] searchFoodsAction failed:", err);
+      } finally {
+        if (active) setIsSearchingDb(false);
       }
-      if (active) setIsSearchingDb(false);
     };
 
     const timer = setTimeout(() => {
@@ -244,14 +248,6 @@ function DiaryAddFoodContent() {
 
   const consumed = getConsumed();
 
-  // Extract unique categories
-  const categories = useMemo(() => {
-    return [
-      "Semua",
-      ...Array.from(new Set(allCatalogItems.map((f) => f.category))),
-    ];
-  }, [allCatalogItems]);
-
   // Base list determined by source tab
   const sourceItems = useMemo(() => {
     if (sourceTab === "recent") {
@@ -274,7 +270,7 @@ function DiaryAddFoodContent() {
     return allCatalogItems;
   }, [sourceTab, allCatalogItems, customFoods, getRecentFoods, getFrequentFoods]);
 
-  // Filter catalog by search query and category pill
+  // Filter catalog by search query
   const filteredItems = useMemo(() => {
     return sourceItems.filter((item) => {
       const query = searchQuery.toLowerCase().trim();
@@ -284,12 +280,9 @@ function DiaryAddFoodContent() {
         item.category.toLowerCase().includes(query) ||
         (item.brandOrSource && item.brandOrSource.toLowerCase().includes(query));
 
-      const matchCat =
-        selectedCategory === "Semua" || item.category === selectedCategory;
-
-      return matchQuery && matchCat;
+      return matchQuery;
     });
-  }, [sourceItems, searchQuery, selectedCategory]);
+  }, [sourceItems, searchQuery]);
 
   // Staging Tray Handlers
   const toggleItemInTray = (food: FoodCatalogItem) => {
@@ -548,9 +541,6 @@ function DiaryAddFoodContent() {
               <UtensilsCrossed className="h-5 w-5 text-accent-green" />
               <span>Multi-Select Staging & Pencatatan Makanan</span>
             </h1>
-            <p className="text-xs text-text-muted">
-              Pilih beberapa menu sekaligus ke piring, atur porsi mandiri, dan dapatkan bonus Combo XP Pet.
-            </p>
           </div>
         </div>
 
@@ -560,8 +550,7 @@ function DiaryAddFoodContent() {
             onClick={() => setIsCustomModalOpen(true)}
             className="px-3.5 py-2 rounded-button border border-border-default bg-surface hover:bg-surface-subtle text-text-primary text-xs font-bold flex items-center gap-1.5 transition-colors"
           >
-            <Plus className="h-3.5 w-3.5 text-accent-green" />
-            <span>+ Buat Makanan Baru</span>
+            <span>+ Makanan Baru</span>
           </button>
         </div>
       </div>
@@ -749,24 +738,6 @@ function DiaryAddFoodContent() {
           </button>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={cn(
-                "nav-item px-3 py-1 border whitespace-nowrap transition-colors",
-                selectedCategory === cat
-                  ? "is-selected border-accent-orange font-bold"
-                  : "bg-surface-subtle text-neutral-10 border-border-default"
-              )}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
         {/* Multi-Select Item Rows */}
         <div className="divide-y divide-border-divider/70 max-h-[500px] overflow-y-auto pr-1 space-y-1">
           {filteredItems.length === 0 ? (
@@ -782,8 +753,7 @@ function DiaryAddFoodContent() {
                 onClick={() => setIsCustomModalOpen(true)}
                 className="button-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span>+ Buat Makanan Baru</span>
+                <span>+ Makanan Baru</span>
               </button>
             </div>
           ) : (
@@ -824,16 +794,15 @@ function DiaryAddFoodContent() {
                               {food.brandOrSource}
                             </span>
                           )}
-                          <span className="px-1.5 py-0.2 rounded-pill bg-surface-subtle text-[10px] text-text-muted">
-                            {food.category}
-                          </span>
                         </div>
-                        <p className="text-[11px] text-text-muted mt-0.5">
-                          Basis: 1 {food.servingUnit} • P:{" "}
-                          <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
-                          <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
-                          <span className="text-macro-fat font-semibold">{food.fatG}g</span>
-                        </p>
+                        {isChecked && (
+                          <p className="text-[11px] text-text-muted mt-0.5">
+                            Basis: 1 {food.servingUnit} • P:{" "}
+                            <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
+                            <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
+                            <span className="text-macro-fat font-semibold">{food.fatG}g</span>
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -1049,10 +1018,10 @@ function DiaryAddFoodContent() {
                 <button
                   type="button"
                   onClick={handleBatchCommit}
-                  className="button-primary px-4 py-2 text-xs flex items-center justify-center gap-1.5 font-black shadow-md flex-1 sm:flex-none"
+                  className="rounded-button bg-accent-green-light hover:bg-accent-green-light/85 text-text-primary px-4 py-2 text-xs flex items-center justify-center gap-1.5 font-black shadow-none transition-colors flex-1 sm:flex-none cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Tambahkan Dipilih & Dapatkan XP</span>
+                  <span>Catat</span>
                 </button>
               </div>
             </div>

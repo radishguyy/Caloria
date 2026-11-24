@@ -7,6 +7,7 @@ export interface AuthUser {
   username: string;
   fullName: string;
   avatarUrl?: string;
+  role?: "user" | "nutritionist" | "admin";
   walletAddress?: string | null;
   walletChainId?: number | null;
 }
@@ -32,6 +33,7 @@ interface AuthStoreState {
     username: string;
     fullName: string | null;
     avatarUrl: string | null;
+    role?: "user" | "nutritionist" | "admin";
     walletAddress?: string | null;
     walletChainId?: number | null;
     isOnboardingCompleted: boolean;
@@ -129,6 +131,7 @@ export const useAuthStore = create<AuthStoreState>()(
             username: input.username,
             fullName: input.fullName || input.username,
             avatarUrl: input.avatarUrl || undefined,
+            role: input.role || "user",
             walletAddress: input.walletAddress ?? null,
             walletChainId: input.walletChainId ?? null,
           },

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Settings, UserRound, LogOut } from "lucide-react";
+import { Bell, Settings, UserRound, LogOut, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -23,6 +23,8 @@ const APP_ROUTE_PREFIXES = [
   "/quests",
   "/settings",
   "/social",
+  "/consult",
+  "/consultant",
 ];
 
 const controlClass =
@@ -71,6 +73,10 @@ export function Navbar() {
   const unreadCount = hydrated ? storedUnreadCount : 0;
   const profileActive = Boolean(pathname?.startsWith("/profile"));
   const settingsActive = Boolean(pathname?.startsWith("/profile/settings"));
+  const consultantActive = Boolean(pathname?.startsWith("/consultant/inbox"));
+  const isConsultantUser =
+    hydrated &&
+    (user?.role === "nutritionist" || user?.role === "admin");
   const profileHref = "/profile/overview";
   const profileLabel = user?.fullName || user?.username
     ? `Profil ${user?.fullName ?? user?.username}`.trim()
@@ -144,6 +150,23 @@ export function Navbar() {
                 </li>
               );
             })}
+            {isConsultantUser && (
+              <li className="relative shrink-0">
+                <Link
+                  href="/consultant/inbox"
+                  aria-current={consultantActive ? "page" : undefined}
+                  className={cn(
+                    "relative inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-bold transition-colors duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink motion-reduce:transition-none",
+                    consultantActive
+                      ? "bg-brand-orange text-ink"
+                      : "bg-brand-green-light text-brand-green-ink hover:bg-brand-green hover:text-ink",
+                  )}
+                >
+                  <Stethoscope className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>Inbox Konsultan</span>
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
 

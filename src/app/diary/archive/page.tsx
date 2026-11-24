@@ -76,7 +76,7 @@ function DiaryArchiveContent() {
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
           <h1 className="text-xl font-extrabold leading-tight tracking-tight text-text-primary font-heading sm:text-2xl">
-            Arsip & Recap Mingguan
+            Arsip
           </h1>
         </div>
 

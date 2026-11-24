@@ -11,6 +11,7 @@ export * from "./social";
 export * from "./gamification";
 export * from "./push-subscriptions";
 export * from "./recaps";
+export * from "./consultations";
 export * from "./relations";
 
 import { profiles, weightLogs } from "./profiles";

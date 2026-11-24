@@ -660,6 +660,8 @@ export async function fetchAppInitialDataAction() {
           user.user_metadata?.avatar_url ||
           user.user_metadata?.picture ||
           null,
+        role:
+          (profile?.role as "user" | "nutritionist" | "admin") || "user",
         walletAddress: profile?.walletAddress ?? null,
         walletChainId: profile?.walletChainId ?? null,
         isOnboardingCompleted: isUserOnboardingCompleted,

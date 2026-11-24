@@ -115,16 +115,11 @@ export default function ProfileAchievementsPage() {
                     <Coins className="h-3 w-3 text-accent-orange" />
                     +{badge.rewardCoins} Koin
                   </span>
-                  <span
-                    className={cn(
-                      "text-[9px] font-bold px-2 py-0.5 rounded-md",
-                      isUnlocked
-                        ? "bg-accent-green/15 text-text-primary"
-                        : "bg-surface border border-border-default text-text-muted"
-                    )}
-                  >
-                    {isUnlocked ? "Terbuka" : "Terkunci"}
-                  </span>
+                  {isUnlocked && (
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-accent-green/15 text-text-primary">
+                      Terbuka
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

@@ -48,6 +48,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/pet") ||
     request.nextUrl.pathname.startsWith("/pet-customization") ||
     request.nextUrl.pathname.startsWith("/social") ||
+    request.nextUrl.pathname.startsWith("/consult") ||
+    request.nextUrl.pathname.startsWith("/consultant") ||
     request.nextUrl.pathname.startsWith("/onboarding") ||
     request.nextUrl.pathname.startsWith("/profile");
 

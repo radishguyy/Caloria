@@ -27,8 +27,7 @@ async function hydrateStoresFromDatabase() {
         const [{ data: prof }, { data: petRow }] = await Promise.all([
           supabase
             .from("profiles")
-            .select("username, full_name, avatar_url, caloria_coins")
-            .select("username, full_name, avatar_url, caloria_coins, wallet_address, wallet_chain_id")
+            .select("username, full_name, avatar_url, caloria_coins, role, wallet_address, wallet_chain_id")
             .eq("id", u.id)
             .maybeSingle(),
           supabase
@@ -57,6 +56,7 @@ async function hydrateStoresFromDatabase() {
             u.user_metadata?.avatar_url ||
             u.user_metadata?.picture ||
             null,
+          role: (prof?.role as "user" | "nutritionist" | "admin") || "user",
           walletAddress: prof?.wallet_address ?? null,
           walletChainId: prof?.wallet_chain_id ?? null,
           isOnboardingCompleted: true,
