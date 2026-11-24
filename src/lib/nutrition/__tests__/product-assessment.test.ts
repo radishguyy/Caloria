@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   assessProduct,
+  formatNutritionistSummary,
   NUTRITION_THRESHOLDS,
   servingToBaseUnits,
 } from "../product-assessment";
@@ -160,7 +161,33 @@ console.log("  ✓ servingToBaseUnits handles g/ml/non-mass units");
   assert.ok(res.personalNote?.includes("63%"));
   assert.ok(res.suggestions.some((s) => /setengah porsi/i.test(s)));
   assert.equal(res.thresholdsVersion, NUTRITION_THRESHOLDS.version);
-  console.log("  ✓ diet remaining calorie note and half-portion suggestion work");
+  assert.ok(res.actionFeedback.length > 0 && res.actionFeedback.length <= 70);
+  assert.ok(res.warnings.every((w) => w.shortLabel.length > 0 && !w.shortLabel.includes("(")));
+  console.log("  ✓ diet remaining calorie note, short warning labels, and direct actionFeedback work");
+}
+
+// 7. Nutritionist consultation summary helper for "Tanyakan Ahli Gizi"
+{
+  const input = {
+    servingSize: 250,
+    servingUnit: "ml",
+    caloriesKcal: 130,
+    proteinG: 0,
+    carbsG: 32,
+    fatG: 0,
+    fiberG: 0,
+    sugarG: 28,
+    saturatedFatG: 0,
+    sodiumMg: 45,
+    category: "beverage" as const,
+  };
+  const assessment = assessProduct(input);
+  const text = formatNutritionistSummary("Teh Manis Botol", input, assessment);
+  assert.ok(text.includes("Teh Manis Botol"));
+  assert.ok(text.includes("130 kkal"));
+  assert.ok(text.includes("Gula"));
+  assert.ok(/ahli gizi|estimasi AI/i.test(text));
+  console.log("  ✓ formatNutritionistSummary produces clean copy-ready consultation text");
 }
 
 console.log("\nAll product assessment tests passed! ✅");

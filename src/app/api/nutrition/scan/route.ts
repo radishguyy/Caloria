@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel, Type, Schema } from "@google/genai";
 import { NutritionLabelSchema } from "@/lib/schemas/nutrition-scan";
 import { PRODUCT_CATEGORIES } from "@/lib/nutrition/product-assessment";
 import {
@@ -8,10 +8,15 @@ import {
   validateScanFile,
 } from "@/lib/nutrition/scan-guard";
 import {
+  DEFAULT_ATTEMPT_TIMEOUT_MS,
+  DEFAULT_TOTAL_TIMEOUT_MS,
   extractNutritionWithFallback,
   MissingVisionApiKeyError,
+  ScanTimeoutError,
 } from "@/lib/nutrition/scan-provider";
 import { createClient } from "@/lib/supabase/server";
+
+export const maxDuration = 15;
 
 const SYSTEM_PROMPT = `You are an expert nutrition label OCR and food packaging parser.
 Analyze the provided image of a food packaging's Nutrition Facts / Informasi Nilai Gizi table and extract the nutritional values into structured JSON.
@@ -33,7 +38,7 @@ Strict Extraction Guidelines:
 6. Infer foodName from visible product title/branding, or provide a descriptive name (e.g., "Scanned Food Product").
 7. Classify productCategory strictly as one of: ${PRODUCT_CATEGORIES.join(", ")}. Use "other" if unclear.
 8. Set confidenceScore between 0.0 and 1.0 reflecting actual visual legibility of the printed nutrition numbers.
-9. Anti-hallucination check (CRITICAL): Set isReadableNutritionLabel to true ONLY if an actual Nutrition Facts / Informasi Nilai Gizi table with legible numbers is visible in the photo. If no nutrition table is visible, or numbers are too blurry, tiny, dark, or obstructed to read directly, set isReadableNutritionLabel to false, provide a short Indonesian guidance in unreadableReason, set rawLabelExcerpt to null, and set all macro numbers to 0 (NEVER guess or invent values).
+9. Anti-hallucination check (CRITICAL): Set isReadableNutritionLabel to true ONLY if an actual printed Nutrition Facts / Informasi Nilai Gizi table on packaged food is clearly visible and legible. If the photo shows loose or plated food without a nutrition table (e.g., nasi goreng, rice bowls, fruit, home-cooked dishes), set isReadableNutritionLabel to false with unreadableReason = "Scan ini khusus tabel Informasi Nilai Gizi di kemasan. Untuk makanan tanpa label (mis. nasi goreng), catat lewat pencarian menu." If a packaging photo is too blurry, tiny, dark, or obstructed to read numbers directly, set isReadableNutritionLabel to false with short Indonesian guidance in unreadableReason, set rawLabelExcerpt to null, and set all macro numbers to 0 (NEVER guess or invent values).
 10. When isReadableNutritionLabel is true, set rawLabelExcerpt to 1 or 2 short exact phrases read verbatim from the label (for example: "Takaran saji 250 ml, Energi total 150 kkal, Gula 10 g") so the user can verify extraction directly against the packaging.`;
 
 const geminiResponseSchema: Schema = {
@@ -224,7 +229,9 @@ export async function POST(request: NextRequest) {
       rawJsonResult = await extractNutritionWithFallback({
         geminiApiKey,
         openAiApiKey,
-        callGeminiModel: async (modelName) => {
+        attemptTimeoutMs: DEFAULT_ATTEMPT_TIMEOUT_MS,
+        totalTimeoutMs: DEFAULT_TOTAL_TIMEOUT_MS,
+        callGeminiModel: async (modelName, signal) => {
           const ai = new GoogleGenAI({ apiKey: geminiApiKey! });
           const response = await ai.models.generateContent({
             model: modelName,
@@ -246,16 +253,21 @@ export async function POST(request: NextRequest) {
               responseMimeType: "application/json",
               responseSchema: geminiResponseSchema,
               temperature: 0,
+              abortSignal: signal,
+              ...(modelName === "gemini-3.5-flash-lite"
+                ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } }
+                : {}),
             },
           });
 
           return response.text ? JSON.parse(response.text) : null;
         },
-        callOpenAi: async () => {
+        callOpenAi: async (signal) => {
           const openAiRes = await fetch(
             "https://api.openai.com/v1/chat/completions",
             {
               method: "POST",
+              signal,
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${openAiApiKey}`,
@@ -359,6 +371,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { success: false, error: providerErr.message },
           { status: 500 }
+        );
+      }
+      if (providerErr instanceof ScanTimeoutError) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "SCAN_TIMEOUT",
+            error: providerErr.message,
+          },
+          { status: 504 }
         );
       }
       throw providerErr;

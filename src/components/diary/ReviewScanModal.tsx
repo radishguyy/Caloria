@@ -25,7 +25,9 @@ import {
 import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import {
   assessProduct,
+  formatNutritionistSummary,
   PRODUCT_CATEGORIES,
+  type FlaggedNutrient,
   type ProductCategory,
   type ProductVerdict,
 } from "@/lib/nutrition/product-assessment";
@@ -33,6 +35,8 @@ import { logScannedNutritionAction } from "@/app/actions/nutrition-scan";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { PeekingCalpal } from "@/components/auth/PeekingCalpal";
+import { ScanInfoTooltip } from "@/components/diary/ScanInfoTooltip";
+import { NutritionistAskBox } from "@/components/diary/NutritionistAskBox";
 import { StagedFoodItem } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -136,7 +140,7 @@ function ReviewScanModalBody({
   } = usePetStore();
 
   const [foodName, setFoodName] = useState(
-    initialData.foodName || "Scanned Food"
+    initialData.foodName || "Produk Kemasan"
   );
   const [servingSize, setServingSize] = useState<string>(
     initialData.servingSize !== null && initialData.servingSize !== undefined
@@ -174,6 +178,7 @@ function ReviewScanModalBody({
 
   const isLowConfidence = (initialData.confidenceScore ?? 1) < 0.75;
   const [isEditExpanded, setIsEditExpanded] = useState(isLowConfidence);
+  const [selectedWarning, setSelectedWarning] = useState<FlaggedNutrient | null>(null);
   const [saveToCatalog, setSaveToCatalog] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -224,41 +229,61 @@ function ReviewScanModalBody({
   const consumedToday = getConsumed();
   const remainingCalories = Math.max(0, targets.calories - consumedToday.calories);
 
-  const assessment = useMemo(() => {
+  const assessmentInput = useMemo(() => {
     const numServing = parseFloat(servingSize);
-    return assessProduct(
-      {
-        servingSize: Number.isFinite(numServing) && numServing > 0 ? numServing : null,
-        servingUnit: servingUnit || "g",
-        caloriesKcal: parsedPerServing.caloriesKcal,
-        proteinG: parsedPerServing.proteinG,
-        carbsG: parsedPerServing.carbsG,
-        fatG: parsedPerServing.fatG,
-        fiberG: parsedPerServing.fiberG,
-        sugarG: parsedPerServing.sugarG,
-        saturatedFatG: parsedPerServing.saturatedFatG,
-        sodiumMg: parsedPerServing.sodiumMg,
-        category: productCategory,
-      },
-      {
+    return {
+      servingSize: Number.isFinite(numServing) && numServing > 0 ? numServing : null,
+      servingUnit: servingUnit || "g",
+      caloriesKcal: parsedPerServing.caloriesKcal,
+      proteinG: parsedPerServing.proteinG,
+      carbsG: parsedPerServing.carbsG,
+      fatG: parsedPerServing.fatG,
+      fiberG: parsedPerServing.fiberG,
+      sugarG: parsedPerServing.sugarG,
+      saturatedFatG: parsedPerServing.saturatedFatG,
+      sodiumMg: parsedPerServing.sodiumMg,
+      category: productCategory,
+    };
+  }, [servingSize, servingUnit, parsedPerServing, productCategory]);
+
+  const assessment = useMemo(
+    () =>
+      assessProduct(assessmentInput, {
         goalType: goalPlan.goalType,
         remainingCalories: targets.calories > 0 ? remainingCalories : null,
         servingsConsumed,
-      }
-    );
-  }, [
-    servingSize,
-    servingUnit,
-    parsedPerServing,
-    productCategory,
-    goalPlan.goalType,
-    targets.calories,
-    remainingCalories,
-    servingsConsumed,
-  ]);
+      }),
+    [assessmentInput, goalPlan.goalType, targets.calories, remainingCalories, servingsConsumed]
+  );
+
+  const nutritionistSummary = useMemo(
+    () => formatNutritionistSummary(foodName.trim() || "Produk Kemasan", assessmentInput, assessment),
+    [foodName, assessmentInput, assessment]
+  );
 
   const verdictStyle = VERDICT_STYLES[assessment.verdict];
   const VerdictIcon = verdictStyle.Icon;
+
+  const activeWarningDetail = assessment.warnings.find(
+    (w) => w.nutrient === selectedWarning
+  );
+
+  const extraLabelInfo = useMemo(() => {
+    const parts: string[] = [];
+    if (initialData.rawLabelExcerpt?.trim()) {
+      parts.push(`Teks terbaca: "${initialData.rawLabelExcerpt.trim()}"`);
+    }
+    if (assessment.summary) {
+      parts.push(assessment.summary);
+    }
+    if (assessment.missing.length > 0) {
+      const missingText = assessment.missing
+        .map((m) => (m === "saturatedFat" ? "lemak jenuh" : "natrium"))
+        .join(" & ");
+      parts.push(`Info ${missingText} tidak tercantum di label.`);
+    }
+    return parts.join(" ");
+  }, [initialData.rawLabelExcerpt, assessment.summary, assessment.missing]);
 
   const handleAdjustServings = (delta: number) => {
     setServingsConsumed((prev) => {
@@ -334,15 +359,17 @@ function ReviewScanModalBody({
       ? Math.round(initialData.confidenceScore * 100)
       : null;
 
+  const extraSuggestions = assessment.suggestions.slice(1);
+
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Hasil AR Scanner Gizi"
-      className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-start sm:items-center justify-center p-4 overflow-y-auto"
+      aria-label="Hasil Scan Label Gizi"
+      className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-y-auto"
     >
       {/* Outer wrapper reserves headroom so PeekingCalpal tucks cleanly behind modal top */}
-      <div className="relative w-full max-w-xl pt-16 sm:pt-20 my-4 sm:my-8 animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl pt-14 sm:pt-16 sm:my-4 animate-in zoom-in-95 duration-200">
         <PeekingCalpal
           characterId={species}
           colors={customColors}
@@ -358,14 +385,17 @@ function ReviewScanModalBody({
           title={`${petName || "Calpal"} mengecek gizinya`}
         />
 
-        <div className="relative z-10 w-full rounded-card bg-surface shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3 px-6 py-4 bg-[#F6E58D]/55">
+        <form
+          onSubmit={handleConfirmAndLog}
+          className="relative z-10 w-full max-h-[86dvh] flex flex-col rounded-t-[28px] sm:rounded-card bg-surface shadow-2xl overflow-hidden"
+        >
+          {/* Sticky Header */}
+          <div className="shrink-0 flex items-center justify-between gap-3 px-5 sm:px-6 py-4 bg-[#F6E58D]/70">
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-extrabold text-[#244710] font-heading truncate">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#244710] font-heading truncate leading-tight">
                 {foodName || "Produk Hasil Scan"}
               </h2>
-              <p className="text-xs font-medium text-[#244710]">
+              <p className="text-sm sm:text-base font-bold text-[#244710] mt-0.5">
                 {CATEGORY_LABELS[productCategory]} • 1 sajian = {servingSize || "100"}{" "}
                 {servingUnit || "g"}
               </p>
@@ -376,21 +406,22 @@ function ReviewScanModalBody({
               onClick={onClose}
               disabled={isSubmitting}
               aria-label="Tutup hasil scan"
-              className="min-h-11 min-w-11 rounded-2xl bg-white/85 hover:bg-white text-[#244710] flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none shrink-0"
+              className="min-h-12 min-w-12 rounded-2xl bg-white/90 hover:bg-white text-[#244710] flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none shrink-0"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
 
-          <form onSubmit={handleConfirmAndLog} className="p-5 sm:p-6 space-y-4">
-            {/* 1. Verdict Summary Card + Thumbnail */}
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+            {/* 1. Verdict & Direct Action Card */}
             <div
               className={cn(
                 "rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start",
                 verdictStyle.surface
               )}
             >
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-white/70 shrink-0">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-white/80 shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreviewUrl}
@@ -398,43 +429,48 @@ function ReviewScanModalBody({
                   className="w-full h-full object-cover"
                 />
                 {confidencePercent !== null && (
-                  <div className="absolute bottom-1 left-1 right-1 px-1.5 py-0.5 rounded-lg bg-black/75 text-white text-xs font-bold flex items-center justify-center gap-1">
-                    <ShieldCheck className="h-3 w-3 text-accent-green-light shrink-0" />
+                  <div className="absolute bottom-1.5 left-1.5 right-1.5 px-2 py-0.5 rounded-lg bg-black/80 text-white text-sm font-extrabold flex items-center justify-center gap-1 tabular-nums">
+                    <ShieldCheck className="h-3.5 w-3.5 text-accent-green-light shrink-0" />
                     <span>{confidencePercent}%</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex-1 space-y-2 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1 rounded-pill text-xs font-extrabold",
-                      verdictStyle.badge
-                    )}
-                  >
-                    <VerdictIcon className={cn("h-4 w-4", verdictStyle.iconColor)} />
-                    <span>{verdictStyle.label}</span>
-                  </span>
-                  <span className={cn("text-sm sm:text-base font-extrabold", verdictStyle.textColor)}>
-                    {assessment.headline}
-                  </span>
+              <div className="flex-1 space-y-3 min-w-0 w-full">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill text-sm font-extrabold",
+                        verdictStyle.badge
+                      )}
+                    >
+                      <VerdictIcon className={cn("h-4 w-4", verdictStyle.iconColor)} />
+                      <span>{verdictStyle.label}</span>
+                    </span>
+                    <span className={cn("text-lg sm:text-xl font-extrabold", verdictStyle.textColor)}>
+                      {assessment.headline}
+                    </span>
+                  </div>
+
+                  {extraLabelInfo && (
+                    <ScanInfoTooltip
+                      label="Detail bacaan label dan ringkasan gizi"
+                      buttonText="Info"
+                      content={extraLabelInfo}
+                      align="right"
+                    />
+                  )}
                 </div>
 
-                <p className={cn("text-xs sm:text-sm font-medium leading-relaxed", verdictStyle.textColor)}>
-                  {assessment.summary}
-                </p>
+                {/* Direct Action Feedback ("ini ngapain") */}
+                <div className="rounded-2xl bg-white/90 px-4 py-3 text-base font-extrabold text-[#1E293B] leading-snug">
+                  {assessment.actionFeedback}
+                </div>
 
                 {assessment.personalNote && (
-                  <p className="text-xs font-bold text-[#334155] bg-white/65 rounded-xl px-3 py-1.5 inline-block">
+                  <p className="text-sm font-bold text-[#334155]">
                     {assessment.personalNote}
-                  </p>
-                )}
-
-                {initialData.rawLabelExcerpt?.trim() && (
-                  <p className="text-xs font-medium text-[#334155] bg-white/80 rounded-xl px-3 py-1.5">
-                    <span className="font-bold">Teks terbaca dari foto:</span>{" "}
-                    &ldquo;{initialData.rawLabelExcerpt.trim()}&rdquo;
                   </p>
                 )}
               </div>
@@ -443,41 +479,61 @@ function ReviewScanModalBody({
             {isLowConfidence && (
               <div
                 role="status"
-                className="rounded-2xl bg-[#FEF3C7] text-[#632D09] px-4 py-3 flex items-start gap-2.5 text-xs sm:text-sm font-medium leading-relaxed"
+                className="rounded-2xl bg-[#FEF3C7] text-[#632D09] px-4 py-3.5 flex items-start gap-3 text-sm sm:text-base font-bold leading-snug"
               >
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-[#7C3A0D]" />
-                <div>
-                  <span className="font-extrabold">
-                    Akurasi pembacaan foto rendah ({confidencePercent}%).
-                  </span>{" "}
-                  Teks label kurang tajam atau terlalu jauh, sehingga form koreksi di bawah otomatis dibuka. Cek kembali angka sebelum mencatat.
-                </div>
+                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-[#7C3A0D]" />
+                <span>
+                  Akurasi foto rendah ({confidencePercent}%). Cek ulang angka di form koreksi bawah sebelum mencatat.
+                </span>
               </div>
             )}
 
-            {/* 2. Warning Signs & Positives (icon + label, filled chips, no heavy borders) */}
+            {/* 2. Scannable Warning & Positive Chips (Tap chip for detail) */}
             {(assessment.warnings.length > 0 || assessment.positives.length > 0) && (
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {assessment.warnings.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {assessment.warnings.map((flag) => (
+                  <div className="space-y-2.5">
+                    <div className="flex flex-wrap gap-2">
+                      {assessment.warnings.map((flag) => {
+                        const isSelected = selectedWarning === flag.nutrient;
+                        return (
+                          <button
+                            key={flag.nutrient}
+                            type="button"
+                            aria-expanded={isSelected}
+                            onClick={() =>
+                              setSelectedWarning((prev) =>
+                                prev === flag.nutrient ? null : flag.nutrient
+                              )
+                            }
+                            className={cn(
+                              "min-h-11 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
+                              flag.level === "high"
+                                ? "bg-[#FEE2E2] hover:bg-[#FECACA] text-[#991B1B]"
+                                : "bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#7C3A0D]",
+                              isSelected && "ring-2 ring-current"
+                            )}
+                          >
+                            {flag.level === "high" ? (
+                              <ShieldAlert className="h-4 w-4 shrink-0" />
+                            ) : (
+                              <AlertTriangle className="h-4 w-4 shrink-0" />
+                            )}
+                            <span>{flag.shortLabel}</span>
+                            <Info className="h-4 w-4 opacity-75 shrink-0" />
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {activeWarningDetail && (
                       <div
-                        key={flag.nutrient}
-                        className={cn(
-                          "inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold",
-                          flag.level === "high"
-                            ? "bg-[#FEE2E2] text-[#991B1B]"
-                            : "bg-[#FEF3C7] text-[#7C3A0D]"
-                        )}
+                        role="status"
+                        className="rounded-2xl bg-[#1E293B] text-white px-4 py-3 text-sm font-semibold leading-snug"
                       >
-                        {flag.level === "high" ? (
-                          <ShieldAlert className="h-4 w-4 shrink-0" />
-                        ) : (
-                          <AlertTriangle className="h-4 w-4 shrink-0" />
-                        )}
-                        <span>{flag.message}</span>
+                        {activeWarningDetail.message}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
 
@@ -486,9 +542,9 @@ function ReviewScanModalBody({
                     {assessment.positives.map((pos) => (
                       <div
                         key={pos}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-[#ECF7E4] text-[#2F5B14] text-xs font-bold"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-pill bg-[#ECF7E4] text-[#2F5B14] text-sm sm:text-base font-extrabold"
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
                         <span>{pos}</span>
                       </div>
                     ))}
@@ -497,47 +553,40 @@ function ReviewScanModalBody({
               </div>
             )}
 
-            {/* 3. Saran Alternatif & Catatan */}
+            {/* 3. Concise Top Suggestion + Tooltip for Extra Tips */}
             {assessment.suggestions.length > 0 && (
-              <div className="rounded-3xl bg-[#F1F5F9] p-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs sm:text-sm font-extrabold text-[#1E293B]">
-                  <Lightbulb className="h-4 w-4 text-accent-orange-dark shrink-0" />
-                  <span>Saran Alternatif</span>
+              <div className="rounded-3xl bg-[#F1F5F9] p-4 flex items-center justify-between gap-3">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <Lightbulb className="h-5 w-5 text-accent-orange-dark shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base font-bold text-[#1E293B] leading-snug">
+                    {assessment.suggestions[0]}
+                  </p>
                 </div>
-                <ul className="space-y-1.5 text-xs sm:text-sm font-medium text-[#334155]">
-                  {assessment.suggestions.map((tip) => (
-                    <li key={tip} className="flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent-green shrink-0" />
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
+
+                {extraSuggestions.length > 0 && (
+                  <ScanInfoTooltip
+                    label="Saran alternatif tambahan"
+                    buttonText="Tips lain"
+                    content={extraSuggestions.join(" ")}
+                    align="right"
+                    className="shrink-0"
+                  />
+                )}
               </div>
             )}
 
-            {/* Missing nutrient notice (if label omitted sodium or sat fat) */}
-            {assessment.missing.length > 0 && (
-              <div className="rounded-2xl bg-[#F8FAFC] px-3.5 py-2.5 flex items-center gap-2 text-xs font-medium text-[#475569]">
-                <Info className="h-4 w-4 shrink-0 text-text-muted" />
-                <span>
-                  Info{" "}
-                  {assessment.missing
-                    .map((m) => (m === "saturatedFat" ? "lemak jenuh" : "natrium"))
-                    .join(" & ")}{" "}
-                  tidak terbaca di label. Draf standar gizi menanti tinjauan Hima.
-                </span>
-              </div>
-            )}
-
-            {/* 4. Servings Multiplier & Total Summary (filled, no borders) */}
-            <div className="rounded-3xl bg-[#F8FAFC] p-4 space-y-3">
-              <div className="flex items-center justify-between gap-4">
+            {/* 4. Servings Multiplier & Large Macro Snapshot */}
+            <div className="rounded-3xl bg-[#F8FAFC] p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-sm font-extrabold text-[#1E293B] block">
-                    Jumlah Porsi Dikonsumsi
+                  <span className="text-base sm:text-lg font-extrabold text-[#1E293B] block">
+                    Jumlah Porsi
                   </span>
-                  <span className="text-xs font-medium text-[#475569]">
-                    Total: <strong className="text-[#244710]">{totals.calories} kkal</strong>
+                  <span className="text-sm sm:text-base font-bold text-[#475569]">
+                    Total:{" "}
+                    <strong className="text-lg sm:text-xl font-black text-[#244710] tabular-nums">
+                      {totals.calories} kkal
+                    </strong>
                     {initialData.servingsPerContainer
                       ? ` • ${initialData.servingsPerContainer} sajian/kemasan`
                       : ""}
@@ -549,9 +598,9 @@ function ReviewScanModalBody({
                     type="button"
                     aria-label="Kurangi porsi"
                     onClick={() => handleAdjustServings(-0.25)}
-                    className="h-11 w-11 rounded-2xl bg-white hover:bg-accent-green-light/50 flex items-center justify-center text-[#1E293B] shadow-2xs transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
+                    className="h-12 w-12 rounded-2xl bg-white hover:bg-accent-green-light/60 flex items-center justify-center text-[#1E293B] transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-5 w-5" />
                   </button>
                   <input
                     type="number"
@@ -566,29 +615,29 @@ function ReviewScanModalBody({
                         setServingsConsumed(val);
                       }
                     }}
-                    className="w-16 h-11 rounded-2xl bg-white py-2 text-center text-sm font-extrabold text-[#1E293B] shadow-2xs focus:ring-2 focus:ring-[#244710] focus:outline-none"
+                    className="w-20 h-12 rounded-2xl bg-white py-2 text-center text-base sm:text-lg font-black text-[#1E293B] tabular-nums focus:ring-2 focus:ring-[#244710] focus:outline-none"
                   />
                   <button
                     type="button"
                     aria-label="Tambah porsi"
                     onClick={() => handleAdjustServings(0.25)}
-                    className="h-11 w-11 rounded-2xl bg-white hover:bg-accent-green-light/50 flex items-center justify-center text-[#1E293B] shadow-2xs transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
+                    className="h-12 w-12 rounded-2xl bg-white hover:bg-accent-green-light/60 flex items-center justify-center text-[#1E293B] transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                   </button>
                 </div>
               </div>
 
-              {/* Quick portion chips */}
+              {/* Quick portion chips (flat, >= 48px height) */}
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setServingsConsumed(1.0)}
                   className={cn(
-                    "min-h-11 px-3.5 py-2 rounded-pill text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
+                    "min-h-12 px-4 py-2 rounded-pill text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
                     servingsConsumed === 1.0
                       ? "bg-accent-green-light text-[#244710]"
-                      : "bg-white text-[#475569] hover:text-[#1E293B]"
+                      : "bg-white text-[#334155] hover:bg-[#ECF7E4]"
                   )}
                 >
                   1 porsi
@@ -601,13 +650,13 @@ function ReviewScanModalBody({
                         setServingsConsumed(initialData.servingsPerContainer!)
                       }
                       className={cn(
-                        "min-h-11 px-3.5 py-2 rounded-pill text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
+                        "min-h-12 px-4 py-2 rounded-pill text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
                         servingsConsumed === initialData.servingsPerContainer
                           ? "bg-accent-green-light text-[#244710]"
-                          : "bg-white text-[#475569] hover:text-[#1E293B]"
+                          : "bg-white text-[#334155] hover:bg-[#ECF7E4]"
                       )}
                     >
-                      1 kemasan penuh ({initialData.servingsPerContainer}x)
+                      1 kemasan ({initialData.servingsPerContainer}x)
                     </button>
                   )}
                 {initialData.servingsPerContainer &&
@@ -624,7 +673,7 @@ function ReviewScanModalBody({
                         )
                       }
                       className={cn(
-                        "min-h-11 px-3.5 py-2 rounded-pill text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
+                        "min-h-12 px-4 py-2 rounded-pill text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
                         servingsConsumed ===
                           Math.max(
                             0.25,
@@ -632,7 +681,7 @@ function ReviewScanModalBody({
                               100
                           )
                           ? "bg-accent-green-light text-[#244710]"
-                          : "bg-white text-[#475569] hover:text-[#1E293B]"
+                          : "bg-white text-[#334155] hover:bg-[#ECF7E4]"
                       )}
                     >
                       1/2 kemasan
@@ -640,37 +689,37 @@ function ReviewScanModalBody({
                   )}
               </div>
 
-              {/* Macro Snapshot Bar */}
-              <div className="grid grid-cols-4 gap-2 pt-1 text-center">
-                <div className="rounded-2xl bg-white px-2 py-2">
-                  <span className="text-xs font-medium text-[#475569] block">
+              {/* Macro Snapshot Grid (2x2 mobile, 4x1 desktop, bold large numbers) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
+                <div className="rounded-2xl bg-white px-3 py-3">
+                  <span className="text-sm font-bold text-[#475569] block">
                     Protein
                   </span>
-                  <span className="text-sm font-extrabold text-[#1D4ED8]">
+                  <span className="text-lg sm:text-xl font-black text-[#1D4ED8] tabular-nums">
                     {totals.protein}g
                   </span>
                 </div>
-                <div className="rounded-2xl bg-white px-2 py-2">
-                  <span className="text-xs font-medium text-[#475569] block">
+                <div className="rounded-2xl bg-white px-3 py-3">
+                  <span className="text-sm font-bold text-[#475569] block">
                     Karbo
                   </span>
-                  <span className="text-sm font-extrabold text-[#9A3412]">
+                  <span className="text-lg sm:text-xl font-black text-[#9A3412] tabular-nums">
                     {totals.carbs}g
                   </span>
                 </div>
-                <div className="rounded-2xl bg-white px-2 py-2">
-                  <span className="text-xs font-medium text-[#475569] block">
+                <div className="rounded-2xl bg-white px-3 py-3">
+                  <span className="text-sm font-bold text-[#475569] block">
                     Lemak
                   </span>
-                  <span className="text-sm font-extrabold text-[#BE123C]">
+                  <span className="text-lg sm:text-xl font-black text-[#BE123C] tabular-nums">
                     {totals.fat}g
                   </span>
                 </div>
-                <div className="rounded-2xl bg-white px-2 py-2">
-                  <span className="text-xs font-medium text-[#475569] block">
+                <div className="rounded-2xl bg-white px-3 py-3">
+                  <span className="text-sm font-bold text-[#475569] block">
                     Gula
                   </span>
-                  <span className="text-sm font-extrabold text-macro-sugar">
+                  <span className="text-lg sm:text-xl font-black text-macro-sugar tabular-nums">
                     {totals.sugar}g
                   </span>
                 </div>
@@ -683,21 +732,21 @@ function ReviewScanModalBody({
                 type="button"
                 onClick={() => setIsEditExpanded((prev) => !prev)}
                 aria-expanded={isEditExpanded}
-                className="w-full min-h-11 px-4 py-3 flex items-center justify-between text-xs sm:text-sm font-bold text-[#334155] hover:bg-[#F1F5F9] transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#244710] focus-visible:outline-none"
+                className="w-full min-h-12 px-5 py-3.5 flex items-center justify-between text-base font-extrabold text-[#1E293B] hover:bg-[#F1F5F9] transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#244710] focus-visible:outline-none"
               >
-                <span>Koreksi Angka Label & Kategori Produk</span>
+                <span>Koreksi Angka Label</span>
                 {isEditExpanded ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-5 w-5" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-5 w-5" />
                 )}
               </button>
 
               {isEditExpanded && (
-                <div className="px-4 pb-4 space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="px-5 pb-5 space-y-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-[#475569] mb-1">
+                      <label className="block text-sm font-bold text-[#334155] mb-1.5">
                         Nama Produk
                       </label>
                       <input
@@ -705,11 +754,11 @@ function ReviewScanModalBody({
                         value={foodName}
                         onChange={(e) => setFoodName(e.target.value)}
                         required
-                        className="w-full rounded-xl bg-white px-3 py-2 text-xs sm:text-sm font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
+                        className="w-full min-h-11 rounded-xl bg-white px-3.5 py-2.5 text-base font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-[#475569] mb-1">
+                      <label className="block text-sm font-bold text-[#334155] mb-1.5">
                         Kategori Produk
                       </label>
                       <select
@@ -717,7 +766,7 @@ function ReviewScanModalBody({
                         onChange={(e) =>
                           setProductCategory(e.target.value as ProductCategory)
                         }
-                        className="w-full rounded-xl bg-white px-3 py-2 text-xs sm:text-sm font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
+                        className="w-full min-h-11 rounded-xl bg-white px-3.5 py-2.5 text-base font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
                       >
                         {PRODUCT_CATEGORIES.map((cat) => (
                           <option key={cat} value={cat}>
@@ -728,9 +777,9 @@ function ReviewScanModalBody({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-[#475569] mb-1">
+                      <label className="block text-sm font-bold text-[#334155] mb-1.5">
                         Takaran Saji
                       </label>
                       <input
@@ -739,26 +788,26 @@ function ReviewScanModalBody({
                         min="0"
                         value={servingSize}
                         onChange={(e) => setServingSize(e.target.value)}
-                        className="w-full rounded-xl bg-white px-3 py-2 text-xs sm:text-sm font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
+                        className="w-full min-h-11 rounded-xl bg-white px-3.5 py-2.5 text-base font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-[#475569] mb-1">
+                      <label className="block text-sm font-bold text-[#334155] mb-1.5">
                         Satuan Unit
                       </label>
                       <input
                         type="text"
                         value={servingUnit}
                         onChange={(e) => setServingUnit(e.target.value)}
-                        className="w-full rounded-xl bg-white px-3 py-2 text-xs sm:text-sm font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
+                        className="w-full min-h-11 rounded-xl bg-white px-3.5 py-2.5 text-base font-bold text-[#1E293B] focus:ring-2 focus:ring-[#244710] focus:outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="flex items-center gap-1 text-xs font-bold text-[#244710] mb-1">
-                        <Flame className="h-3.5 w-3.5" /> Kalori
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="flex items-center gap-1 text-sm font-bold text-[#244710] mb-1">
+                        <Flame className="h-4 w-4" /> Kalori
                       </label>
                       <input
                         type="number"
@@ -766,12 +815,12 @@ function ReviewScanModalBody({
                         min="0"
                         value={caloriesKcal}
                         onChange={(e) => setCaloriesKcal(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="flex items-center gap-1 text-xs font-bold text-[#1D4ED8] mb-1">
-                        <Beef className="h-3.5 w-3.5" /> Protein (g)
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="flex items-center gap-1 text-sm font-bold text-[#1D4ED8] mb-1">
+                        <Beef className="h-4 w-4" /> Protein (g)
                       </label>
                       <input
                         type="number"
@@ -779,12 +828,12 @@ function ReviewScanModalBody({
                         min="0"
                         value={proteinG}
                         onChange={(e) => setProteinG(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="flex items-center gap-1 text-xs font-bold text-[#9A3412] mb-1">
-                        <Wheat className="h-3.5 w-3.5" /> Karbo (g)
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="flex items-center gap-1 text-sm font-bold text-[#9A3412] mb-1">
+                        <Wheat className="h-4 w-4" /> Karbo (g)
                       </label>
                       <input
                         type="number"
@@ -792,12 +841,12 @@ function ReviewScanModalBody({
                         min="0"
                         value={carbsG}
                         onChange={(e) => setCarbsG(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="flex items-center gap-1 text-xs font-bold text-[#BE123C] mb-1">
-                        <Droplets className="h-3.5 w-3.5" /> Lemak (g)
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="flex items-center gap-1 text-sm font-bold text-[#BE123C] mb-1">
+                        <Droplets className="h-4 w-4" /> Lemak (g)
                       </label>
                       <input
                         type="number"
@@ -805,11 +854,11 @@ function ReviewScanModalBody({
                         min="0"
                         value={fatG}
                         onChange={(e) => setFatG(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="block text-xs font-bold text-macro-sugar mb-1">
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="block text-sm font-bold text-macro-sugar mb-1">
                         Gula (g)
                       </label>
                       <input
@@ -818,11 +867,11 @@ function ReviewScanModalBody({
                         min="0"
                         value={sugarG}
                         onChange={(e) => setSugarG(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="block text-xs font-bold text-[#244710] mb-1">
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="block text-sm font-bold text-[#244710] mb-1">
                         Serat (g)
                       </label>
                       <input
@@ -831,11 +880,11 @@ function ReviewScanModalBody({
                         min="0"
                         value={fiberG}
                         onChange={(e) => setFiberG(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="block text-xs font-bold text-[#991B1B] mb-1">
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="block text-sm font-bold text-[#991B1B] mb-1">
                         Jenuh (g)
                       </label>
                       <input
@@ -845,11 +894,11 @@ function ReviewScanModalBody({
                         placeholder="-"
                         value={saturatedFatG}
                         onChange={(e) => setSaturatedFatG(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
-                    <div className="rounded-2xl bg-white p-2.5 focus-within:ring-2 focus-within:ring-[#244710]">
-                      <label className="block text-xs font-bold text-[#7C3A0D] mb-1">
+                    <div className="rounded-2xl bg-white p-3 focus-within:ring-2 focus-within:ring-[#244710]">
+                      <label className="block text-sm font-bold text-[#7C3A0D] mb-1">
                         Natrium (mg)
                       </label>
                       <input
@@ -859,7 +908,7 @@ function ReviewScanModalBody({
                         placeholder="-"
                         value={sodiumMg}
                         onChange={(e) => setSodiumMg(e.target.value)}
-                        className="w-full bg-transparent text-sm font-black text-[#1E293B] outline-none"
+                        className="w-full bg-transparent text-base font-black text-[#1E293B] outline-none"
                       />
                     </div>
                   </div>
@@ -867,91 +916,94 @@ function ReviewScanModalBody({
               )}
             </div>
 
+            {/* 6. Mandatory AI Escalation: "Tanyakan Ahli Gizi" */}
+            <NutritionistAskBox summaryText={nutritionistSummary} />
+
             {/* Save to Catalog Checkbox */}
-            <label className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#F8FAFC] cursor-pointer hover:bg-[#ECF7E4]/65 transition-colors">
+            <label className="min-h-12 flex items-center gap-3 p-4 rounded-2xl bg-[#F8FAFC] cursor-pointer hover:bg-[#ECF7E4]/65 transition-colors">
               <input
                 type="checkbox"
                 checked={saveToCatalog}
                 onChange={(e) => setSaveToCatalog(e.target.checked)}
-                className="h-4 w-4 rounded accent-accent-green cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-[#244710]"
+                className="h-5 w-5 rounded accent-accent-green cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-[#244710]"
               />
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#334155]">
-                <BookmarkPlus className="h-4 w-4 text-[#244710] shrink-0" />
-                <span>Simpan ke katalog makanan agar mudah dipakai lagi</span>
+              <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-[#1E293B]">
+                <BookmarkPlus className="h-5 w-5 text-[#244710] shrink-0" />
+                <span>Simpan ke katalog makanan</span>
               </div>
             </label>
 
             {submitError && (
-              <div className="p-3.5 rounded-2xl bg-[#FEE2E2] text-xs font-bold text-[#991B1B]">
+              <div className="p-4 rounded-2xl bg-[#FEE2E2] text-sm sm:text-base font-bold text-[#991B1B]">
                 {submitError}
               </div>
             )}
+          </div>
 
-            {/* Footer Actions */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-1">
-              {onRescan && (
-                <button
-                  type="button"
-                  onClick={onRescan}
-                  disabled={isSubmitting}
-                  className="min-h-11 px-4 py-3 rounded-button bg-[#F1F5F9] hover:bg-[#E2E8F0] text-xs font-bold text-[#334155] flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
-                >
-                  <Camera className="h-4 w-4" />
-                  <span>Scan Ulang</span>
-                </button>
-              )}
-
-              {onAddToStaging && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const numericServingSize = parseFloat(servingSize) || 100;
-                    onAddToStaging({
-                      id: `scan-${Date.now()}`,
-                      name: foodName.trim() || "Scanned Food",
-                      category: CATEGORY_LABELS[productCategory],
-                      baseCalories: parsedPerServing.caloriesKcal,
-                      baseProteinG: parsedPerServing.proteinG,
-                      baseCarbsG: parsedPerServing.carbsG,
-                      baseFatG: parsedPerServing.fatG,
-                      baseFiberG: parsedPerServing.fiberG,
-                      baseSugarG: parsedPerServing.sugarG,
-                      servingMultiplier: servingsConsumed,
-                      servingUnit: `${servingSize || "100"}${servingUnit || "g"}`,
-                      gramsPerUnit: numericServingSize,
-                    });
-                    onClose();
-                  }}
-                  className="min-h-11 px-4 py-3 rounded-button bg-[#ECF7E4] hover:bg-[#D5F0C1] text-[#244710] text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Taruh di Piring</span>
-                </button>
-              )}
-
+          {/* Sticky Flat Footer Actions (zero drop shadow, compact 2+1 grid on phone, row on desktop) */}
+          <div className="shrink-0 border-t border-[#E2E8F0] bg-white px-5 sm:px-6 py-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5">
+            {onRescan && (
               <button
-                type="submit"
+                type="button"
+                onClick={onRescan}
                 disabled={isSubmitting}
-                className={cn(
-                  "button-primary !text-[#244710] min-h-11 px-5 py-3 text-xs flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
-                  isSubmitting && "opacity-75 cursor-not-allowed"
-                )}
+                className="min-h-12 px-4 sm:px-5 py-3 rounded-button bg-[#F1F5F9] hover:bg-[#E2E8F0] text-sm sm:text-base font-extrabold text-[#1E293B] flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Menyimpan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    <span>Catat Langsung (+10 XP)</span>
-                  </>
-                )}
+                <Camera className="h-5 w-5 shrink-0" />
+                <span>Scan Ulang</span>
               </button>
-            </div>
-          </form>
-        </div>
+            )}
+
+            {onAddToStaging && (
+              <button
+                type="button"
+                onClick={() => {
+                  const numericServingSize = parseFloat(servingSize) || 100;
+                  onAddToStaging({
+                    id: `scan-${Date.now()}`,
+                    name: foodName.trim() || "Scanned Food",
+                    category: CATEGORY_LABELS[productCategory],
+                    baseCalories: parsedPerServing.caloriesKcal,
+                    baseProteinG: parsedPerServing.proteinG,
+                    baseCarbsG: parsedPerServing.carbsG,
+                    baseFatG: parsedPerServing.fatG,
+                    baseFiberG: parsedPerServing.fiberG,
+                    baseSugarG: parsedPerServing.sugarG,
+                    servingMultiplier: servingsConsumed,
+                    servingUnit: `${servingSize || "100"}${servingUnit || "g"}`,
+                    gramsPerUnit: numericServingSize,
+                  });
+                  onClose();
+                }}
+                className="min-h-12 px-4 sm:px-5 py-3 rounded-button bg-[#ECF7E4] hover:bg-[#D5F0C1] text-[#244710] text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
+              >
+                <Plus className="h-5 w-5 shrink-0" />
+                <span>Taruh di Piring</span>
+              </button>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={cn(
+                "col-span-2 sm:col-span-1 min-h-12 px-6 py-3 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none",
+                isSubmitting && "opacity-75 cursor-not-allowed"
+              )}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="h-5 w-5" />
+                  <span>Catat (+10 XP)</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

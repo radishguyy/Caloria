@@ -3,6 +3,7 @@ import {
   extractNutritionWithFallback,
   GEMINI_CANDIDATE_MODELS,
   MissingVisionApiKeyError,
+  ScanTimeoutError,
 } from "../scan-provider";
 
 console.log("\n=== SUITE: Vision Provider & Fallback Orchestration ===");
@@ -101,6 +102,33 @@ async function run() {
     MissingVisionApiKeyError
   );
   console.log("  ✓ throws MissingVisionApiKeyError when no API keys exist");
+
+  // 5. Enforces per-attempt and total timeout budget so scan never hangs
+  {
+    let receivedSignalAborted = false;
+    await assert.rejects(
+      () =>
+        extractNutritionWithFallback({
+          geminiApiKey: "gem-key",
+          openAiApiKey: undefined,
+          attemptTimeoutMs: 40,
+          totalTimeoutMs: 65,
+          callGeminiModel: async (_model, signal) =>
+            new Promise((resolve, reject) => {
+              const t = setTimeout(() => resolve({ foodName: "Too Late" }), 250);
+              signal?.addEventListener("abort", () => {
+                clearTimeout(t);
+                receivedSignalAborted = true;
+                reject(new Error("aborted"));
+              });
+            }),
+          callOpenAi: async () => ({}),
+        }),
+      ScanTimeoutError
+    );
+    assert.equal(receivedSignalAborted, true, "Attempt AbortSignal must fire on timeout");
+    console.log("  ✓ enforces attempt and total timeout budget with ScanTimeoutError");
+  }
 
   console.log("\nAll vision provider tests passed! ✅");
 }

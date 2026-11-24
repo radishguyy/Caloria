@@ -24,13 +24,13 @@ export const SCAN_PROGRESS_STEPS: ReadonlyArray<{ id: ScanStage; label: string }
 ];
 
 function resolveScanningDetail(elapsedMs: number): string {
-  if (elapsedMs < 3000) {
-    return "Mengenali judul produk, takaran saji, dan baris tabel gizi...";
+  if (elapsedMs < 2500) {
+    return "Mengenali takaran saji dan kolom tabel gizi...";
   }
-  if (elapsedMs < 7000) {
-    return "Mengekstrak kalori, protein, karbohidrat, lemak, gula, dan natrium...";
+  if (elapsedMs < 6000) {
+    return "Membaca angka kalori, protein, karbohidrat, lemak, dan gula...";
   }
-  return "Sedikit lagi selesai. Memverifikasi angka agar sesuai teks asli foto...";
+  return "Hampir selesai (maks. 10 detik). Memastikan angka sesuai foto...";
 }
 
 /**

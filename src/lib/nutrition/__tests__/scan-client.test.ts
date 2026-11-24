@@ -96,6 +96,34 @@ async function run() {
   );
   console.log("  ✓ non-OK response rejects with API error message");
 
+  // 4. Client timeout aborts hanging fetch and surfaces clear Indonesian guidance
+  {
+    let fetchAborted = false;
+    const slowClient = createScanClient({
+      hashFn: async () => "slow-hash",
+      timeoutMs: 40,
+      fetchFn: async (_url, init) =>
+        new Promise((resolve, reject) => {
+          const t = setTimeout(
+            () => resolve(new Response(JSON.stringify({ success: true, data: sampleData }), { status: 200 })),
+            250
+          );
+          init?.signal?.addEventListener("abort", () => {
+            clearTimeout(t);
+            fetchAborted = true;
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+    });
+
+    await assert.rejects(
+      () => slowClient.scanBlob(blobA),
+      /terlalu lama|habis/i
+    );
+    assert.equal(fetchAborted, true, "Client timeout must abort underlying fetch");
+    console.log("  ✓ client timeout aborts hanging scan request cleanly");
+  }
+
   console.log("\nAll scan client tests passed! ✅");
 }
 

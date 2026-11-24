@@ -2,9 +2,10 @@ import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 
 export type ScanStage = "compressing" | "scanning" | "analyzing";
 
-const DEFAULT_MAX_DIMENSION = 960;
-const DEFAULT_JPEG_QUALITY = 0.75;
+const DEFAULT_MAX_DIMENSION = 840;
+const DEFAULT_JPEG_QUALITY = 0.72;
 const DEFAULT_CACHE_LIMIT = 20;
+export const DEFAULT_SCAN_CLIENT_TIMEOUT_MS = 12_000;
 
 export function fitWithinMaxDimension(
   width: number,
@@ -160,10 +161,12 @@ export interface ScanClientDeps {
   fetchFn?: typeof fetch;
   hashFn?: (blob: Blob) => Promise<string>;
   maxCacheSize?: number;
+  timeoutMs?: number;
 }
 
 export interface ScanBlobOptions {
   signal?: AbortSignal;
+  timeoutMs?: number;
   onStageChange?: (stage: ScanStage) => void;
 }
 
@@ -171,6 +174,7 @@ export function createScanClient(deps: ScanClientDeps = {}) {
   const fetchFn = deps.fetchFn ?? fetch;
   const hashFn = deps.hashFn ?? hashBlobSha256;
   const maxCacheSize = deps.maxCacheSize ?? DEFAULT_CACHE_LIMIT;
+  const defaultTimeoutMs = deps.timeoutMs ?? DEFAULT_SCAN_CLIENT_TIMEOUT_MS;
   const cache = new Map<string, NutritionLabelData>();
 
   async function scanBlob(
@@ -188,11 +192,42 @@ export function createScanClient(deps: ScanClientDeps = {}) {
     const formData = new FormData();
     formData.append("image", blob, "nutrition-label.jpg");
 
-    const res = await fetchFn("/api/nutrition/scan", {
-      method: "POST",
-      body: formData,
-      signal: options.signal,
-    });
+    const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
+    const controller = new AbortController();
+    let timedOut = false;
+
+    const onExternalAbort = () => controller.abort();
+    if (options.signal) {
+      if (options.signal.aborted) {
+        controller.abort();
+      } else {
+        options.signal.addEventListener("abort", onExternalAbort, { once: true });
+      }
+    }
+
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, Math.max(1, timeoutMs));
+
+    let res: Response;
+    try {
+      res = await fetchFn("/api/nutrition/scan", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (timedOut) {
+        throw new Error(
+          "Waktu scan terlalu lama (>12 detik). Pastikan koneksi stabil dan teks label cukup dekat, lalu coba lagi."
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", onExternalAbort);
+    }
 
     options.onStageChange?.("analyzing");
 

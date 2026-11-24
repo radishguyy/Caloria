@@ -57,6 +57,9 @@ export interface NutrientFlag {
   /** % of the daily limit consumed by ONE serving, null when no limit. */
   dailyLimitPct: number | null;
   label: string;
+  /** Short scannable badge label without parenthetical breakdown (for main UI). */
+  shortLabel: string;
+  /** Detailed explanation including per-100g & daily limit % (for tooltip). */
   message: string;
 }
 
@@ -69,6 +72,8 @@ export interface CalpalReaction {
 export interface ProductAssessment {
   verdict: ProductVerdict;
   headline: string;
+  /** Direct, scannable action telling the user what to do next. */
+  actionFeedback: string;
   summary: string;
   /** Only medium/high flags, sorted high → medium. */
   warnings: NutrientFlag[];
@@ -287,6 +292,12 @@ export function assessProduct(
       perServing: round1(value),
       dailyLimitPct,
       label,
+      shortLabel:
+        nutrient === "calories"
+          ? level === "high"
+            ? "Kalori padat"
+            : "Kalori cukup padat"
+          : `${label} ${levelText}`,
       message:
         nutrient === "calories"
           ? `${level === "high" ? "Padat kalori" : "Cukup padat kalori"} (${amountText})`
@@ -396,9 +407,45 @@ export function assessProduct(
           bubbleText: "Waduh, hati-hati kandungannya!",
         };
 
+  let actionFeedback: string;
+  if (verdict === "good") {
+    if (typeof ctx.remainingCalories === "number" && ctx.remainingCalories <= 0) {
+      actionFeedback = "Gizinya baik, tapi simpan untuk besok ya.";
+    } else if (
+      ctx.goalType === "bulking" &&
+      positives.includes("Sumber protein yang baik")
+    ) {
+      actionFeedback = "Cocok! Bagus untuk target protein harianmu.";
+    } else {
+      actionFeedback = "Aman dikonsumsi 1 porsi sekarang.";
+    }
+  } else if (verdict === "moderate") {
+    const budgetPct =
+      typeof ctx.remainingCalories === "number" && ctx.remainingCalories > 0
+        ? Math.round((totalKcal / ctx.remainingCalories) * 100)
+        : null;
+    if (ctx.goalType === "diet" && budgetPct !== null && budgetPct >= T.personalBudgetWarnPct) {
+      actionFeedback = "Cukup 1/2 porsi saja, sisanya simpan.";
+    } else if (warnings[0]?.nutrient === "sugar") {
+      actionFeedback = "Batasi 1 porsi, imbangi air putih.";
+    } else {
+      actionFeedback = "Boleh dimakan, cukup 1 porsi saja.";
+    }
+  } else {
+    const topHigh = warnings[0]?.nutrient;
+    if (topHigh === "sugar") {
+      actionFeedback = "Gula tinggi. Pilih versi tanpa/rendah gula.";
+    } else if (topHigh === "sodium") {
+      actionFeedback = "Garam tinggi. Kurangi porsi atau ganti menu.";
+    } else {
+      actionFeedback = "Sebaiknya ganti alternatif yang lebih sehat.";
+    }
+  }
+
   return {
     verdict,
     headline: HEADLINE[verdict],
+    actionFeedback,
     summary,
     warnings,
     positives,
@@ -410,4 +457,33 @@ export function assessProduct(
     thresholdsVersion: T.version,
     calpalReaction,
   };
+}
+
+/**
+ * Formats a clean, shareable summary for manual consultation with a nutritionist
+ * ("Tanyakan Ahli Gizi") alongside an explicit AI-estimation disclaimer.
+ */
+export function formatNutritionistSummary(
+  foodName: string,
+  input: ProductNutritionInput,
+  assessment: ProductAssessment
+): string {
+  const servingText = input.servingSize
+    ? `${input.servingSize} ${input.servingUnit || "g"}`
+    : input.servingUnit || "1 sajian";
+  const warningsText =
+    assessment.warnings.length > 0
+      ? assessment.warnings.map((w) => w.shortLabel).join(", ")
+      : "Tidak ada catatan tinggi";
+
+  const lines = [
+    `Halo Ahli Gizi, saya ingin menanyakan produk hasil scan di Caloria:`,
+    `- Produk: ${foodName || "Produk Kemasan"} (1 sajian = ${servingText})`,
+    `- Kalori: ${round1(safe(input.caloriesKcal))} kkal | Protein: ${round1(safe(input.proteinG))} g | Karbo: ${round1(safe(input.carbsG))} g | Lemak: ${round1(safe(input.fatG))} g`,
+    `- Gula: ${round1(safe(input.sugarG))} g${input.sodiumMg != null ? ` | Natrium: ${round1(safe(input.sodiumMg))} mg` : ""}`,
+    `- Catatan awal AI: ${assessment.headline} (${warningsText})`,
+    `Catatan: hasil ini merupakan estimasi AI dari foto label kemasan. Mohon saran apakah sesuai untuk kondisi saya.`,
+  ];
+
+  return lines.join("\n");
 }

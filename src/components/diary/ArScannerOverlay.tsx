@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  AlertCircle,
   Camera,
   Flashlight,
   ImagePlus,
@@ -10,9 +11,9 @@ import {
   RotateCcw,
   ScanLine,
   X,
-  AlertCircle,
 } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
+import { ScanInfoTooltip } from "@/components/diary/ScanInfoTooltip";
 import { ScanWaitingCard } from "@/components/diary/ScanWaitingCard";
 import { usePetStore } from "@/store/use-pet-store";
 import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
@@ -111,7 +112,7 @@ function ArScannerOverlayBody({
           setTorchEnabled(false);
           setCameraStatus("fallback");
           setCameraMessage(
-            "Kamera live tidak tersedia di browser ini. Pilih foto kemasan dari galeri."
+            "Kamera live belum tersedia di browser ini. Pilih foto label dari galeri."
           );
         }
         return;
@@ -151,8 +152,8 @@ function ArScannerOverlayBody({
         const name = err instanceof Error ? err.name : "";
         const friendly =
           name === "NotAllowedError" || name === "PermissionDeniedError"
-            ? "Izin kamera ditolak. Kamu tetap bisa unggah foto label dari galeri."
-            : "Kamera tidak terdeteksi di perangkat ini. Unggah foto label dari galeri saja ya.";
+            ? "Izin kamera ditolak. Pilih foto label kemasan dari galeri."
+            : "Kamera tidak terdeteksi. Pilih foto label kemasan dari galeri.";
         setTorchSupported(false);
         setTorchEnabled(false);
         setCameraStatus("fallback");
@@ -206,7 +207,6 @@ function ArScannerOverlayBody({
         onStageChange: (stage) => setProcessingStage(stage),
       });
 
-      // Hand previewUrl ownership to parent so ReviewScanModal keeps rendering it
       ownedPreviewUrlRef.current = null;
       setProcessingStage(null);
       stopCameraTracks();
@@ -221,7 +221,7 @@ function ArScannerOverlayBody({
       setScanError(
         err instanceof Error
           ? err.message
-          : "Label gagal dibaca. Coba foto lebih dekat & cukup cahaya."
+          : "Label gagal dibaca. Foto lebih dekat dengan cahaya terang."
       );
     }
   };
@@ -229,7 +229,7 @@ function ArScannerOverlayBody({
   const handleCaptureFrame = async () => {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
-      setScanError("Video kamera belum siap. Tunggu sebentar atau pilih dari galeri.");
+      setScanError("Kamera belum siap. Tunggu sebentar atau pilih dari galeri.");
       return;
     }
 
@@ -246,7 +246,7 @@ function ArScannerOverlayBody({
         })
       : { sx: 0, sy: 0, sw: video.videoWidth, sh: video.videoHeight };
 
-    const { width, height } = fitWithinMaxDimension(crop.sw, crop.sh, 960);
+    const { width, height } = fitWithinMaxDimension(crop.sw, crop.sh, 840);
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -270,7 +270,7 @@ function ArScannerOverlayBody({
       height
     );
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((result) => resolve(result), "image/jpeg", 0.75)
+      canvas.toBlob((result) => resolve(result), "image/jpeg", 0.72)
     );
 
     if (!blob) {
@@ -293,7 +293,7 @@ function ArScannerOverlayBody({
     clearOwnedPreview();
 
     try {
-      const { blob, previewUrl } = await compressImageFile(file, 960, 0.75);
+      const { blob, previewUrl } = await compressImageFile(file, 840, 0.72);
       await runScanWithBlob(blob, previewUrl);
     } catch (err) {
       setProcessingStage(null);
@@ -340,17 +340,17 @@ function ArScannerOverlayBody({
 
   const isProcessing = processingStage !== null;
   const calpalBubble = scanError
-    ? "Kurang jelas nih, coba foto lebih dekat ya!"
+    ? "Foto lebih dekat & terang ya!"
     : isProcessing
-    ? `${petName || "Calpal"} lagi membaca labelnya...`
-    : "Arahkan ke tabel Informasi Nilai Gizi ya!";
+    ? `${petName || "Calpal"} lagi cek gizinya...`
+    : "Khusus tabel gizi kemasan!";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="AR Scanner Label Gizi"
-      className="fixed inset-0 z-50 bg-[#0B1410] text-white flex flex-col overflow-hidden"
+      aria-label="Scan Label Gizi Kemasan"
+      className="fixed inset-0 z-50 h-[100dvh] bg-[#0B1410] text-white flex flex-col overflow-hidden"
     >
       <input
         ref={fileInputRef}
@@ -361,69 +361,79 @@ function ArScannerOverlayBody({
       />
 
       {/* Top AR HUD Bar */}
-      <header className="relative z-20 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 bg-black/75">
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label="Tutup AR Scanner"
-          className="min-h-11 min-w-11 px-3 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center gap-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
-        >
-          <X className="h-5 w-5" />
-          <span className="hidden sm:inline">Tutup</span>
-        </button>
+      <header className="relative z-30 bg-black/80 px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-3xl flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Tutup Scan Label"
+            className="min-h-12 min-w-12 px-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center gap-2 text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+          >
+            <X className="h-5 w-5" />
+            <span className="hidden sm:inline">Tutup</span>
+          </button>
 
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1.5">
-            <ScanLine className="h-4 w-4 text-accent-green-light" />
-            <h2 className="text-sm sm:text-base font-extrabold font-heading tracking-tight">
-              AR Scanner Gizi
-            </h2>
+          <div className="text-center min-w-0">
+            <div className="flex items-center justify-center gap-2">
+              <ScanLine className="h-5 w-5 text-accent-green-light shrink-0" />
+              <h2 className="text-base sm:text-lg font-extrabold font-heading tracking-tight truncate">
+                Scan Label Gizi
+              </h2>
+            </div>
+            <span className="inline-block mt-0.5 px-3 py-0.5 rounded-pill bg-accent-green/30 text-[#D9F99D] text-sm font-bold">
+              {MEAL_LABELS[mealTime]}
+            </span>
           </div>
-          <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded-pill bg-accent-green/30 text-[#D9F99D] text-xs font-bold">
-            {MEAL_LABELS[mealTime]}
-          </span>
-        </div>
 
-        <div className="flex items-center gap-2 min-w-11 justify-end">
-          {torchSupported && cameraStatus === "ready" && !isProcessing && (
-            <button
-              type="button"
-              onClick={handleToggleTorch}
-              aria-label={torchEnabled ? "Matikan lampu flash" : "Nyalakan lampu flash"}
-              aria-pressed={torchEnabled}
-              className={cn(
-                "min-h-11 min-w-11 rounded-2xl flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none",
-                torchEnabled
-                  ? "bg-accent-yellow text-[#1E293B]"
-                  : "bg-white/15 hover:bg-white/25 text-white"
-              )}
-            >
-              <Flashlight className="h-5 w-5" />
-            </button>
-          )}
-          {cameraStatus === "ready" && !isProcessing && (
-            <button
-              type="button"
-              onClick={handleFlipCamera}
-              aria-label="Ganti kamera depan atau belakang"
-              className="min-h-11 min-w-11 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </button>
-          )}
+          <div className="flex items-center gap-2 justify-end">
+            <ScanInfoTooltip
+              tone="dark"
+              align="right"
+              label="Panduan Scan Label Gizi"
+              content="Khusus tabel Informasi Nilai Gizi pada makanan/minuman kemasan. Makanan tanpa label (seperti nasi goreng atau lauk piring) catat lewat pencarian menu. Proses scan dibatasi maks. 10 detik."
+            />
+            {torchSupported && cameraStatus === "ready" && !isProcessing && (
+              <button
+                type="button"
+                onClick={handleToggleTorch}
+                aria-label={torchEnabled ? "Matikan lampu flash" : "Nyalakan lampu flash"}
+                aria-pressed={torchEnabled}
+                className={cn(
+                  "min-h-11 min-w-11 rounded-2xl flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none",
+                  torchEnabled
+                    ? "bg-accent-yellow text-[#1E293B]"
+                    : "bg-white/15 hover:bg-white/25 text-white"
+                )}
+              >
+                <Flashlight className="h-5 w-5" />
+              </button>
+            )}
+            {cameraStatus === "ready" && !isProcessing && (
+              <button
+                type="button"
+                onClick={handleFlipCamera}
+                aria-label="Ganti kamera depan atau belakang"
+                className="min-h-11 min-w-11 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+              >
+                <RefreshCw className="h-5 w-5" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Main Camera / AR Viewfinder Stage */}
-      <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-[#0F1B14]">
+      {/* Main Camera / Stage Viewport */}
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
         <video
           ref={videoRef}
+          autoPlay
           playsInline
           muted
-          autoPlay
           className={cn(
-            "absolute inset-0 w-full h-full object-cover",
-            (cameraStatus !== "ready" || frozenPreviewUrl) && "opacity-0 pointer-events-none"
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
+            cameraStatus === "ready" && !frozenPreviewUrl
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
           )}
         />
 
@@ -432,68 +442,107 @@ function ArScannerOverlayBody({
           <img
             src={frozenPreviewUrl}
             alt="Pratinjau foto label gizi"
-            className="absolute inset-0 w-full h-full object-contain bg-black/85"
+            className="absolute inset-0 w-full h-full object-contain bg-black/90"
           />
         )}
 
+        {/* Spacious Responsive Reticle with Spotlight Mask */}
         {cameraStatus === "ready" && !frozenPreviewUrl && (
-          <div
-            ref={reticleRef}
-            className="pointer-events-none relative z-10 w-[86%] max-w-sm aspect-[4/3] flex flex-col items-center justify-center"
-          >
-            <span className="absolute top-0 left-0 h-9 w-9 rounded-tl-2xl border-t-4 border-l-4 border-accent-green-light" />
-            <span className="absolute top-0 right-0 h-9 w-9 rounded-tr-2xl border-t-4 border-r-4 border-accent-green-light" />
-            <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-2xl border-b-4 border-l-4 border-accent-green-light" />
-            <span className="absolute bottom-0 right-0 h-9 w-9 rounded-br-2xl border-b-4 border-r-4 border-accent-green-light" />
+          <div className="pointer-events-none relative z-10 flex flex-col items-center gap-4 px-4">
+            <div
+              ref={reticleRef}
+              className="relative w-[min(90vw,520px)] h-[min(50dvh,380px)] sm:w-[min(82vw,560px)] sm:h-[min(54dvh,420px)] rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.52)] flex items-center justify-center"
+            >
+              {/* Clean SVG corner brackets (no rounded-border collision) */}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 w-full h-full overflow-visible"
+              >
+                <path
+                  d="M 2 14 L 2 4 Q 2 2 4 2 L 14 2"
+                  fill="none"
+                  stroke="#BADC58"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <path
+                  d="M 86 2 L 96 2 Q 98 2 98 4 L 98 14"
+                  fill="none"
+                  stroke="#BADC58"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <path
+                  d="M 2 86 L 2 96 Q 2 98 4 98 L 14 98"
+                  fill="none"
+                  stroke="#BADC58"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <path
+                  d="M 86 98 L 96 98 Q 98 98 98 96 L 98 86"
+                  fill="none"
+                  stroke="#BADC58"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
 
-            <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/90" />
+              <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/85" />
+            </div>
 
-            <div className="mt-4 px-3.5 py-1.5 rounded-pill bg-black/75 text-xs font-bold text-white text-center">
-              Posisikan tabel Informasi Nilai Gizi di dalam bingkai
+            <div className="px-4 py-2 rounded-pill bg-black/80 text-sm sm:text-base font-extrabold text-white text-center">
+              Arahkan ke Tabel Informasi Nilai Gizi
             </div>
           </div>
         )}
 
         {cameraStatus === "initializing" && !frozenPreviewUrl && (
           <div className="relative z-10 flex flex-col items-center gap-3 px-6 text-center">
-            <Loader2 className="h-9 w-9 animate-spin text-accent-green-light" />
-            <p className="text-sm font-bold text-white">
-              Menyiapkan kamera AR...
+            <Loader2 className="h-10 w-10 animate-spin text-accent-green-light" />
+            <p className="text-base font-extrabold text-white">
+              Menyiapkan kamera...
             </p>
           </div>
         )}
 
         {cameraStatus === "fallback" && !frozenPreviewUrl && (
-          <div className="relative z-10 mx-4 w-full max-w-sm rounded-card bg-[#182920] p-6 text-center space-y-4 shadow-2xl">
-            <div className="mx-auto h-14 w-14 rounded-2xl bg-accent-green/25 text-accent-green-light flex items-center justify-center">
-              <ImagePlus className="h-7 w-7" />
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-card bg-[#182920] p-6 sm:p-7 text-center space-y-5 shadow-2xl">
+            <div className="mx-auto h-16 w-16 rounded-2xl bg-accent-green/25 text-accent-green-light flex items-center justify-center">
+              <ImagePlus className="h-8 w-8" />
             </div>
-            <div className="space-y-1.5">
-              <h3 className="text-base font-extrabold text-white font-heading">
-                Unggah Foto Label Gizi
+            <div className="space-y-2">
+              <h3 className="text-lg sm:text-xl font-extrabold text-white font-heading">
+                Unggah Foto Label Kemasan
               </h3>
-              <p className="text-xs sm:text-sm text-[#CBD5E1] leading-relaxed">
+              <p className="text-sm sm:text-base font-semibold text-[#E2F3D1] leading-relaxed">
                 {cameraMessage ||
-                  "Pilih foto kemasan atau tabel Informasi Nilai Gizi agar Calpal bisa mengecek kandungannya."}
+                  "Pilih foto tabel Informasi Nilai Gizi kemasan dari galeri."}
               </p>
             </div>
 
-            <div className="flex flex-col gap-2.5 pt-1">
+            <div className="flex flex-col gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="button-primary !text-[#244710] w-full min-h-12 px-5 py-3 text-sm flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                className="w-full min-h-14 px-5 py-3 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
-                <ImagePlus className="h-4 w-4" />
+                <ImagePlus className="h-5 w-5" />
                 <span>Pilih Foto dari Galeri</span>
               </button>
               <button
                 type="button"
                 onClick={handleRetryCamera}
-                className="w-full min-h-11 px-4 py-2.5 rounded-button bg-white/10 hover:bg-white/20 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+                className="w-full min-h-12 px-4 py-3 rounded-button bg-white/15 hover:bg-white/25 text-sm sm:text-base font-extrabold text-white flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span>Coba Aktifkan Kamera Lagi</span>
+                <RefreshCw className="h-4 w-4" />
+                <span>Coba Aktifkan Kamera</span>
               </button>
             </div>
           </div>
@@ -509,43 +558,43 @@ function ArScannerOverlayBody({
         {scanError && !isProcessing && (
           <div
             role="alert"
-            className="relative z-20 mx-4 rounded-card bg-[#3B181A]/95 px-5 py-4 max-w-sm w-full space-y-3 shadow-2xl"
+            className="relative z-20 mx-4 rounded-card bg-[#3B181A]/95 p-5 sm:p-6 max-w-md w-full space-y-4 shadow-2xl"
           >
-            <div className="flex items-start gap-2.5">
-              <AlertCircle className="h-5 w-5 text-[#FCA5A5] shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-extrabold text-white">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-6 w-6 text-[#FCA5A5] shrink-0 mt-0.5" />
+              <div className="space-y-1.5">
+                <p className="text-base sm:text-lg font-extrabold text-white">
                   Scan Belum Berhasil
                 </p>
-                <p className="text-xs text-[#FECACA] leading-relaxed">
+                <p className="text-sm sm:text-base font-semibold text-[#FECACA] leading-relaxed">
                   {scanError}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               <button
                 type="button"
                 onClick={handleRetryCamera}
-                className="flex-1 min-h-11 px-3 py-2 rounded-2xl bg-white/15 hover:bg-white/25 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+                className="flex-1 min-h-12 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 text-sm sm:text-base font-extrabold text-white flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-4 w-4" />
                 <span>Foto Ulang</span>
               </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 min-h-11 px-3 py-2 rounded-2xl bg-accent-green-light text-[#244710] text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                className="flex-1 min-h-12 px-4 py-3 rounded-2xl bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
-                <ImagePlus className="h-3.5 w-3.5" />
+                <ImagePlus className="h-4 w-4" />
                 <span>Dari Galeri</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Floating Calpal Companion Hint */}
-        <div className="pointer-events-none absolute bottom-3 left-3 sm:left-6 z-20 flex items-end gap-2 max-w-[85%]">
-          <div className="w-14 h-16 sm:w-16 sm:h-20 shrink-0 drop-shadow-lg">
+        {/* Floating Calpal Companion (docked cleanly on desktop so mobile stage stays unobstructed) */}
+        <div className="pointer-events-none hidden md:flex absolute bottom-4 left-6 z-20 items-end gap-2.5 max-w-xs">
+          <div className="w-16 h-20 shrink-0">
             <AvatarRenderer
               characterId={species}
               colors={customColors}
@@ -559,22 +608,22 @@ function ArScannerOverlayBody({
               title={petName || "Calpal"}
             />
           </div>
-          <div className="mb-3 rounded-2xl bg-white/95 text-[#1E293B] px-3.5 py-2 text-xs font-bold shadow-lg leading-snug">
+          <div className="mb-3 rounded-2xl bg-white/95 text-[#1E293B] px-4 py-2.5 text-sm font-extrabold leading-snug">
             {calpalBubble}
           </div>
         </div>
       </div>
 
-      {/* Bottom Camera Controls */}
-      <footer className="relative z-20 bg-black/80 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <div className="mx-auto max-w-md flex items-center justify-between gap-4">
+      {/* Bottom Camera Controls (flat buttons, large tap targets, centered desktop alignment) */}
+      <footer className="relative z-30 bg-black/85 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="mx-auto max-w-3xl flex items-center justify-between gap-4">
           <button
             type="button"
             disabled={isProcessing}
             onClick={() => fileInputRef.current?.click()}
-            className="min-h-12 min-w-24 px-4 rounded-2xl bg-white/15 hover:bg-white/25 disabled:opacity-50 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+            className="min-h-14 min-w-28 px-5 rounded-2xl bg-white/15 hover:bg-white/25 disabled:opacity-50 text-white text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
           >
-            <ImagePlus className="h-4 w-4" />
+            <ImagePlus className="h-5 w-5" />
             <span>Galeri</span>
           </button>
 
@@ -582,10 +631,10 @@ function ArScannerOverlayBody({
             <button
               type="button"
               onClick={handleCancelProcessing}
-              className="min-h-12 px-6 rounded-full bg-white/20 hover:bg-white/30 text-white text-sm font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              className="min-h-14 px-7 rounded-full bg-white/20 hover:bg-white/30 text-white text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             >
-              <X className="h-4 w-4" />
-              <span>Batal</span>
+              <X className="h-5 w-5" />
+              <span>Batalkan</span>
             </button>
           ) : (
             <button
@@ -594,17 +643,21 @@ function ArScannerOverlayBody({
               disabled={cameraStatus !== "ready"}
               aria-label="Jepret dan analisis label gizi"
               className={cn(
-                "h-16 w-16 rounded-full bg-accent-green-light text-[#244710] flex items-center justify-center shadow-[0_0_0_5px_rgba(255,255,255,0.28)] transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
+                "h-[72px] w-[72px] rounded-full bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] flex items-center justify-center ring-4 ring-white/30 transition-transform active:scale-95 focus-visible:ring-4 focus-visible:ring-white focus-visible:outline-none",
                 cameraStatus !== "ready" && "opacity-40 cursor-not-allowed"
               )}
             >
-              <Camera className="h-7 w-7" />
+              <Camera className="h-8 w-8" />
             </button>
           )}
 
-          <div className="min-w-24 flex justify-end">
-            <span className="text-xs font-semibold text-white/75 text-right">
-              {cameraStatus === "ready" ? "Siap jepret" : "Mode galeri"}
+          <div className="min-w-28 flex justify-end">
+            <span className="text-sm sm:text-base font-bold text-[#E2F3D1] text-right">
+              {isProcessing
+                ? "Memindai..."
+                : cameraStatus === "ready"
+                ? "Siap jepret"
+                : "Mode galeri"}
             </span>
           </div>
         </div>

@@ -29,15 +29,15 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
       role="status"
       aria-live="polite"
       aria-busy="true"
-      className="relative z-20 mx-4 mb-16 sm:mb-8 w-full max-w-sm rounded-card bg-[#111F18]/95 backdrop-blur-md p-4 sm:p-5 space-y-3.5 shadow-2xl text-white"
+      className="relative z-20 mx-4 w-full max-w-md rounded-card bg-[#111F18]/95 backdrop-blur-md p-5 sm:p-6 space-y-4 shadow-2xl text-white"
     >
       {previewUrl && (
-        <div className="relative h-24 sm:h-28 w-full rounded-2xl overflow-hidden bg-black/75">
+        <div className="relative h-32 sm:h-40 w-full rounded-2xl overflow-hidden bg-black/80">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
             alt="Area label gizi yang sedang dipindai"
-            className="w-full h-full object-contain opacity-90"
+            className="w-full h-full object-contain opacity-95"
           />
           <div
             aria-hidden="true"
@@ -47,21 +47,21 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
       )}
 
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="h-8 w-8 rounded-xl bg-accent-green/30 text-accent-green-light flex items-center justify-center shrink-0">
-            <ScanLine className="h-4 w-4" />
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="h-10 w-10 rounded-xl bg-accent-green/30 text-accent-green-light flex items-center justify-center shrink-0 mt-0.5">
+            <ScanLine className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-extrabold font-heading leading-tight truncate">
+            <p className="text-base sm:text-lg font-extrabold font-heading leading-snug">
               {waitState.headline}
             </p>
-            <p className="text-xs text-[#E2F3D1] leading-snug mt-0.5">
+            <p className="text-sm font-semibold text-[#E2F3D1] leading-snug mt-1">
               {waitState.detail}
             </p>
           </div>
         </div>
 
-        <span className="shrink-0 px-2.5 py-1 rounded-pill bg-accent-green/25 text-[#D9F99D] text-xs font-mono font-bold tabular-nums">
+        <span className="shrink-0 px-3 py-1 rounded-pill bg-accent-green/25 text-[#D9F99D] text-sm font-mono font-extrabold tabular-nums">
           {waitState.elapsedLabel}
         </span>
       </div>
@@ -72,7 +72,7 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={waitState.progressPercent}
-        className="h-2 w-full rounded-full bg-white/15 overflow-hidden"
+        className="h-2.5 w-full rounded-full bg-white/15 overflow-hidden"
       >
         <div
           className="h-full rounded-full bg-accent-green-light transition-[width] duration-300 ease-out"
@@ -80,30 +80,30 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
         />
       </div>
 
-      <ol className="space-y-2 pt-0.5">
+      <ol className="space-y-2.5 pt-0.5">
         {waitState.steps.map((step) => (
-          <li key={step.id} className="flex items-center gap-2.5 text-xs">
+          <li key={step.id} className="flex items-center gap-3 text-sm">
             {step.status === "done" && (
-              <span className="h-5 w-5 rounded-full bg-accent-green-light text-[#1E3A10] flex items-center justify-center shrink-0">
-                <Check className="h-3 w-3 stroke-[3]" />
+              <span className="h-6 w-6 rounded-full bg-accent-green-light text-[#1E3A10] flex items-center justify-center shrink-0">
+                <Check className="h-3.5 w-3.5 stroke-[3]" />
               </span>
             )}
             {step.status === "active" && (
-              <span className="h-5 w-5 rounded-full bg-accent-green/35 text-accent-green-light flex items-center justify-center shrink-0">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span className="h-6 w-6 rounded-full bg-accent-green/35 text-accent-green-light flex items-center justify-center shrink-0">
+                <Loader2 className="h-4 w-4 animate-spin" />
               </span>
             )}
             {step.status === "pending" && (
-              <span className="h-5 w-5 rounded-full bg-white/10 text-[#94A3B8] flex items-center justify-center shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              <span className="h-6 w-6 rounded-full bg-white/10 text-[#94A3B8] flex items-center justify-center shrink-0">
+                <span className="h-2 w-2 rounded-full bg-current" />
               </span>
             )}
             <span
               className={cn(
-                "leading-tight",
-                step.status === "done" && "text-[#D9F99D] font-semibold",
-                step.status === "active" && "text-white font-bold",
-                step.status === "pending" && "text-[#CBD5E1]"
+                "leading-snug",
+                step.status === "done" && "text-[#D9F99D] font-bold",
+                step.status === "active" && "text-white font-extrabold",
+                step.status === "pending" && "text-[#CBD5E1] font-semibold"
               )}
             >
               {step.label}

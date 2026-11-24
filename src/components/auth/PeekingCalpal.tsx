@@ -124,7 +124,7 @@ export function PeekingCalpal({
         {bubbleText && (
           <div
             className={cn(
-              "mb-10 max-w-[210px] rounded-2xl px-3.5 py-2 text-xs font-bold leading-snug shadow-sm",
+              "mb-12 sm:mb-16 max-w-[240px] rounded-2xl px-3.5 py-2 text-sm font-extrabold leading-snug shadow-sm",
               BUBBLE_TONE_CLASSES[bubbleTone]
             )}
           >
