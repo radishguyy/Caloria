@@ -22,8 +22,18 @@ import { PetAnimationState } from "@/types";
 import { usePetStore } from "@/store/use-pet-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { evaluatePetCondition } from "@/lib/pet/decay-evaluator";
+import {
+  evaluateFeedEligibility,
+  getMealSlotConfig,
+  normalizeDailyFedSlots,
+} from "@/lib/pet/needs-engine";
+import { formatDateKey } from "@/lib/date-utils";
 import { feedPetAction } from "@/server/actions/pet-actions";
-import { toastFeedingSuccess, toastInsufficientCoins } from "@/lib/toast";
+import {
+  toastFeedBlocked,
+  toastFeedingSuccess,
+  toastInsufficientCoins,
+} from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export interface AvatarPreviewProps {
@@ -69,6 +79,8 @@ export function AvatarPreview({
     coins,
     moodStatus,
     lastFedAt,
+    fedSlotsToday,
+    needsResetDate,
     feedWithCoins,
     getExpNeededForNextLevel,
   } = usePetStore();
@@ -76,6 +88,7 @@ export function AvatarPreview({
   const [animationState, setAnimationState] =
     useState<PetAnimationState>("idle");
   const [isFeeding, setIsFeeding] = useState(false);
+  const [clockTick, setClockTick] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState<
     { id: number; x: number }[]
   >([]);
@@ -125,6 +138,38 @@ export function AvatarPreview({
   const expNeeded = getExpNeededForNextLevel();
   const expPercent = Math.min(100, Math.round((exp / Math.max(1, expNeeded)) * 100));
   const canAffordFeed = coins >= 5;
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const interval = setInterval(() => {
+      setClockTick((tick) => tick + 1);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [isHydrated]);
+
+  const feedEligibility = useMemo(() => {
+    void clockTick;
+    if (!isHydrated) {
+      return {
+        canFeed: true,
+        reason: undefined,
+        message: "",
+        currentSlot: null,
+        currentSlotLabel: null,
+        nextWindowLabel: null,
+      };
+    }
+    const now = new Date();
+    const todayKey = formatDateKey(now);
+    const normalizedFed = normalizeDailyFedSlots(
+      fedSlotsToday,
+      needsResetDate,
+      todayKey,
+    );
+    return evaluateFeedEligibility(normalizedFed, now);
+  }, [isHydrated, fedSlotsToday, needsResetDate, clockTick]);
+
+  const canFeedNow = canAffordFeed && feedEligibility.canFeed;
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -222,21 +267,41 @@ export function AvatarPreview({
     if (isSleeping || isFeeding) return;
 
     const FEED_COST = 5;
+    const actionNow = new Date();
+    const todayKey = formatDateKey(actionNow);
+    const liveEligibility = evaluateFeedEligibility(
+      normalizeDailyFedSlots(fedSlotsToday, needsResetDate, todayKey),
+      actionNow,
+    );
+
+    if (!liveEligibility.canFeed) {
+      toastFeedBlocked(liveEligibility.message);
+      return;
+    }
+
     if (coins < FEED_COST) {
       toastInsufficientCoins();
       return;
     }
 
     setIsFeeding(true);
-    const clientSuccess = feedWithCoins(FEED_COST);
-    if (!clientSuccess.success) {
-      toastInsufficientCoins();
+    const clientRes = feedWithCoins(FEED_COST, actionNow);
+    if (!clientRes.success) {
+      if (clientRes.error === "INSUFFICIENT_COINS") {
+        toastInsufficientCoins();
+      } else {
+        toastFeedBlocked(clientRes.message || liveEligibility.message);
+      }
       setIsFeeding(false);
       return;
     }
 
+    const slotLabel = clientRes.slot
+      ? getMealSlotConfig(clientRes.slot).label
+      : undefined;
+
     setAnimationState("eating");
-    toastFeedingSuccess();
+    toastFeedingSuccess(slotLabel);
 
     if (petTimerRef.current) clearTimeout(petTimerRef.current);
     petTimerRef.current = setTimeout(() => {
@@ -244,9 +309,16 @@ export function AvatarPreview({
     }, 1600);
 
     try {
-      const result = await feedPetAction();
-      if (!result.success && result.error === "INSUFFICIENT_COINS") {
-        toastInsufficientCoins();
+      const result = await feedPetAction({
+        clientDateKey: todayKey,
+        clientHour: actionNow.getHours(),
+      });
+      if (!result.success) {
+        if (result.error === "INSUFFICIENT_COINS") {
+          toastInsufficientCoins();
+        } else if (result.message) {
+          toastFeedBlocked(result.message);
+        }
       }
     } catch (err) {
       console.warn("[AvatarPreview] feedPetAction warning:", err);
@@ -262,7 +334,7 @@ export function AvatarPreview({
         "flex flex-col justify-between border border-border-divider bg-surface shadow-xs",
         isFullscreenView
           ? "fixed inset-0 z-50 h-[100dvh] rounded-none border-0 p-4 sm:p-8"
-          : "relative h-full rounded-card p-5 sm:p-6",
+          : "relative flex-1 rounded-card p-5 sm:p-6",
         className,
       )}
     >
@@ -488,9 +560,12 @@ export function AvatarPreview({
             disabled={isSleeping || isFeeding || !canAffordFeed}
             className={cn(
               "w-full min-h-12 py-3 px-4 rounded-button font-sans font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors",
-              canAffordFeed && !isSleeping
+              canFeedNow && !isSleeping
                 ? "bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] cursor-pointer"
-                : "bg-surface-subtle text-text-muted border border-border-divider opacity-70 cursor-not-allowed",
+                : "bg-surface-subtle text-text-muted border border-border-divider opacity-80",
+              isSleeping || isFeeding || !canAffordFeed
+                ? "cursor-not-allowed"
+                : "cursor-pointer",
             )}
           >
             <span>{isFeeding ? "Memberi Makan..." : "Beri Makan Calpal"}</span>
@@ -501,11 +576,19 @@ export function AvatarPreview({
             </span>
           </button>
 
-          {!canAffordFeed && (
+          {!canAffordFeed ? (
             <p className="text-sm text-rose-600 text-center font-sans font-semibold flex items-center justify-center gap-1.5">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Koin kurang. Catat makanan untuk mendapat koin.</span>
             </p>
+          ) : (
+            isHydrated &&
+            !feedEligibility.canFeed &&
+            feedEligibility.message && (
+              <p className="text-sm text-text-muted text-center font-sans font-semibold">
+                {feedEligibility.message}
+              </p>
+            )
           )}
         </div>
       </div>

@@ -254,6 +254,7 @@ export default function PetWardrobePage() {
   }, [
     draftState,
     species,
+    customColors,
     setSpecies,
     setPetName,
     setCustomColors,
@@ -266,8 +267,8 @@ export default function PetWardrobePage() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
-        {/* Left Column: CalPal stage + draft actions (equal height with right panel) */}
-        <div className="flex flex-col lg:col-span-5">
+        {/* Left Column: CalPal stage + draft actions + NFT card */}
+        <div className="flex flex-col gap-6 lg:col-span-5">
           <AvatarPreview
             nickname={name?.trim() || "CalPal"}
             characterId={draftState.characterId}
@@ -280,7 +281,7 @@ export default function PetWardrobePage() {
             changedCategoryCount={changedCategoryCount}
             onSave={handleSaveAvatar}
             onCancel={handleRevertDraft}
-            className="h-full"
+            className="flex-1"
           />
           <MintCalPalCard />
         </div>
