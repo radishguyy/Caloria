@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #EAB308; --char-secondary: #A16207; --char-belly: #FEF9C3; --char-inner-ear: #FDE047; --char-blush: #F59E0B; --char-eye: #78350F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="ziggy">
+  <!-- Trapezoid A-Line Body with Wide Splayed Flat Cartoon Feet (Ref 1 middle-right) -->
+  <path d="M 53 94 L 40 135 L 88 135 L 75 94 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 56 102 L 49 128 L 79 128 L 72 102 Z" fill="var(--char-belly, #FEF9C3)" />
+  <!-- Splayed Outward Flat Feet -->
+  <path d="M 49 135 L 28 144 C 26 146, 36 147, 46 143 L 58 135 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 79 135 L 100 144 C 102 146, 92 147, 82 143 L 70 135 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

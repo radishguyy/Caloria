@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #4ADE80; --char-secondary: #16A34A; --char-belly: #F0FDF4; --char-inner-ear: #FDA4AF; --char-blush: #FB7185; --char-eye: #1E3A2F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="bloomie">
+  <!-- Fluffy Cotton-Puff Bunny Tail -->
+  <path d="M 80 120 C 86 114, 96 116, 97 124 C 102 128, 99 137, 91 137 C 87 141, 78 138, 78 130 Z" fill="var(--char-belly, #F0FDF4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

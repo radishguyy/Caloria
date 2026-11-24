@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FBBF24; --char-secondary: #D97706; --char-belly: #FEF3C7; --char-inner-ear: #FDE68A; --char-blush: #FB923C; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="sunny">
+  <!-- Left Rounded Ear -->
+  <path d="M 39 42 C 34 22, 42 10, 52 10 C 60 10, 63 24, 60 40 Z" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 44 37 C 41 24, 46 16, 52 16 C 56 16, 58 25, 56 36 Z" fill="var(--char-inner-ear, #FDE68A)" />
+  <!-- Right Ear with Double Bite Notch (Ref 1 top-right) -->
+  <path d="M 67 40 C 66 22, 74 10, 86 12 C 92 13, 96 17, 94 22 C 88 23, 88 30, 95 31 C 91 34, 91 40, 97 41 C 95 45, 88 46, 82 44 Z" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

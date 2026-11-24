@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FBBF24; --char-secondary: #D97706; --char-belly: #FEF3C7; --char-inner-ear: #FDE68A; --char-blush: #FB923C; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="sunny">
+  <!-- Tiny Round Hamster Nubbin Tail -->
+  <circle cx="83" cy="129" r="7.5" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" />
+</g>
+</svg>

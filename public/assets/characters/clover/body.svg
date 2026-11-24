@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A5B4FC; --char-secondary: #6366F1; --char-belly: #EEF2FF; --char-inner-ear: #C7D2FE; --char-blush: #818CF8; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="clover">
+  <!-- Fluffy Four-Pawed Crouch Body (Ref 1 bottom-third) -->
+  <path d="M 48 96 C 42 108, 37 120, 35 129 C 33 137, 44 139, 46 132 C 47 141, 59 142, 61 134 C 63 142, 75 142, 77 134 C 79 142, 91 141, 91 131 C 91 120, 84 108, 78 96 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="63" cy="118" rx="13" ry="9" fill="var(--char-belly, #EEF2FF)" />
+</g>
+</svg>

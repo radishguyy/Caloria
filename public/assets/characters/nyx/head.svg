@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #C084FC; --char-secondary: #7E22CE; --char-belly: #F3E8FF; --char-inner-ear: #E9D5FF; --char-blush: #E879F9; --char-eye: #581C87; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="nyx">
+  <!-- Rounded Whiskered Cat-Dog Head (Ref 1 top-third) -->
+  <path d="M 63 36 C 88 36, 102 51, 102 72 C 102 89, 86 99, 63 99 C 40 99, 24 89, 24 72 C 24 51, 38 36, 63 36 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Left & Right Cheek Whisker Bristles -->
+  <path d="M 17 70 L 25 72 M 16 77 L 25 78 M 19 85 L 27 83" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" />
+  <path d="M 101 69 L 109 67 M 101 76 L 110 76 M 99 83 L 107 85" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" />
+  <path d="M 43 43 C 53 39, 65 39, 75 42" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.38" />
+</g>
+</svg>

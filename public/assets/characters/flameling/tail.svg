@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FF6B5B; --char-secondary: #FF9F43; --char-belly: #FFF3E2; --char-inner-ear: #FFB5A7; --char-blush: #FF8FA3; --char-eye: #2B1E1A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="flameling">
+  <!-- Bushy Flame-Tipped Fox Tail -->
+  <path d="M 76 126 C 96 130, 116 116, 118 94 C 118 86, 111 84, 107 90 C 105 83, 98 84, 96 92 C 92 104, 82 112, 72 116 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 102 102 C 110 98, 115 92, 115 88 C 112 86, 108 90, 106 92 C 104 87, 100 88, 98 94 C 97 98, 99 101, 102 102 Z" fill="var(--char-belly, #FFF3E2)" />
+  <path d="M 76 126 C 96 130, 116 116, 118 94" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" />
+</g>
+</svg>

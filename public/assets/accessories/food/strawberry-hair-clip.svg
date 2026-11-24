@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-strawberry-hair-clip">
+  <!-- Hair Clip Pin Bar -->
+  <rect x="72" y="40" width="22" height="5.5" rx="2.7" transform="rotate(18 83 42)" fill="#FDE047" stroke="#231F20" stroke-width="2.8" />
+  <!-- Plump Strawberry Body -->
+  <path d="M 88 26 C 96 26, 99 35, 93 44 C 88 50, 81 50, 78 43 C 75 35, 80 26, 88 26 Z" fill="#F43F5E" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Green Leafy Calyx -->
+  <path d="M 81 27 L 86 22 L 89 27 L 94 23 L 95 29 L 88 30 Z" fill="#22C55E" stroke="#231F20" stroke-width="2.8" stroke-linejoin="round" />
+  <!-- Seeds -->
+  <circle cx="85" cy="35" r="1.2" fill="#FEF08A" />
+  <circle cx="91" cy="36" r="1.2" fill="#FEF08A" />
+  <circle cx="87" cy="41" r="1.2" fill="#FEF08A" />
+</g>
+</svg>

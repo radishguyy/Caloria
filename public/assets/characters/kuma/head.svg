@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FB923C; --char-secondary: #C2410C; --char-belly: #FFEDD5; --char-inner-ear: #FDBA74; --char-blush: #F87171; --char-eye: #271C19; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="kuma">
+  <!-- Plump Bear Head with Raised Peace-Sign Paw at Right Cheek (Ref 1 middle-left) -->
+  <path d="M 62 36 C 86 36, 102 51, 102 72 C 102 90, 86 101, 62 101 C 38 101, 20 88, 22 70 C 23 51, 38 36, 62 36 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Chubby Peace-Sign Paw on Right Cheek -->
+  <path d="M 84 85 C 78 78, 82 69, 88 72 L 86 62 C 86 58, 92 58, 93 63 L 94 68 L 98 62 C 100 58, 105 61, 103 66 L 100 73 C 107 77, 107 90, 96 93 C 89 95, 86 90, 84 85 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 42 44 C 52 40, 64 40, 74 43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.38" />
+</g>
+</svg>

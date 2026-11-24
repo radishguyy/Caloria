@@ -34,6 +34,8 @@ import {
 } from "@/db/schema";
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
 
+export type { CosmeticCategory, PetSpeciesId, MealTypeId };
+
 // Re-export Database Model Types
 export type {
   Profile,
@@ -97,6 +99,10 @@ export type GoalProgramType = "diet" | "bulking" | "maintenance";
 
 export interface UserGoalPlan {
   goalType: GoalProgramType;
+  goalPath?: "lose_weight" | "gain_muscle" | "maintain_weight";
+  currentLevel?: number;
+  currentWeek?: number;
+  streakConsecutiveLogs?: number;
   currentWeightKg: number;
   targetWeightKg: number;
   heightCm: number;
@@ -104,7 +110,7 @@ export interface UserGoalPlan {
   age: number;
   activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
   bmiScore: number;
-  bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese";
+  bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese" | "Obese I" | "Obese II";
   totalProjectedDays: number;
   currentDayNumber: number;
   dailyMarginKcal: number; // e.g. -500 for diet, +400 for bulking, 0 for maintenance
@@ -122,6 +128,34 @@ export interface FoodCatalogItem {
   fiberG: number;
   sugarG: number;
   defaultServingSize: number;
+  servingUnit: string;
+  gramsPerUnit: number;
+  brandOrSource?: string;
+}
+
+export type CustomFoodOrigin = "branded" | "home_cooked";
+export type CustomFoodVisibility = "public" | "private";
+
+export interface CustomFoodItem extends FoodCatalogItem {
+  origin: CustomFoodOrigin;
+  visibility: CustomFoodVisibility;
+  tags?: string[];
+  notes?: string;
+  createdAt: string;
+  createdByUserId?: string;
+}
+
+export interface StagedFoodItem {
+  id: string;
+  name: string;
+  category: string;
+  baseCalories: number;
+  baseProteinG: number;
+  baseCarbsG: number;
+  baseFatG: number;
+  baseFiberG: number;
+  baseSugarG: number;
+  servingMultiplier: number;
   servingUnit: string;
   gramsPerUnit: number;
 }
@@ -144,11 +178,22 @@ export interface ExtendedFoodLog {
   createdAt: Date;
 }
 
+export type DailyComplianceStatus = "hit" | "under" | "over" | "empty";
+
 export interface DailyNutritionSummary {
   date: string;
   consumed: MacroCurrent;
   target: MacroTargets;
   percentage: number;
+  status: DailyComplianceStatus;
+  macroStatus: {
+    protein: "hit" | "under" | "over";
+    carbs: "hit" | "under" | "over";
+    fat: "hit" | "under" | "over";
+  };
+  xpEarned: number;
+  coinsEarned: number;
+  hasLogs: boolean;
   logs: ExtendedFoodLog[];
 }
 
@@ -166,12 +211,14 @@ export interface FoodItemInput {
 }
 
 // Pet Types
-export type PetAnimationState = "idle" | "eating" | "happy" | "sleeping" | "sad";
+export type PetAnimationState = "idle" | "eating" | "happy" | "sleeping" | "sad" | "complaining";
+export type PetMoodStatus = "happy" | "neutral" | "complaining";
 
 export interface EquippedCosmetics {
   head: string;
   body: string;
   glasses: string;
+  held: string;
   skin: string;
   room: string;
 }
@@ -236,10 +283,13 @@ export interface WeightLogEntry {
 // Notification Center
 export interface AppNotification {
   id: string;
-  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement";
+  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement" | "friend_request";
   title: string;
   message: string;
   timestamp: string;
   isRead: boolean;
   actionUrl?: string;
 }
+
+export * from "./social";
+

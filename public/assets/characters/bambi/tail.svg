@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #60A5FA; --char-secondary: #2563EB; --char-belly: #DBEAFE; --char-inner-ear: #93C5FD; --char-blush: #818CF8; --char-eye: #1E1B4B; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="bambi">
+  <!-- Short Wagging Pup Tail -->
+  <path d="M 78 124 C 90 122, 98 126, 94 132 C 90 136, 82 133, 76 130 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

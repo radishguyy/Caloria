@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #EAB308; --char-secondary: #A16207; --char-belly: #FEF9C3; --char-inner-ear: #FDE047; --char-blush: #F59E0B; --char-eye: #78350F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="ziggy">
+  <!-- Vertical Brow Lines, Half-Lidded Smug Eyes & :3 Mouth (Ref 1 middle-right) -->
+  <path d="M 60 58 L 60 72 M 66 61 L 66 72" fill="none" stroke="var(--char-secondary, #A16207)" stroke-width="2.8" stroke-linecap="round" />
+  <!-- Left Half-Lidded Eye -->
+  <path d="M 33 70 L 58 72 C 57 81, 47 84, 39 82 C 34 80, 32 75, 33 70 Z" fill="#FDE68A" stroke="var(--char-secondary, #A16207)" stroke-width="2.8" stroke-linejoin="round" />
+  <ellipse cx="46" cy="76" rx="6" ry="4.5" fill="var(--char-eye, #78350F)" />
+  <!-- Right Half-Lidded Eye -->
+  <path d="M 68 72 L 93 70 C 94 75, 92 80, 87 82 C 79 84, 69 81, 68 72 Z" fill="#FDE68A" stroke="var(--char-secondary, #A16207)" stroke-width="2.8" stroke-linejoin="round" />
+  <ellipse cx="79" cy="76" rx="6" ry="4.5" fill="var(--char-eye, #78350F)" />
+  <!-- Smug :3 Cat Mouth -->
+  <path d="M 57 85 Q 60 90 63 85 Q 66 90 69 85" fill="none" stroke="var(--char-secondary, #A16207)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

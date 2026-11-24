@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #F9A8D4; --char-secondary: #EC4899; --char-belly: #FFF1F2; --char-inner-ear: #F472B6; --char-blush: #FB7185; --char-eye: #0F172A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="mochi">
+  <!-- Wide-Cheeked Kawaii Kitty Head -->
+  <path d="M 64 37 C 87 37, 104 52, 104 73 C 104 90, 87 101, 64 101 C 41 101, 24 90, 24 73 C 24 52, 41 37, 64 37 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 44 44 C 54 40, 66 40, 76 43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.45" />
+</g>
+</svg>

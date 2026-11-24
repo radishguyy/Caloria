@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-rectangular-glasses">
+  <!-- Temple Arms -->
+  <path d="M 23 64 L 31 65 M 97 65 L 105 64" stroke="#231F20" stroke-width="3.8" stroke-linecap="round" />
+  <!-- Rectangular Frames -->
+  <rect x="31" y="58" width="29" height="19" rx="4" fill="#38BDF8" fill-opacity="0.28" stroke="#231F20" stroke-width="4" />
+  <rect x="68" y="58" width="29" height="19" rx="4" fill="#38BDF8" fill-opacity="0.28" stroke="#231F20" stroke-width="4" />
+  <!-- Bridge -->
+  <path d="M 60 65 L 68 65" stroke="#231F20" stroke-width="4" stroke-linecap="round" />
+  <!-- Glints -->
+  <path d="M 36 62 L 42 62 M 73 62 L 79 62" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.85" />
+</g>
+</svg>

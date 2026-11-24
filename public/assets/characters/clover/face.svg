@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A5B4FC; --char-secondary: #6366F1; --char-belly: #EEF2FF; --char-inner-ear: #C7D2FE; --char-blush: #818CF8; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="clover">
+  <!-- Diamond-Shaped Cat Eyes with Slit Pupils & Blep Mouth (Ref 1 bottom-third) -->
+  <path d="M 35 61 L 47 55 L 57 64 L 44 70 Z" fill="#93C5FD" stroke="var(--char-eye, #1E3A8A)" stroke-width="3" stroke-linejoin="round" />
+  <ellipse cx="46" cy="62.5" rx="2.3" ry="5" fill="var(--char-eye, #1E3A8A)" />
+  <path d="M 65 67 L 77 61 L 89 68 L 76 75 Z" fill="#93C5FD" stroke="var(--char-eye, #1E3A8A)" stroke-width="3" stroke-linejoin="round" />
+  <ellipse cx="77" cy="68" rx="2.3" ry="5" fill="var(--char-eye, #1E3A8A)" />
+  <!-- Cute Nose & Blep -->
+  <path d="M 52 74 L 64 76 M 55 75 C 55 81, 61 81, 61 75" fill="var(--char-eye, #1E3A8A)" stroke="var(--char-eye, #1E3A8A)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

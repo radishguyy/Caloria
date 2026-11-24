@@ -95,17 +95,18 @@ export async function GET(request: NextRequest) {
   // never treat a profile-creation failure as silent success.
   let onboardingCompleted = false;
   try {
-    const { profile } = await ensureProfileForUser({
+    const { profile, isNew } = await ensureProfileForUser({
       userId: user.id,
       email: user.email,
       fullName: user.user_metadata?.full_name || user.user_metadata?.name,
       avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
     });
-    onboardingCompleted = profile.isOnboardingCompleted;
+    // Onboarding is only for brand-new users who haven't completed it
+    onboardingCompleted = !isNew || profile.isOnboardingCompleted;
   } catch (profileErr) {
     // Log server-side only; do not leak details to the client.
     console.error("[auth/callback] profile ensure failed", profileErr);
-    // Still redirect authenticated user; onboarding will surface missing fields.
+    onboardingCompleted = true;
   }
 
   const target = onboardingCompleted

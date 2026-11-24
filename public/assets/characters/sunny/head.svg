@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FBBF24; --char-secondary: #D97706; --char-belly: #FEF3C7; --char-inner-ear: #FDE68A; --char-blush: #FB923C; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="sunny">
+  <!-- Extra-Chubby Cheek Hamster Head -->
+  <path d="M 64 36 C 88 36, 106 50, 106 72 C 106 91, 89 102, 64 102 C 39 102, 22 91, 22 72 C 22 50, 40 36, 64 36 Z" fill="var(--char-primary, #FBBF24)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Notch Ear Overlap Connection -->
+  <path d="M 96 40 C 102 46, 106 56, 106 68" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" />
+  <path d="M 42 44 C 52 40, 64 40, 74 43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.4" />
+</g>
+</svg>

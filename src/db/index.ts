@@ -2,26 +2,58 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-const connectionString =
-  process.env.DATABASE_URL || "postgres://postgres:password@localhost:5432/caloria";
+type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
 
-// Supabase free tier connection pooling best practice:
-// Set max connection to 1 for serverless/edge environments to prevent connection exhaustion.
-// prepare: false is mandatory when using Supabase Transaction Pooler (Supavisor on port 6543).
 const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
+  db: DrizzleDb | undefined;
 };
 
-const client =
-  globalForDb.conn ??
-  postgres(connectionString, {
-    max: process.env.NODE_ENV === "production" ? 1 : 10,
-    prepare: false, // Required for Supabase Transaction Pooler
-  });
+const SUPABASE_POOLER_URL =
+  "postgresql://postgres.wdjkbjwdpqaoqikkflpc:kacangkacangan123@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.conn = client;
+function resolveConnectionString(): string {
+  const envUrl = process.env.DATABASE_URL?.trim();
+  if (!envUrl) {
+    return SUPABASE_POOLER_URL;
+  }
+  // If Vercel has the IPv6-only direct host (db.<ref>.supabase.co) or an invalid
+  // pooler username configured, automatically use the IPv4 Supavisor Transaction Pooler.
+  if (
+    envUrl.includes("db.wdjkbjwdpqaoqikkflpc.supabase.co") ||
+    !envUrl.includes("pooler.supabase.com") ||
+    !envUrl.includes("postgres.wdjkbjwdpqaoqikkflpc")
+  ) {
+    return SUPABASE_POOLER_URL;
+  }
+  return envUrl;
 }
 
-export const db = drizzle(client, { schema });
+function getClient() {
+  if (!globalForDb.conn) {
+    const connectionString = resolveConnectionString();
+
+    // Supabase free tier connection pooling best practice:
+    // prepare: false is mandatory when using Supabase Transaction Pooler (Supavisor on port 6543).
+    globalForDb.conn = postgres(connectionString, {
+      max: process.env.NODE_ENV === "production" ? 5 : 10,
+      prepare: false, // Required for Supabase Transaction Pooler
+      connect_timeout: 8,
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+
+  return globalForDb.conn;
+}
+
+export const db = new Proxy({} as DrizzleDb, {
+  get(_target, prop) {
+    if (!globalForDb.db) {
+      const client = getClient();
+      globalForDb.db = drizzle(client, { schema });
+    }
+    return (globalForDb.db as any)[prop];
+  },
+});
+
 export type Database = typeof db;

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FB923C; --char-secondary: #C2410C; --char-belly: #FFEDD5; --char-inner-ear: #FDBA74; --char-blush: #F87171; --char-eye: #271C19; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="kuma">
+  <!-- Sturdy Little Cub Torso (Ref 1 middle-left) -->
+  <path d="M 48 98 C 44 107, 43 122, 46 133 L 45 142 C 45 147, 57 147, 58 141 L 60 135 L 66 135 L 68 141 C 69 147, 81 147, 81 142 L 80 133 C 83 122, 82 107, 78 98 Z" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="63" cy="118" rx="11" ry="11" fill="var(--char-belly, #FFEDD5)" />
+  <!-- Left Resting Arm -->
+  <path d="M 47 107 C 37 110, 35 120, 41 123 C 45 125, 48 120, 49 114" fill="var(--char-primary, #FB923C)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

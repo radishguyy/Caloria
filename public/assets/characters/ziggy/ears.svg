@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #EAB308; --char-secondary: #A16207; --char-belly: #FEF9C3; --char-inner-ear: #FDE047; --char-blush: #F59E0B; --char-eye: #78350F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="ziggy">
+  <!-- Tall Sharp Triangular Fennec Ears (Ref 1 middle-right) -->
+  <path d="M 36 46 L 52 8 L 63 36 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 42 42 L 52 17 L 59 36 Z" fill="var(--char-inner-ear, #FDE047)" />
+  <path d="M 92 46 L 76 8 L 65 36 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 86 42 L 76 17 L 69 36 Z" fill="var(--char-inner-ear, #FDE047)" />
+</g>
+</svg>

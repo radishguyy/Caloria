@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-bucket-hat">
+  <!-- Bucket Crown -->
+  <path d="M 38 18 C 48 15, 80 15, 90 18 L 95 37 L 33 37 Z" fill="#FDE047" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Accent Band -->
+  <path d="M 34 32 L 94 32 L 95 37 L 33 37 Z" fill="#F97316" stroke="#231F20" stroke-width="3" stroke-linejoin="round" />
+  <!-- Wide Sloping Ruffled Brim -->
+  <path d="M 33 37 L 20 46 C 34 51, 50 47, 64 49 C 78 47, 94 51, 108 46 L 95 37 Z" fill="#FACC15" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+</g>
+</svg>

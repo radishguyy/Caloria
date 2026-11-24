@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-water-bottle">
+  <!-- Bottle Spout & Cap -->
+  <rect x="92" y="87" width="6" height="5" rx="1.5" fill="#0284C7" stroke="#231F20" stroke-width="2.8" />
+  <rect x="88" y="91" width="14" height="5" rx="2" fill="#0EA5E9" stroke="#231F20" stroke-width="3.2" />
+  <!-- Aqua Hydro Bottle Body -->
+  <rect x="86" y="96" width="18" height="27" rx="5" fill="#38BDF8" stroke="#231F20" stroke-width="3.4" />
+  <!-- Water Level & Measurement Ticks -->
+  <path d="M 88 106 Q 95 104 102 106 L 102 120 C 102 121, 88 121, 88 120 Z" fill="#0284C7" opacity="0.55" />
+  <path d="M 99 102 L 102 102 M 99 108 L 102 108 M 99 114 L 102 114" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" />
+</g>
+</svg>

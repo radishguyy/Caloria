@@ -2,91 +2,244 @@
 
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useFoodStore } from "@/store/use-food-store";
+import { usePetStore } from "@/store/use-pet-store";
+import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useSocialStore } from "@/store/use-social-store";
+import { useWeightStore } from "@/store/use-weight-store";
+import { useAchievementsStore } from "@/store/use-achievements-store";
 import { createClient } from "@/lib/supabase/client";
-import { getProfileData } from "@/app/actions/profile";
+import { fetchAppInitialDataAction } from "@/app/actions/profile";
+import { claimDailyLoginRewardAction } from "@/server/actions/pet-actions";
+import { toastDailyLoginReward } from "@/lib/toast";
 
-interface SessionUser {
-  id: string;
-  email: string | null;
-  username: string;
-  fullName: string | null;
-  avatarUrl: string | null;
-  isOnboardingCompleted: boolean;
-}
+async function hydrateStoresFromDatabase() {
+  try {
+    const data = await fetchAppInitialDataAction();
+    if (!data || !data.authenticated || !data.user) {
+      // Fallback: check if client-side Supabase has an active session before clearing
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        const u = session.user;
+        const [{ data: prof }, { data: petRow }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("username, full_name, avatar_url, caloria_coins, wallet_address, wallet_chain_id")
+            .eq("id", u.id)
+            .maybeSingle(),
+          supabase
+            .from("pets")
+            .select("*")
+            .eq("user_id", u.id)
+            .maybeSingle(),
+        ]);
 
-function applySession(
-  setUser: (input: SessionUser) => void,
-  setStreak: (days: number) => void,
-  sessionUser: SessionUser,
-  supabase: ReturnType<typeof createClient>
-) {
-  setUser({
-    id: sessionUser.id,
-    email: sessionUser.email,
-    username: sessionUser.username,
-    fullName: sessionUser.fullName,
-    avatarUrl: sessionUser.avatarUrl,
-    isOnboardingCompleted: sessionUser.isOnboardingCompleted,
-  });
+        useAuthStore.getState().setUserFromSession({
+          id: u.id,
+          email: u.email || null,
+          username:
+            prof?.username ||
+            u.user_metadata?.username ||
+            u.email?.split("@")[0] ||
+            "user",
+          fullName:
+            prof?.full_name ||
+            u.user_metadata?.full_name ||
+            u.user_metadata?.name ||
+            prof?.username ||
+            null,
+          avatarUrl:
+            prof?.avatar_url ||
+            u.user_metadata?.avatar_url ||
+            u.user_metadata?.picture ||
+            null,
+          walletAddress: prof?.wallet_address ?? null,
+          walletChainId: prof?.wallet_chain_id ?? null,
+          isOnboardingCompleted: true,
+        });
 
-  // Streak lives on the profile row; surface it into the social store so the
-  // existing NavStreakBadge continues to read from the store.
-  supabase
-    .from("profiles")
-    .select("current_streak_days")
-    .eq("id", sessionUser.id)
-    .single()
-    .then(({ data }) => {
-      setStreak(data?.current_streak_days ?? 0);
-    });
+        if (petRow) {
+          usePetStore.getState().setPetState({
+            name: petRow.name || "Pyro",
+            species: (petRow.species || petRow.character_id || "flameling") as any,
+            stage: petRow.stage === "juvenile" ? 2 : 1,
+            level: petRow.level || 1,
+            exp: petRow.exp ?? petRow.current_xp ?? 0,
+            hunger: petRow.hunger ?? 100,
+            happiness: petRow.happiness ?? 100,
+            coins: prof?.caloria_coins ?? petRow.coins ?? 50,
+            lastFedAt: petRow.last_fed_at || new Date().toISOString(),
+            lastPettedAt: petRow.last_petted_at || new Date().toISOString(),
+            fedSlotsToday: Array.isArray(petRow.fed_slots_today)
+              ? petRow.fed_slots_today
+              : [],
+            petCountToday: petRow.pet_count_today ?? 0,
+            needsResetDate: petRow.needs_reset_date ?? null,
+            moodStatus: (petRow.mood_status as any) || "happy",
+            customColors: (petRow.custom_colors as any) || {},
+            nftTokenId: petRow.nft_token_id ?? null,
+            nftContractAddress: petRow.nft_contract_address ?? null,
+            nftChainId: petRow.nft_chain_id ?? null,
+            mintTxHash: petRow.mint_tx_hash ?? null,
+            mintStatus: (petRow.mint_status as any) || "unminted",
+          });
+        }
+        return;
+      }
+      useAuthStore.getState().clearUser();
+      return;
+    }
+
+    // 1. Hydrate Auth
+    useAuthStore.getState().setUserFromSession(data.user);
+
+    // 2. Hydrate Food & Weight Logs First (so progression calculations have full historical data)
+    if (Array.isArray(data.foodLogs)) {
+      useFoodStore.getState().setLogs(data.foodLogs as any);
+    }
+
+    if (Array.isArray(data.weightLogs)) {
+      useWeightStore.getState().setWeightLogs(data.weightLogs);
+    }
+
+    // 3. Hydrate Food & Biometrics Store
+    if (data.profile) {
+      useFoodStore.getState().setGoalPlan({
+        currentWeightKg: data.profile.currentWeightKg,
+        targetWeightKg: data.profile.targetWeightKg,
+        heightCm: data.profile.heightCm,
+        goalPath: data.profile.goalPath as any,
+        currentLevel: data.profile.currentLevel,
+        currentWeek: data.profile.currentWeek,
+        streakConsecutiveLogs: data.profile.streakConsecutiveLogs,
+        totalProjectedDays: data.profile.projectedDays,
+        startDate: data.profile.startDate,
+      });
+
+      useFoodStore.getState().setTargets({
+        calories: data.profile.targetCaloriesKcal,
+        protein: data.profile.targetProteinG,
+        carbs: data.profile.targetCarbsG,
+        fat: data.profile.targetFatG,
+      });
+
+      // Synchronize quest progression with evaluated weekly history
+      const prog = useFoodStore.getState().getWeeklyProgression();
+      const activeStage = prog.activeStage;
+      const targetLevel = activeStage?.level || data.profile.currentLevel || 1;
+      const targetWeek = activeStage?.week || data.profile.currentWeek || 1;
+
+      useFoodStore.getState().setQuestProgression({
+        goalPath: data.profile.goalPath as any,
+        currentLevel: targetLevel,
+        currentWeek: targetWeek,
+      });
+    }
+
+    // 3. Hydrate Pet Store
+    if (data.pet) {
+      usePetStore.getState().setPetState({
+        name: data.pet.name,
+        species: data.pet.species,
+        stage: data.pet.stage,
+        level: data.pet.level,
+        exp: data.pet.exp,
+        hunger: data.pet.hunger,
+        happiness: data.pet.happiness,
+        coins: data.pet.coins,
+        lastFedAt: data.pet.lastFedAt,
+        lastPettedAt: data.pet.lastPettedAt,
+        fedSlotsToday: data.pet.fedSlotsToday,
+        petCountToday: data.pet.petCountToday,
+        needsResetDate: data.pet.needsResetDate,
+        moodStatus: data.pet.moodStatus,
+        customColors: data.pet.customColors,
+        nftTokenId: data.pet.nftTokenId,
+        nftContractAddress: data.pet.nftContractAddress,
+        nftChainId: data.pet.nftChainId,
+        mintTxHash: data.pet.mintTxHash,
+        mintStatus: data.pet.mintStatus,
+      });
+    }
+
+    // Daily Login Reward Check (awarded on first session launch of the day)
+    try {
+      const todayKey = new Date().toISOString().split("T")[0];
+      const claimStorageKey = `caloria_daily_login_claimed_${todayKey}`;
+      if (typeof window !== "undefined" && !sessionStorage.getItem(claimStorageKey)) {
+        const rewardRes = await claimDailyLoginRewardAction();
+        if (rewardRes.success && !rewardRes.alreadyClaimed && rewardRes.rewardAmount) {
+          sessionStorage.setItem(claimStorageKey, "true");
+          if (rewardRes.newBalance !== undefined) {
+            usePetStore.getState().setCoins(rewardRes.newBalance);
+          }
+          toastDailyLoginReward();
+        }
+      }
+    } catch (loginRewardErr) {
+      console.warn("[SessionProvider] Daily login reward check notice:", loginRewardErr);
+    }
+
+    // 4. Hydrate Cosmetics & Wardrobe Store
+    if (data.cosmetics) {
+      useCosmeticsStore.getState().setOwnedItemIds(data.cosmetics.ownedItemIds);
+      if (data.cosmetics.equipped) {
+        useCosmeticsStore.getState().setEquippedLoadout(data.cosmetics.equipped as any);
+      }
+    }
+
+    // 5. Hydrate Achievements Store
+    if (data.unlockedBadgeIds) {
+      useAchievementsStore.getState().setUnlockedBadgeIds(data.unlockedBadgeIds);
+    }
+
+    // 7. Hydrate Social Hub Store & Streak Metadata
+    useSocialStore.getState().fetchSocialData();
+    if (data.profile) {
+      useSocialStore.getState().setStreak(data.profile.streakCount);
+      useSocialStore.getState().setStreakMeta({
+        longestStreakDays: data.profile.longestStreakDays,
+        streakFreezes: data.profile.streakFreezes,
+        lastFreezeUsedDate: data.profile.lastFreezeUsedDate,
+        restPasses: data.profile.restPasses,
+        lastRestDayDate: data.profile.lastRestDayDate,
+        brokenStreakCount: data.profile.brokenStreakCount,
+        brokenStreakAt: data.profile.brokenStreakAt,
+        lastLoggedDate: data.profile.lastLoggedDate,
+      });
+    }
+  } catch (err) {
+    console.error("[SessionProvider] Hydration error:", err);
+  }
 }
 
 /**
- * SessionProvider bridges Supabase Auth sessions with the existing zustand
- * stores. It must be mounted once, at the root, so every component that reads
- * `useAuthStore` reflects the real authenticated session.
- *
- * - On mount, hydrates the auth store from the current Supabase session.
- * - Subscribes to auth state changes (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED).
- * - On SIGNED_OUT, clears the stores.
+ * SessionProvider bridges Supabase Auth sessions with client zustand stores.
+ * On mount and on auth change, it synchronizes all persistent data from PostgreSQL.
  */
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const setUser = useAuthStore((state) => state.setUserFromSession);
-  const clearUser = useAuthStore((state) => state.clearUser);
-  const setStreak = useSocialStore((state) => state.setStreak);
-
   useEffect(() => {
     const supabase = createClient();
 
-    // Hydrate from the current session.
-    const hydrate = async () => {
-      const profile = await getProfileData();
-      if (profile) {
-        applySession(setUser, setStreak, profile, supabase);
-      } else {
-        clearUser();
-      }
-    };
+    // Initial hydration
+    hydrateStoresFromDatabase();
 
-    hydrate();
-
-    // Keep the stores in sync across tabs / token refreshes.
+    // Subscribe to auth state events
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        const profile = await getProfileData();
-        if (profile) {
-          applySession(setUser, setStreak, profile, supabase);
-        }
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        hydrateStoresFromDatabase();
       } else if (event === "SIGNED_OUT") {
-        clearUser();
+        useAuthStore.getState().clearUser();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, clearUser, setStreak]);
+  }, []);
 
   return <>{children}</>;
 }

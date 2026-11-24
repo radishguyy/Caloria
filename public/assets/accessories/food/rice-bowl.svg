@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-rice-bowl">
+  <!-- Chopsticks -->
+  <line x1="82" y1="95" x2="113" y2="90" stroke="#92400E" stroke-width="3" stroke-linecap="round" />
+  <line x1="82" y1="99" x2="114" y2="96" stroke="#92400E" stroke-width="3" stroke-linecap="round" />
+  <!-- Steamed White Rice Mound -->
+  <path d="M 82 106 C 82 95, 110 95, 110 106 Z" fill="#FFFFFF" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Sesame Seeds -->
+  <circle cx="93" cy="100" r="1.2" fill="#231F20" />
+  <circle cx="98" cy="99" r="1.2" fill="#231F20" />
+  <circle cx="101" cy="102" r="1.2" fill="#231F20" />
+  <!-- Ceramic Bowl -->
+  <path d="M 80 106 L 112 106 C 111 118, 104 122, 96 122 C 88 122, 81 118, 80 106 Z" fill="#3B82F6" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <path d="M 83 111 L 109 111" stroke="#FEF08A" stroke-width="2.6" />
+</g>
+</svg>

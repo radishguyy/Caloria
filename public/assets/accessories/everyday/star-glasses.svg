@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-star-glasses">
+  <!-- Temple Arms -->
+  <path d="M 23 66 L 32 67 M 96 67 L 105 66" stroke="#231F20" stroke-width="3.4" stroke-linecap="round" />
+  <!-- Bridge -->
+  <path d="M 58 67 Q 64 63 70 67" fill="none" stroke="#231F20" stroke-width="3.6" stroke-linecap="round" />
+  <!-- Left Star Frame -->
+  <polygon points="46,51 50,61 61,62 53,69 55,80 46,74 37,80 39,69 31,62 42,61" fill="#F472B6" fill-opacity="0.65" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Right Star Frame -->
+  <polygon points="82,51 86,61 97,62 89,69 91,80 82,74 73,80 75,69 67,62 78,61" fill="#F472B6" fill-opacity="0.65" stroke="#231F20" stroke-width="3.4" stroke-linejoin="round" />
+  <!-- Sparkle Highlights -->
+  <circle cx="43" cy="63" r="2.2" fill="#FEF08A" />
+  <circle cx="79" cy="63" r="2.2" fill="#FEF08A" />
+</g>
+</svg>

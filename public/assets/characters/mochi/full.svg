@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #F9A8D4; --char-secondary: #EC4899; --char-belly: #FFF1F2; --char-inner-ear: #F472B6; --char-blush: #FB7185; --char-eye: #0F172A; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="mochi">
+  <!-- Slender S-Curved Kitty Tail -->
+  <path d="M 74 128 C 90 132, 104 120, 102 106 C 100 96, 108 92, 110 99 C 113 110, 102 136, 74 135 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="ears" data-character="mochi">
+  <!-- Symmetrical Pointed Kitten Ears (Ref 1 middle-third) -->
+  <path d="M 38 44 C 36 26, 44 10, 50 8 C 56 10, 61 24, 62 39 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 43 38 C 42 26, 47 16, 50 15 C 53 16, 56 26, 57 37 Z" fill="var(--char-inner-ear, #F472B6)" />
+  <path d="M 90 44 C 92 26, 84 10, 78 8 C 72 10, 67 24, 66 39 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 85 38 C 86 26, 81 16, 78 15 C 75 16, 72 26, 71 37 Z" fill="var(--char-inner-ear, #F472B6)" />
+</g>
+<g data-layer="body" data-character="mochi">
+  <!-- Petite Standing Chibi Body (Ref 1 middle-third) -->
+  <path d="M 50 97 C 46 105, 45 120, 47 132 L 45 141 C 44 146, 57 147, 59 141 L 61 134 L 67 134 L 69 141 C 71 147, 84 146, 83 141 L 81 132 C 83 120, 82 105, 78 97 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="64" cy="117" rx="11" ry="11" fill="var(--char-belly, #FFF1F2)" />
+  <!-- Delicate Outward Arms -->
+  <path d="M 48 106 C 38 108, 35 116, 40 120 C 44 123, 48 118, 50 113" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 80 106 C 90 108, 93 116, 88 120 C 84 123, 80 118, 78 113" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="head" data-character="mochi">
+  <!-- Wide-Cheeked Kawaii Kitty Head -->
+  <path d="M 64 37 C 87 37, 104 52, 104 73 C 104 90, 87 101, 64 101 C 41 101, 24 90, 24 73 C 24 52, 41 37, 64 37 Z" fill="var(--char-primary, #F9A8D4)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 44 44 C 54 40, 66 40, 76 43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.45" />
+</g>
+<g data-layer="face" data-character="mochi">
+  <!-- Soft Pink Blush -->
+  <ellipse cx="32" cy="79" rx="5.5" ry="3.5" fill="var(--char-blush, #FB7185)" opacity="0.65" />
+  <ellipse cx="96" cy="79" rx="5.5" ry="3.5" fill="var(--char-blush, #FB7185)" opacity="0.65" />
+  <!-- Enormous Concentric Kawaii Eyes (Ref 1 middle-third) -->
+  <circle cx="46" cy="68" r="13.5" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" />
+  <circle cx="46" cy="68" r="10.5" fill="#334155" />
+  <circle cx="46" cy="68" r="6.8" fill="var(--char-eye, #0F172A)" />
+  <circle cx="42" cy="64" r="2.8" fill="#FFFFFF" />
+  <circle cx="82" cy="68" r="13.5" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" />
+  <circle cx="82" cy="68" r="10.5" fill="#334155" />
+  <circle cx="82" cy="68" r="6.8" fill="var(--char-eye, #0F172A)" />
+  <circle cx="78" cy="64" r="2.8" fill="#FFFFFF" />
+  <!-- Minimalist Tiny Dash Mouth -->
+  <path d="M 60 84 L 67 84" fill="none" stroke="var(--char-secondary, #EC4899)" stroke-width="3.4" stroke-linecap="round" />
+</g>
+</svg>

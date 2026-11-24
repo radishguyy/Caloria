@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-chef-hat">
+  <!-- Puffy White Toque Cloud -->
+  <path d="M 38 34 C 28 31, 28 16, 41 15 C 44 6, 57 5, 64 11 C 71 5, 84 6, 87 15 C 100 16, 100 31, 90 34 Z" fill="#FFFFFF" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Pleat Lines -->
+  <path d="M 50 22 L 52 33 M 64 19 L 64 33 M 78 22 L 76 33" stroke="#CBD5E1" stroke-width="2.6" stroke-linecap="round" />
+  <!-- Chef Hat Base Band -->
+  <rect x="37" y="32" width="54" height="9" rx="3.5" fill="#F8FAFC" stroke="#231F20" stroke-width="3.8" />
+</g>
+</svg>

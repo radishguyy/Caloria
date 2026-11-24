@@ -67,9 +67,11 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (user && isAuthPage) {
+    // `/` is the public landing page — reserved for unauthenticated visitors.
+    // Signed-in users (and auth pages) go straight to the dashboard.
+    if (user && (isAuthPage || request.nextUrl.pathname === "/")) {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
   }

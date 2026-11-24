@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A3E635; --char-secondary: #4D7C0F; --char-belly: #ECFCCB; --char-inner-ear: #BEF264; --char-blush: #65A30D; --char-eye: #14532D; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="biscuit">
+  <!-- Perky Left-Side Tail (Ref 1 bottom-right) -->
+  <path d="M 42 126 C 30 120, 22 110, 26 106 C 30 103, 38 112, 46 120 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="ears" data-character="biscuit">
+  <!-- Dynamic Right-Swept Long Ears (Ref 1 bottom-right) -->
+  <path d="M 62 38 C 66 22, 76 8, 84 8 C 88 8, 86 24, 80 38 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 76 41 C 84 26, 98 12, 106 12 C 109 14, 102 30, 92 45 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="body" data-character="biscuit">
+  <!-- Energetic Forward-Leaning 4-Pawed Body (Ref 1 bottom-right) -->
+  <path d="M 52 96 C 42 108, 34 118, 32 130 C 31 138, 42 140, 44 133 C 45 141, 56 141, 58 134 C 60 141, 70 141, 72 134 C 74 141, 84 140, 84 131 C 84 118, 80 106, 76 96 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="60" cy="118" rx="12" ry="8.5" fill="var(--char-belly, #ECFCCB)" />
+</g>
+<g data-layer="head" data-character="biscuit">
+  <!-- Dynamic Rounded Head with Cheek Whisker Stripes (Ref 1 bottom-right) -->
+  <path d="M 64 37 C 88 37, 102 53, 102 74 C 102 91, 86 101, 64 101 C 42 101, 28 90, 28 73 C 28 53, 42 37, 64 37 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Left & Right Cheek Whisker Marks -->
+  <path d="M 21 71 L 29 72 M 21 79 L 29 79 M 23 87 L 31 85" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linecap="round" />
+  <path d="M 88 76 L 96 76 M 87 83 L 95 85 M 84 90 L 92 92" fill="none" stroke="var(--char-secondary, #4D7C0F)" stroke-width="3.2" stroke-linecap="round" />
+</g>
+<g data-layer="face" data-character="biscuit">
+  <!-- Triangle-Arch Green Eyes & Tall Shocked O Mouth (Ref 1 bottom-right) -->
+  <path d="M 34 68 C 36 54, 48 54, 53 68 Z" fill="#BBF7D0" stroke="var(--char-secondary, #4D7C0F)" stroke-width="3" stroke-linejoin="round" />
+  <circle cx="43" cy="63" r="4.5" fill="#22C55E" />
+  <path d="M 65 68 C 68 54, 80 54, 86 68 Z" fill="#BBF7D0" stroke="var(--char-secondary, #4D7C0F)" stroke-width="3" stroke-linejoin="round" />
+  <circle cx="74" cy="63" r="4.5" fill="#22C55E" />
+  <!-- Tall Surprised / Singing O Mouth -->
+  <path d="M 52 75 C 58 74, 64 81, 64 90 C 64 96, 56 97, 52 94 C 49 91, 49 76, 52 75 Z" fill="var(--char-secondary, #4D7C0F)" stroke="var(--char-outline, #231F20)" stroke-width="2.6" />
+</g>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #EAB308; --char-secondary: #A16207; --char-belly: #FEF9C3; --char-inner-ear: #FDE047; --char-blush: #F59E0B; --char-eye: #78350F; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="ziggy">
+  <!-- Sleek Angular Fennec Tail -->
+  <path d="M 78 126 L 112 114 L 106 128 L 80 133 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 98 119 L 112 114 L 107 125 L 96 126 Z" fill="var(--char-secondary, #A16207)" />
+</g>
+<g data-layer="ears" data-character="ziggy">
+  <!-- Tall Sharp Triangular Fennec Ears (Ref 1 middle-right) -->
+  <path d="M 36 46 L 52 8 L 63 36 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 42 42 L 52 17 L 59 36 Z" fill="var(--char-inner-ear, #FDE047)" />
+  <path d="M 92 46 L 76 8 L 65 36 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 86 42 L 76 17 L 69 36 Z" fill="var(--char-inner-ear, #FDE047)" />
+</g>
+<g data-layer="body" data-character="ziggy">
+  <!-- Trapezoid A-Line Body with Wide Splayed Flat Cartoon Feet (Ref 1 middle-right) -->
+  <path d="M 53 94 L 40 135 L 88 135 L 75 94 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 56 102 L 49 128 L 79 128 L 72 102 Z" fill="var(--char-belly, #FEF9C3)" />
+  <!-- Splayed Outward Flat Feet -->
+  <path d="M 49 135 L 28 144 C 26 146, 36 147, 46 143 L 58 135 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 79 135 L 100 144 C 102 146, 92 147, 82 143 L 70 135 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="head" data-character="ziggy">
+  <!-- Iconic Triangular / Onigiri Head Silhouette (Ref 1 middle-right) -->
+  <path d="M 41 34 L 20 92 C 36 97, 92 97, 108 92 L 87 34 C 74 34, 54 34, 41 34 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Seamless Ear-to-Cheek Slope Cover -->
+  <path d="M 39 39 L 59 38 L 64 46 L 69 38 L 89 39 L 98 66 L 30 66 Z" fill="var(--char-primary, #EAB308)" />
+</g>
+<g data-layer="face" data-character="ziggy">
+  <!-- Vertical Brow Lines, Half-Lidded Smug Eyes & :3 Mouth (Ref 1 middle-right) -->
+  <path d="M 60 58 L 60 72 M 66 61 L 66 72" fill="none" stroke="var(--char-secondary, #A16207)" stroke-width="2.8" stroke-linecap="round" />
+  <!-- Left Half-Lidded Eye -->
+  <path d="M 33 70 L 58 72 C 57 81, 47 84, 39 82 C 34 80, 32 75, 33 70 Z" fill="#FDE68A" stroke="var(--char-secondary, #A16207)" stroke-width="2.8" stroke-linejoin="round" />
+  <ellipse cx="46" cy="76" rx="6" ry="4.5" fill="var(--char-eye, #78350F)" />
+  <!-- Right Half-Lidded Eye -->
+  <path d="M 68 72 L 93 70 C 94 75, 92 80, 87 82 C 79 84, 69 81, 68 72 Z" fill="#FDE68A" stroke="var(--char-secondary, #A16207)" stroke-width="2.8" stroke-linejoin="round" />
+  <ellipse cx="79" cy="76" rx="6" ry="4.5" fill="var(--char-eye, #78350F)" />
+  <!-- Smug :3 Cat Mouth -->
+  <path d="M 57 85 Q 60 90 63 85 Q 66 90 69 85" fill="none" stroke="var(--char-secondary, #A16207)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

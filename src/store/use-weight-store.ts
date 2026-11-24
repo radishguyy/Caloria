@@ -6,6 +6,7 @@ interface WeightStoreState {
   weightLogs: WeightLogEntry[];
   
   // Actions
+  setWeightLogs: (logs: WeightLogEntry[]) => void;
   addWeightLog: (weightKg: number, notes?: string, customDate?: string) => WeightLogEntry;
   removeWeightLog: (id: string) => void;
   getLatestWeight: () => number;
@@ -18,32 +19,9 @@ interface WeightStoreState {
 export const useWeightStore = create<WeightStoreState>()(
   persist(
     (set, get) => ({
-      weightLogs: [
-        {
-          id: "w-log-1",
-          date: "2026-10-01",
-          weightKg: 75.0,
-          notes: "Berat awal memulai program Caloria",
-        },
-        {
-          id: "w-log-2",
-          date: "2026-10-07",
-          weightKg: 74.4,
-          notes: "Penimbangan akhir minggu ke-1",
-        },
-        {
-          id: "w-log-3",
-          date: "2026-10-14",
-          weightKg: 73.9,
-          notes: "Penimbangan akhir minggu ke-2",
-        },
-        {
-          id: "w-log-4",
-          date: "2026-10-21",
-          weightKg: 73.5,
-          notes: "Penimbangan minggu ke-3 (Progress stabil)",
-        },
-      ],
+      weightLogs: [],
+
+      setWeightLogs: (logs: WeightLogEntry[]) => set({ weightLogs: logs }),
 
       addWeightLog: (weightKg: number, notes?: string, customDate?: string) => {
         const dateStr = customDate || new Date().toISOString().split("T")[0];
@@ -70,7 +48,7 @@ export const useWeightStore = create<WeightStoreState>()(
 
       getLatestWeight: () => {
         const logs = get().weightLogs;
-        if (logs.length === 0) return 75.0;
+        if (logs.length === 0) return 70.0;
         return logs[logs.length - 1].weightKg;
       },
 
@@ -86,4 +64,3 @@ export const useWeightStore = create<WeightStoreState>()(
     }
   )
 );
-

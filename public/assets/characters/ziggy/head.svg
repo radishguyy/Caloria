@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #EAB308; --char-secondary: #A16207; --char-belly: #FEF9C3; --char-inner-ear: #FDE047; --char-blush: #F59E0B; --char-eye: #78350F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="ziggy">
+  <!-- Iconic Triangular / Onigiri Head Silhouette (Ref 1 middle-right) -->
+  <path d="M 41 34 L 20 92 C 36 97, 92 97, 108 92 L 87 34 C 74 34, 54 34, 41 34 Z" fill="var(--char-primary, #EAB308)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Seamless Ear-to-Cheek Slope Cover -->
+  <path d="M 39 39 L 59 38 L 64 46 L 69 38 L 89 39 L 98 66 L 30 66 Z" fill="var(--char-primary, #EAB308)" />
+</g>
+</svg>

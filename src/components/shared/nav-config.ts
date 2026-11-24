@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   PawPrint,
+  Target,
   UtensilsCrossed,
   Users,
   type LucideIcon,
@@ -34,13 +35,19 @@ export const NAV_ITEMS: NavItem[] = [
     matchPrefixes: ["/diary"],
   },
   {
+    href: "/quests",
+    label: "Misi",
+    icon: Target,
+    matchPrefixes: ["/quests"],
+  },
+  {
     href: "/pet-customization/wardrobe",
     label: "CalPal",
     icon: PawPrint,
     matchPrefixes: ["/pet-customization", "/pet"],
   },
   {
-    href: "/social/coop",
+    href: "/social",
     label: "Social",
     icon: Users,
     matchPrefixes: ["/social"],

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #22D3EE; --char-secondary: #0284C7; --char-belly: #ECFEFF; --char-inner-ear: #7DD3FC; --char-blush: #F472B6; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="droplet">
+  <!-- Happy Upturned Half-Moon Eyes (Ref 1 bottom-second) -->
+  <path d="M 34 66 C 36 55, 52 55, 54 66 Z" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linejoin="round" />
+  <path d="M 39 66 C 40 58, 50 58, 51 66 Z" fill="var(--char-eye, #1E3A8A)" />
+  <path d="M 74 66 C 76 55, 92 55, 94 66 Z" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linejoin="round" />
+  <path d="M 77 66 C 78 58, 88 58, 89 66 Z" fill="var(--char-eye, #1E3A8A)" />
+  <!-- Blush -->
+  <ellipse cx="32" cy="74" rx="5.5" ry="3.5" fill="var(--char-blush, #F472B6)" opacity="0.65" />
+  <ellipse cx="96" cy="74" rx="5.5" ry="3.5" fill="var(--char-blush, #F472B6)" opacity="0.65" />
+  <!-- Big Laughing Mouth with Bright Tongue Out -->
+  <path d="M 47 73 L 77 73 C 78 88, 69 97, 59 97 C 49 97, 46 86, 47 73 Z" fill="#1E1B18" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linejoin="round" />
+  <path d="M 50 82 C 54 78, 68 78, 73 84 C 71 94, 64 98, 57 97 C 50 96, 48 89, 50 82 Z" fill="#FF3B30" stroke="var(--char-outline, #231F20)" stroke-width="3" stroke-linejoin="round" />
+</g>
+</svg>

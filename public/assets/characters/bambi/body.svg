@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #60A5FA; --char-secondary: #2563EB; --char-belly: #DBEAFE; --char-inner-ear: #93C5FD; --char-blush: #818CF8; --char-eye: #1E1B4B; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="bambi">
+  <!-- Tunic / Cloak Flared Compact Body with Tiny Feet (Ref 1 top-second) -->
+  <path d="M 52 96 L 34 131 C 38 135, 45 136, 50 136 L 50 142 C 50 146, 59 146, 60 141 L 61 136 L 66 136 L 67 141 C 68 146, 77 146, 77 142 L 77 136 C 83 136, 89 135, 92 131 L 74 96 Z" fill="var(--char-primary, #60A5FA)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 48 106 C 54 122, 72 122, 78 106" fill="var(--char-belly, #DBEAFE)" opacity="0.65" />
+</g>
+</svg>

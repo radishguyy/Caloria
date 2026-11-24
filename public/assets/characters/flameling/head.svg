@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FF6B5B; --char-secondary: #FF9F43; --char-belly: #FFF3E2; --char-inner-ear: #FFB5A7; --char-blush: #FF8FA3; --char-eye: #2B1E1A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="flameling">
+  <!-- Fox Head with Fluffy Cheek Tufts -->
+  <path d="M 64 35 C 86 35, 101 49, 102 68 L 110 73 L 101 79 L 106 85 C 97 96, 82 101, 64 101 C 46 101, 31 96, 22 85 L 27 79 L 18 73 L 26 68 C 27 49, 42 35, 64 35 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Cream Fox Muzzle & Cheek Mask -->
+  <path d="M 27 81 C 36 74, 48 76, 64 76 C 80 76, 92 74, 101 81 C 94 94, 80 99, 64 99 C 48 99, 34 94, 27 81 Z" fill="var(--char-belly, #FFF3E2)" />
+  <!-- Crown Flame Hair Tuft -->
+  <path d="M 59 36 C 58 26, 65 21, 67 28 C 71 24, 74 30, 70 36" fill="var(--char-secondary, #FF9F43)" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Subtle Crown Highlight -->
+  <path d="M 44 43 C 52 39, 64 39, 74 42" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.35" />
+</g>
+</svg>

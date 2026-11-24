@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #22D3EE; --char-secondary: #0284C7; --char-belly: #ECFEFF; --char-inner-ear: #7DD3FC; --char-blush: #F472B6; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="droplet">
+  <!-- Smooth Round Pebble Head -->
+  <path d="M 64 36 C 89 36, 104 51, 104 71 C 104 90, 88 101, 64 101 C 40 101, 24 90, 24 71 C 24 51, 39 36, 64 36 Z" fill="var(--char-primary, #22D3EE)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 44 43 C 54 39, 66 39, 76 42" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.45" />
+</g>
+</svg>

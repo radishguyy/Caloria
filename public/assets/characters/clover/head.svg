@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A5B4FC; --char-secondary: #6366F1; --char-belly: #EEF2FF; --char-inner-ear: #C7D2FE; --char-blush: #818CF8; --char-eye: #1E3A8A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="head" data-character="clover">
+  <!-- Spiky Cloud-Fur Cheek Silhouette (Ref 1 bottom-third) -->
+  <path d="M 56 34 C 68 32, 78 35, 84 40 L 96 38 L 90 48 L 105 53 L 95 62 L 107 70 L 94 77 L 101 86 L 85 90 C 76 98, 52 98, 42 92 L 30 96 L 35 84 L 20 80 L 30 71 L 16 62 L 31 55 L 25 45 L 40 45 C 45 38, 50 35, 56 34 Z" fill="var(--char-primary, #A5B4FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

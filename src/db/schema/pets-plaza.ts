@@ -22,6 +22,7 @@ export const plazaItems = pgTable(
     description: text("description"),
     priceCoins: integer("price_coins").default(0).notNull(),
     assetUrl: text("asset_url").notNull(),
+    tokenId1155: integer("token_id_1155").unique(),
     isEventItem: boolean("is_event_item").default(false).notNull(),
     isAvailable: boolean("is_available").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -45,6 +46,9 @@ export const userWardrobe = pgTable(
     purchasedAt: timestamp("purchased_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    isMintedOnChain: boolean("is_minted_on_chain").default(false).notNull(),
+    mintTxHash: varchar("mint_tx_hash", { length: 66 }),
+    mintedAt: timestamp("minted_at", { withTimezone: true }),
   },
   (table) => [
     unique("user_wardrobe_user_id_item_id_unique").on(
@@ -55,50 +59,5 @@ export const userWardrobe = pgTable(
   ]
 );
 
-// 5. Pets Table (Virtual Pet & Dynamic User Avatar)
-export const pets = pgTable(
-  "pets",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .references(() => profiles.id, { onDelete: "cascade" })
-      .unique()
-      .notNull(),
-    name: varchar("name", { length: 50 }).notNull(),
-    species: varchar("species", { length: 50 }).default("egg_starter").notNull(),
-    stage: integer("stage").default(1).notNull(),
-    level: integer("level").default(1).notNull(),
-    currentXp: integer("current_xp").default(0).notNull(),
-    nextLevelXp: integer("next_level_xp").default(100).notNull(),
-    equippedHatId: uuid("equipped_hat_id").references(() => plazaItems.id, {
-      onDelete: "set null",
-    }),
-    equippedOutfitId: uuid("equipped_outfit_id").references(
-      () => plazaItems.id,
-      { onDelete: "set null" }
-    ),
-    equippedGlassesId: uuid("equipped_glasses_id").references(
-      () => plazaItems.id,
-      { onDelete: "set null" }
-    ),
-    equippedAccessoryId: uuid("equipped_accessory_id").references(
-      () => plazaItems.id,
-      { onDelete: "set null" }
-    ),
-    equippedRoomId: uuid("equipped_room_id").references(() => plazaItems.id, {
-      onDelete: "set null",
-    }),
-    skinColor: varchar("skin_color", { length: 50 })
-      .default("default")
-      .notNull(),
-    renderedAvatarIconUrl: text("rendered_avatar_icon_url"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [index("pets_user_id_idx").on(table.userId)]
-);
-
+// Re-export pets table from ./pets
+export { pets, type Pet, type NewPet } from "./pets";

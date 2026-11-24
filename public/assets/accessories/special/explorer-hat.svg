@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="head-explorer-hat">
+  <!-- Safari Pith Helmet Dome -->
+  <path d="M 35 38 C 35 20, 48 16, 64 16 C 80 16, 93 20, 93 38 Z" fill="#EAB308" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Leather Hatband -->
+  <rect x="35" y="32" width="58" height="6" fill="#78350F" stroke="#231F20" stroke-width="3" />
+  <!-- Wide Explorer Brim -->
+  <path d="M 19 38 C 42 34, 86 34, 109 38 C 111 42, 96 44, 64 43 C 32 44, 17 42, 19 38 Z" fill="#CA8A04" stroke="#231F20" stroke-width="3.8" stroke-linejoin="round" />
+</g>
+</svg>

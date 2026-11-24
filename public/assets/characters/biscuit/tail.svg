@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A3E635; --char-secondary: #4D7C0F; --char-belly: #ECFCCB; --char-inner-ear: #BEF264; --char-blush: #65A30D; --char-eye: #14532D; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="tail" data-character="biscuit">
+  <!-- Perky Left-Side Tail (Ref 1 bottom-right) -->
+  <path d="M 42 126 C 30 120, 22 110, 26 106 C 30 103, 38 112, 46 120 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

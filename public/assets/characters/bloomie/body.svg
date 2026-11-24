@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #4ADE80; --char-secondary: #16A34A; --char-belly: #F0FDF4; --char-inner-ear: #FDA4AF; --char-blush: #FB7185; --char-eye: #1E3A2F; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="bloomie">
+  <!-- Plump Pear-Shaped Bunny Body -->
+  <path d="M 47 96 C 40 105, 38 122, 42 134 L 41 142 C 41 147, 56 147, 57 141 L 58 135 L 70 135 L 71 141 C 72 147, 87 147, 87 142 L 86 134 C 90 122, 88 105, 81 96 Z" fill="var(--char-primary, #4ADE80)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Soft Mint-Cream Belly -->
+  <ellipse cx="64" cy="117" rx="14" ry="13" fill="var(--char-belly, #F0FDF4)" />
+  <!-- Paws Tucked Kindly at Chest -->
+  <path d="M 44 105 C 37 110, 42 120, 52 117 C 56 115, 55 109, 50 107" fill="var(--char-primary, #4ADE80)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 84 105 C 91 110, 86 120, 76 117 C 72 115, 73 109, 78 107" fill="var(--char-primary, #4ADE80)" stroke="var(--char-outline, #231F20)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

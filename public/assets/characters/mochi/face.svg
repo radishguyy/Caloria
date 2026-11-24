@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #F9A8D4; --char-secondary: #EC4899; --char-belly: #FFF1F2; --char-inner-ear: #F472B6; --char-blush: #FB7185; --char-eye: #0F172A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="face" data-character="mochi">
+  <!-- Soft Pink Blush -->
+  <ellipse cx="32" cy="79" rx="5.5" ry="3.5" fill="var(--char-blush, #FB7185)" opacity="0.65" />
+  <ellipse cx="96" cy="79" rx="5.5" ry="3.5" fill="var(--char-blush, #FB7185)" opacity="0.65" />
+  <!-- Enormous Concentric Kawaii Eyes (Ref 1 middle-third) -->
+  <circle cx="46" cy="68" r="13.5" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" />
+  <circle cx="46" cy="68" r="10.5" fill="#334155" />
+  <circle cx="46" cy="68" r="6.8" fill="var(--char-eye, #0F172A)" />
+  <circle cx="42" cy="64" r="2.8" fill="#FFFFFF" />
+  <circle cx="82" cy="68" r="13.5" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" />
+  <circle cx="82" cy="68" r="10.5" fill="#334155" />
+  <circle cx="82" cy="68" r="6.8" fill="var(--char-eye, #0F172A)" />
+  <circle cx="78" cy="64" r="2.8" fill="#FFFFFF" />
+  <!-- Minimalist Tiny Dash Mouth -->
+  <path d="M 60 84 L 67 84" fill="none" stroke="var(--char-secondary, #EC4899)" stroke-width="3.4" stroke-linecap="round" />
+</g>
+</svg>

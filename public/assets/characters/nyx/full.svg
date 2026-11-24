@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #C084FC; --char-secondary: #7E22CE; --char-belly: #F3E8FF; --char-inner-ear: #E9D5FF; --char-blush: #E879F9; --char-eye: #581C87; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="nyx">
+  <!-- Perky Loaf Tail on Right -->
+  <path d="M 90 120 C 102 118, 111 114, 110 122 C 109 128, 100 130, 92 129 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="ears" data-character="nyx">
+  <!-- Broad Hybrid Cat-Dog Ears (Ref 1 top-third) -->
+  <path d="M 35 44 C 33 24, 41 10, 50 10 C 57 10, 62 22, 63 38 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 41 38 C 40 26, 45 17, 50 17 C 54 17, 57 25, 58 36 Z" fill="var(--char-inner-ear, #E9D5FF)" />
+  <path d="M 91 44 C 95 24, 88 12, 77 12 C 68 12, 64 24, 64 38 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 85 38 C 87 26, 83 18, 77 18 C 72 18, 69 26, 69 36 Z" fill="var(--char-inner-ear, #E9D5FF)" />
+</g>
+<g data-layer="body" data-character="nyx">
+  <!-- Quadruped Loaf Body with 4 Adorable Stubby Legs in a Row (Ref 1 top-third) -->
+  <path d="M 45 96 C 38 106, 35 120, 36 132 C 36 142, 49 143, 50 135 C 51 143, 64 143, 65 135 C 66 143, 79 143, 80 135 C 82 143, 96 142, 96 131 C 96 118, 86 112, 76 96 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <ellipse cx="62" cy="118" rx="14" ry="9" fill="var(--char-belly, #F3E8FF)" />
+</g>
+<g data-layer="head" data-character="nyx">
+  <!-- Rounded Whiskered Cat-Dog Head (Ref 1 top-third) -->
+  <path d="M 63 36 C 88 36, 102 51, 102 72 C 102 89, 86 99, 63 99 C 40 99, 24 89, 24 72 C 24 51, 38 36, 63 36 Z" fill="var(--char-primary, #C084FC)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Left & Right Cheek Whisker Bristles -->
+  <path d="M 17 70 L 25 72 M 16 77 L 25 78 M 19 85 L 27 83" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" />
+  <path d="M 101 69 L 109 67 M 101 76 L 110 76 M 99 83 L 107 85" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" />
+  <path d="M 43 43 C 53 39, 65 39, 75 42" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.38" />
+</g>
+<g data-layer="face" data-character="nyx">
+  <!-- Smug Horizontal Half-Lidded Eyes (Ref 1 top-third) -->
+  <rect x="34" y="62" width="21" height="8" rx="4" fill="#F5D0FE" stroke="var(--char-secondary, #7E22CE)" stroke-width="2.8" />
+  <rect x="43" y="63" width="10" height="6" rx="2.5" fill="var(--char-eye, #581C87)" />
+  <rect x="69" y="62" width="21" height="8" rx="4" fill="#F5D0FE" stroke="var(--char-secondary, #7E22CE)" stroke-width="2.8" />
+  <rect x="78" y="63" width="10" height="6" rx="2.5" fill="var(--char-eye, #581C87)" />
+  <!-- Skeptical Wavy Mouth -->
+  <path d="M 56 80 Q 62 75 68 80" fill="none" stroke="var(--char-secondary, #7E22CE)" stroke-width="3.4" stroke-linecap="round" />
+</g>
+</svg>

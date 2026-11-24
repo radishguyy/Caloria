@@ -1,10 +1,11 @@
-import { pgEnum, pgSchema, uuid } from "drizzle-orm/pg-core";
+import { pgEnum, pgSchema, uuid, text } from "drizzle-orm/pg-core";
 
 // Reference to Supabase's internal `auth.users` table
 const authSchema = pgSchema("auth");
 
 export const authUsers = authSchema.table("users", {
   id: uuid("id").primaryKey(),
+  email: text("email"),
 });
 
 // 1. Goal Type Enum
@@ -41,13 +42,7 @@ export const itemCategoryEnum = pgEnum("item_category_enum", [
   "room_decoration",
 ]);
 
-// 5. Friendship Status Enum
-export const friendshipStatusEnum = pgEnum("friendship_status_enum", [
-  "pending",
-  "accepted",
-  "declined",
-  "blocked",
-]);
+// 5. Friendship Status Enum is defined in ./friendships.ts
 
 // 6. Badge Category Enum
 export const badgeCategoryEnum = pgEnum("badge_category_enum", [

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FF6B5B; --char-secondary: #FF9F43; --char-belly: #FFF3E2; --char-inner-ear: #FFB5A7; --char-blush: #FF8FA3; --char-eye: #2B1E1A; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="body" data-character="flameling">
+  <!-- Compact Upright Torso & Stubby Legs -->
+  <path d="M 48 96 C 42 104, 40 120, 43 132 L 42 142 C 42 147, 55 147, 56 141 L 58 134 L 70 134 L 72 141 C 73 147, 86 147, 86 142 L 85 132 C 88 120, 86 104, 80 96 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Warm Belly Patch -->
+  <path d="M 52 102 C 49 112, 51 126, 64 128 C 77 126, 79 112, 76 102 Z" fill="var(--char-belly, #FFF3E2)" />
+  <!-- Left Resting Arm -->
+  <path d="M 44 103 C 33 107, 29 116, 34 121 C 38 124, 44 119, 46 113" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Right Cheerful Waving Arm -->
+  <path d="M 83 104 C 93 100, 102 92, 99 86 C 96 81, 88 87, 82 96" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

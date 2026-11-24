@@ -17,6 +17,8 @@ export interface EnsureProfileResult {
     username: string;
     fullName: string | null;
     avatarUrl: string | null;
+    walletAddress: string | null;
+    walletChainId: number | null;
     isOnboardingCompleted: boolean;
   };
   /** True when a brand-new profile row was created during this call. */
@@ -55,9 +57,11 @@ export async function ensureProfileForUser(
   const { userId, email, fullName, avatarUrl, username } = input;
 
   // 1. Try to fetch an existing profile.
-  const existing = await db.query.profiles.findFirst({
-    where: eq(profiles.id, userId),
-  });
+  const [existing] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1);
 
   if (existing) {
     return {
@@ -66,6 +70,8 @@ export async function ensureProfileForUser(
         username: existing.username,
         fullName: existing.fullName,
         avatarUrl: existing.avatarUrl,
+        walletAddress: existing.walletAddress ?? null,
+        walletChainId: existing.walletChainId ?? null,
         isOnboardingCompleted: existing.isOnboardingCompleted,
       },
       isNew: false,
@@ -100,6 +106,8 @@ export async function ensureProfileForUser(
           username: created.username,
           fullName: created.fullName,
           avatarUrl: created.avatarUrl,
+          walletAddress: created.walletAddress ?? null,
+          walletChainId: created.walletChainId ?? null,
           isOnboardingCompleted: created.isOnboardingCompleted,
         },
         isNew: true,

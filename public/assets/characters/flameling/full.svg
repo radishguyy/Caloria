@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #FF6B5B; --char-secondary: #FF9F43; --char-belly: #FFF3E2; --char-inner-ear: #FFB5A7; --char-blush: #FF8FA3; --char-eye: #2B1E1A; --char-nose: #231F20; --char-outline: #231F20;">
+<ellipse cx="64" cy="146" rx="30" ry="6.5" fill="#231F20" opacity="0.12" />
+<g data-layer="tail" data-character="flameling">
+  <!-- Bushy Flame-Tipped Fox Tail -->
+  <path d="M 76 126 C 96 130, 116 116, 118 94 C 118 86, 111 84, 107 90 C 105 83, 98 84, 96 92 C 92 104, 82 112, 72 116 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 102 102 C 110 98, 115 92, 115 88 C 112 86, 108 90, 106 92 C 104 87, 100 88, 98 94 C 97 98, 99 101, 102 102 Z" fill="var(--char-belly, #FFF3E2)" />
+  <path d="M 76 126 C 96 130, 116 116, 118 94" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" />
+</g>
+<g data-layer="ears" data-character="flameling">
+  <!-- Left Fox Ear -->
+  <path d="M 38 46 C 24 30, 18 14, 24 8 C 30 4, 48 16, 54 38 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 24 8 C 21 12, 22 20, 27 26 C 32 22, 37 18, 39 14 C 33 9, 27 6, 24 8 Z" fill="var(--char-secondary, #FF9F43)" />
+  <path d="M 39 42 C 31 31, 27 20, 30 16 C 34 14, 44 23, 48 38 Z" fill="var(--char-inner-ear, #FFB5A7)" />
+  <path d="M 24 8 C 30 4, 48 16, 54 38" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" />
+  <!-- Right Fox Ear -->
+  <path d="M 90 46 C 104 30, 110 14, 104 8 C 98 4, 80 16, 74 38 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 104 8 C 107 12, 106 20, 101 26 C 96 22, 91 18, 89 14 C 95 9, 101 6, 104 8 Z" fill="var(--char-secondary, #FF9F43)" />
+  <path d="M 89 42 C 97 31, 101 20, 98 16 C 94 14, 84 23, 80 38 Z" fill="var(--char-inner-ear, #FFB5A7)" />
+  <path d="M 104 8 C 98 4, 80 16, 74 38" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" />
+</g>
+<g data-layer="body" data-character="flameling">
+  <!-- Compact Upright Torso & Stubby Legs -->
+  <path d="M 48 96 C 42 104, 40 120, 43 132 L 42 142 C 42 147, 55 147, 56 141 L 58 134 L 70 134 L 72 141 C 73 147, 86 147, 86 142 L 85 132 C 88 120, 86 104, 80 96 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Warm Belly Patch -->
+  <path d="M 52 102 C 49 112, 51 126, 64 128 C 77 126, 79 112, 76 102 Z" fill="var(--char-belly, #FFF3E2)" />
+  <!-- Left Resting Arm -->
+  <path d="M 44 103 C 33 107, 29 116, 34 121 C 38 124, 44 119, 46 113" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Right Cheerful Waving Arm -->
+  <path d="M 83 104 C 93 100, 102 92, 99 86 C 96 81, 88 87, 82 96" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g data-layer="head" data-character="flameling">
+  <!-- Fox Head with Fluffy Cheek Tufts -->
+  <path d="M 64 35 C 86 35, 101 49, 102 68 L 110 73 L 101 79 L 106 85 C 97 96, 82 101, 64 101 C 46 101, 31 96, 22 85 L 27 79 L 18 73 L 26 68 C 27 49, 42 35, 64 35 Z" fill="var(--char-primary, #FF6B5B)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Cream Fox Muzzle & Cheek Mask -->
+  <path d="M 27 81 C 36 74, 48 76, 64 76 C 80 76, 92 74, 101 81 C 94 94, 80 99, 64 99 C 48 99, 34 94, 27 81 Z" fill="var(--char-belly, #FFF3E2)" />
+  <!-- Crown Flame Hair Tuft -->
+  <path d="M 59 36 C 58 26, 65 21, 67 28 C 71 24, 74 30, 70 36" fill="var(--char-secondary, #FF9F43)" stroke="var(--char-outline, #231F20)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Subtle Crown Highlight -->
+  <path d="M 44 43 C 52 39, 64 39, 74 42" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.35" />
+</g>
+<g data-layer="face" data-character="flameling">
+  <!-- Cheek Blush -->
+  <ellipse cx="35" cy="80" rx="6.5" ry="4" fill="var(--char-blush, #FF8FA3)" opacity="0.75" />
+  <ellipse cx="93" cy="80" rx="6.5" ry="4" fill="var(--char-blush, #FF8FA3)" opacity="0.75" />
+  <!-- Expressive Big Shiny Oval Eyes -->
+  <ellipse cx="46" cy="67" rx="10.5" ry="12" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" />
+  <ellipse cx="48" cy="67" rx="7" ry="9" fill="var(--char-eye, #2B1E1A)" />
+  <circle cx="45" cy="63" r="3.2" fill="#FFFFFF" />
+  <circle cx="51" cy="71" r="1.5" fill="#FFFFFF" />
+  <ellipse cx="82" cy="67" rx="10.5" ry="12" fill="#FFFFFF" stroke="var(--char-outline, #231F20)" stroke-width="3.4" />
+  <ellipse cx="80" cy="67" rx="7" ry="9" fill="var(--char-eye, #2B1E1A)" />
+  <circle cx="77" cy="63" r="3.2" fill="#FFFFFF" />
+  <circle cx="83" cy="71" r="1.5" fill="#FFFFFF" />
+  <!-- Confident Eyebrows -->
+  <path d="M 37 51 Q 46 48 54 53" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linecap="round" />
+  <path d="M 91 51 Q 82 48 74 53" fill="none" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linecap="round" />
+  <!-- Cute Nose & Fang Smile -->
+  <ellipse cx="64" cy="75" rx="3" ry="2.2" fill="var(--char-nose, #231F20)" />
+  <path d="M 55 81 Q 64 93 73 81 Z" fill="#E05263" stroke="var(--char-outline, #231F20)" stroke-width="3.2" stroke-linejoin="round" />
+  <path d="M 67 82 L 69 86 L 71 82 Z" fill="#FFFFFF" />
+</g>
+</svg>

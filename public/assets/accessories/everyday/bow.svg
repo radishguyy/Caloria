@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="acc-bow">
+  <!-- Ribbon Tails -->
+  <path d="M 82 40 L 75 53 L 81 51 L 85 55 L 88 42 Z" fill="#EC4899" stroke="#231F20" stroke-width="3.2" stroke-linejoin="round" />
+  <path d="M 90 40 L 97 53 L 91 51 L 87 55 L 84 42 Z" fill="#EC4899" stroke="#231F20" stroke-width="3.2" stroke-linejoin="round" />
+  <!-- Left Bow Loop -->
+  <path d="M 85 36 C 74 24, 64 26, 65 37 C 66 47, 76 46, 85 39 Z" fill="#F472B6" stroke="#231F20" stroke-width="3.6" stroke-linejoin="round" />
+  <!-- Right Bow Loop -->
+  <path d="M 87 36 C 98 24, 108 26, 107 37 C 106 47, 96 46, 87 39 Z" fill="#F472B6" stroke="#231F20" stroke-width="3.6" stroke-linejoin="round" />
+  <!-- Inner Pleat Creases -->
+  <path d="M 74 35 L 81 37 M 98 35 L 91 37" stroke="#231F20" stroke-width="2.6" stroke-linecap="round" />
+  <!-- Center Knot -->
+  <ellipse cx="86" cy="37.5" rx="4.8" ry="5.5" fill="#DB2777" stroke="#231F20" stroke-width="3.4" />
+</g>
+</svg>

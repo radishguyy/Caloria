@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+<g data-accessory="body-chef-apron">
+  <path d="M 52 98 L 47 134 L 81 134 L 76 98 Z" fill="#FFFFFF" stroke="#231F20" stroke-width="3.6" stroke-linejoin="round" />
+  <rect x="54" y="114" width="20" height="11" rx="3" fill="#FFEDD5" stroke="#231F20" stroke-width="2.8" />
+  <path d="M 54 98 C 54 92, 74 92, 74 98" fill="none" stroke="#231F20" stroke-width="3" />
+</g>
+</svg>

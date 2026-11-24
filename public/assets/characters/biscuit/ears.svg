@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none" style="--char-primary: #A3E635; --char-secondary: #4D7C0F; --char-belly: #ECFCCB; --char-inner-ear: #BEF264; --char-blush: #65A30D; --char-eye: #14532D; --char-nose: #231F20; --char-outline: #231F20;">
+<g data-layer="ears" data-character="biscuit">
+  <!-- Dynamic Right-Swept Long Ears (Ref 1 bottom-right) -->
+  <path d="M 62 38 C 66 22, 76 8, 84 8 C 88 8, 86 24, 80 38 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 76 41 C 84 26, 98 12, 106 12 C 109 14, 102 30, 92 45 Z" fill="var(--char-primary, #A3E635)" stroke="var(--char-outline, #231F20)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+</svg>

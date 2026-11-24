@@ -8,6 +8,41 @@
       "when": 1792865355298,
       "tag": "0000_bright_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0001_friendships_refactor",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793200435398,
+      "tag": "0001_coin_transactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793204000000,
+      "tag": "0002_clinical_nutrition_rpg",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793260289573,
+      "tag": "0004_mute_the_executioner",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793288532227,
+      "tag": "0005_pale_mongoose",
+      "breakpoints": true
     }
   ]
 }

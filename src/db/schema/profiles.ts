@@ -19,12 +19,22 @@ export const profiles = pgTable("profiles", {
   id: uuid("id")
     .primaryKey()
     .references(() => authUsers.id, { onDelete: "cascade" }),
-  username: varchar("username", { length: 50 }).unique().notNull(),
+  username: text("username").unique().notNull(),
   fullName: varchar("full_name", { length: 100 }),
   avatarUrl: text("avatar_url"),
   goal: goalTypeEnum("goal").default("maintenance").notNull(),
-  gender: varchar("gender", { length: 20 }),
+  goalPath: text("goal_path")
+    .$type<"lose_weight" | "gain_muscle" | "maintain_weight">()
+    .default("lose_weight")
+    .notNull(),
+  currentLevel: integer("current_level").default(1).notNull(),
+  currentWeek: integer("current_week").default(1).notNull(),
+  streakCount: integer("streak_count").default(0).notNull(),
+  streakConsecutiveLogs: integer("streak_consecutive_logs").default(0).notNull(),
+  gender: text("gender").notNull().default("male"),
   birthDate: date("birth_date"),
+  age: integer("age"),
+  weightKg: numeric("weight_kg", { precision: 5, scale: 2 }),
   heightCm: numeric("height_cm", { precision: 5, scale: 2 }),
   initialWeightKg: numeric("initial_weight_kg", { precision: 5, scale: 2 }),
   currentWeightKg: numeric("current_weight_kg", { precision: 5, scale: 2 }),
@@ -40,11 +50,21 @@ export const profiles = pgTable("profiles", {
   targetFatG: numeric("target_fat_g", { precision: 6, scale: 2 }),
   projectedDays: integer("projected_days"),
   caloriaCoins: integer("caloria_coins").default(0).notNull(),
+  lastLoginClaimDate: date("last_login_claim_date"), // YYYY-MM-DD
   currentStreakDays: integer("current_streak_days").default(0).notNull(),
   longestStreakDays: integer("longest_streak_days").default(0).notNull(),
+  lastLoggedDate: date("last_logged_date"),
+  streakFreezes: integer("streak_freezes").default(1).notNull(),
+  lastFreezeUsedDate: date("last_freeze_used_date"),
+  restPasses: integer("rest_passes").default(1).notNull(),
+  lastRestDayDate: date("last_rest_day_date"),
+  brokenStreakCount: integer("broken_streak_count").default(0).notNull(),
+  brokenStreakAt: timestamp("broken_streak_at", { withTimezone: true }),
   isOnboardingCompleted: boolean("is_onboarding_completed")
     .default(false)
     .notNull(),
+  walletAddress: varchar("wallet_address", { length: 42 }).unique(),
+  walletChainId: integer("wallet_chain_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -79,3 +99,7 @@ export const weightLogs = pgTable(
   ]
 );
 
+export type Profile = typeof profiles.$inferSelect;
+export type NewProfile = typeof profiles.$inferInsert;
+export type WeightLog = typeof weightLogs.$inferSelect;
+export type NewWeightLog = typeof weightLogs.$inferInsert;

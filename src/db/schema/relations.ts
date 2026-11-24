@@ -9,6 +9,7 @@ import {
   pushSubscriptions,
   notifications,
 } from "./gamification";
+import { recaps } from "./recaps";
 
 // 1. Profiles Relations
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -23,12 +24,13 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   userBadges: many(userBadges),
   coopMembers: many(coopMembers),
   createdCoopGroups: many(coopGroups),
-  sentFriendRequests: many(friendships, { relationName: "requester" }),
-  receivedFriendRequests: many(friendships, { relationName: "addressee" }),
+  sentFriendRequests: many(friendships, { relationName: "friend_sender" }),
+  receivedFriendRequests: many(friendships, { relationName: "friend_receiver" }),
   sentPokes: many(pokeLogs, { relationName: "poke_sender" }),
   receivedPokes: many(pokeLogs, { relationName: "poke_receiver" }),
   pushSubscriptions: many(pushSubscriptions),
   notifications: many(notifications),
+  recaps: many(recaps),
 }));
 
 // 2. Weight Logs Relations
@@ -119,15 +121,15 @@ export const dailyNutritionSummariesRelations = relations(
 
 // 9. Friendships Relations
 export const friendshipsRelations = relations(friendships, ({ one }) => ({
-  requester: one(profiles, {
-    fields: [friendships.requesterId],
+  sender: one(profiles, {
+    fields: [friendships.senderId],
     references: [profiles.id],
-    relationName: "requester",
+    relationName: "friend_sender",
   }),
-  addressee: one(profiles, {
-    fields: [friendships.addresseeId],
+  receiver: one(profiles, {
+    fields: [friendships.receiverId],
     references: [profiles.id],
-    relationName: "addressee",
+    relationName: "friend_receiver",
   }),
 }));
 
@@ -203,6 +205,14 @@ export const pushSubscriptionsRelations = relations(
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(profiles, {
     fields: [notifications.userId],
+    references: [profiles.id],
+  }),
+}));
+
+// 17. Recaps Relations
+export const recapsRelations = relations(recaps, ({ one }) => ({
+  user: one(profiles, {
+    fields: [recaps.userId],
     references: [profiles.id],
   }),
 }));
