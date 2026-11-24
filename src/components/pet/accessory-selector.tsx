@@ -5,17 +5,15 @@ import Link from "next/link";
 import {
   Check,
   Search,
-  ShoppingBag,
-  ArrowRight,
   AlertTriangle,
   Shirt,
   Crown,
   Glasses,
   Utensils,
   Lock,
-  Coins,
+  CircleDollarSign,
+  Store,
   X,
-  Sparkles,
 } from "lucide-react";
 import { AccessorySvgPreview } from "./character-svg";
 import {
@@ -93,28 +91,22 @@ export function AccessorySelector({
     WARDROBE_CATEGORIES.find((category) => category.id === selectedCategory) ??
     WARDROBE_CATEGORIES[0];
 
-  // Show all accessories for the active category (both owned and locked)
+  // Only show owned or default-free items in Wardrobe (hide unpurchased items)
   const categoryItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return COSMETICS_CATALOG.filter((item) => {
       if (getWardrobeCategory(item.id) !== activeCategory.id) return false;
+      const isOwned = Boolean(item.isDefaultFree) || ownedItemIds.includes(item.id);
+      if (!isOwned) return false;
       if (!query) return true;
       return (
         item.name.toLowerCase().includes(query) ||
         (item.nameEn ? item.nameEn.toLowerCase().includes(query) : false)
       );
     }).sort((a, b) => {
-      // Default "none" items always come first
       if (a.id.endsWith("-none")) return -1;
       if (b.id.endsWith("-none")) return 1;
-
-      // Owned items before locked items
-      const aOwned = Boolean(a.isDefaultFree) || ownedItemIds.includes(a.id);
-      const bOwned = Boolean(b.isDefaultFree) || ownedItemIds.includes(b.id);
-      if (aOwned && !bOwned) return -1;
-      if (!aOwned && bOwned) return 1;
-
       return 0;
     });
   }, [activeCategory.id, ownedItemIds, searchQuery]);
@@ -134,7 +126,6 @@ export function AccessorySelector({
           success: true,
           message: serverResult.message,
         });
-        // Auto-equip the newly purchased item
         onEquipItem(activeCategory.slot, itemToBuy.id);
       } else {
         if (serverResult.message.includes("login")) {
@@ -152,10 +143,11 @@ export function AccessorySelector({
           });
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setPurchaseToast({
         success: false,
-        message: err?.message || "Gagal memproses pembelian.",
+        message:
+          err instanceof Error ? err.message : "Gagal memproses pembelian.",
       });
     } finally {
       setIsPurchasing(false);
@@ -164,13 +156,13 @@ export function AccessorySelector({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Toast Feedback (Squircle) */}
+    <div className="flex h-full flex-col space-y-4">
+      {/* Toast Feedback */}
       {purchaseToast && (
         <div
           role="status"
           className={cn(
-            "p-3 rounded-navigation border flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in duration-200",
+            "p-3.5 rounded-navigation border flex items-center justify-between gap-3 text-sm animate-in fade-in duration-200",
             purchaseToast.success
               ? "bg-accent-green/15 border-accent-green/35 text-text-primary"
               : "bg-destructive/10 border-destructive/30 text-destructive",
@@ -182,13 +174,13 @@ export function AccessorySelector({
             ) : (
               <AlertTriangle className="h-4 w-4 shrink-0 text-destructive stroke-[2.5]" />
             )}
-            <p className="font-semibold">{purchaseToast.message}</p>
+            <p className="font-bold">{purchaseToast.message}</p>
           </div>
           <button
             type="button"
             onClick={() => setPurchaseToast(null)}
             aria-label="Tutup notifikasi"
-            className="p-1 rounded-navigation hover:bg-black/10 transition-colors"
+            className="p-1.5 rounded-navigation hover:bg-black/10 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -197,8 +189,7 @@ export function AccessorySelector({
 
       {/* Category Tabs & Search Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Category Tabs (Squircle) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           {WARDROBE_CATEGORIES.map((category) => {
             const Icon = CATEGORY_ICONS[category.id];
             const isActive = selectedCategory === category.id;
@@ -210,200 +201,211 @@ export function AccessorySelector({
                 onClick={() => setSelectedCategory(category.id)}
                 aria-pressed={isActive}
                 className={cn(
-                  "nav-item inline-flex items-center gap-1.5 whitespace-nowrap border px-3.5 py-2 text-xs font-semibold rounded-navigation transition-colors",
+                  "nav-item inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap border px-4 py-2 text-sm font-bold rounded-navigation transition-colors",
                   isActive
-                    ? "is-selected border-accent-orange font-bold shadow-2xs"
+                    ? "is-selected border-accent-orange font-extrabold"
                     : "bg-surface text-neutral-10 border-border-default hover:bg-surface-subtle",
                 )}
               >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 <span>{category.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Search Item Container (Squircle) */}
+        {/* Search Input */}
         <div className="relative w-full sm:w-56 shrink-0">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Cari aksesoris..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-navigation border border-border-default bg-surface py-2 pl-9 pr-8 text-xs text-text-primary shadow-xs outline-none placeholder:text-text-muted focus:border-accent-green focus:ring-1 focus:ring-accent-green/30 transition-colors"
+            className="w-full min-h-11 rounded-navigation border border-border-default bg-surface py-2 pl-9 pr-8 text-sm font-semibold text-text-primary outline-none placeholder:text-text-muted focus:border-accent-green focus:ring-1 focus:ring-accent-green/30 transition-colors"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
               aria-label="Hapus pencarian"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-text-muted hover:text-text-primary rounded-full"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary rounded-full"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Grid of Items */}
-      <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 shadow-xs">
-        {categoryItems.length === 0 ? (
-          <div className="space-y-2 py-12 text-center text-xs text-text-muted">
-            <ShoppingBag className="mx-auto h-8 w-8 text-text-muted/40" />
-            <p>Tidak ada aksesoris ditemukan pada kategori ini.</p>
+      {/* Grid of Owned Items + Dedicated "Kunjungi Toko" Card */}
+      <div className="flex-1 rounded-card border border-border-divider bg-surface p-4 sm:p-6 shadow-xs">
+        <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
+          {categoryItems.map((item) => {
+            const isFree = Boolean(item.isDefaultFree);
+            const isOwned = isFree || ownedItemIds.includes(item.id);
+            const isNoneItem = item.id.endsWith("-none");
+            const currentSlotVal =
+              equipped[activeCategory.slot] || `${activeCategory.slot}-none`;
+            const isEquipped = currentSlotVal === item.id;
+            const compatible =
+              isFree || isAccessoryCompatible(characterId, item.id);
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => {
+                  if (!compatible) return;
+                  if (!isOwned) {
+                    setConfirmModalItem(item);
+                    return;
+                  }
+                  if (isNoneItem) {
+                    onUnequipItem(activeCategory.slot);
+                  } else if (isEquipped) {
+                    onUnequipItem(activeCategory.slot);
+                  } else {
+                    onEquipItem(activeCategory.slot, item.id);
+                  }
+                }}
+                className={cn(
+                  "relative flex flex-col items-center justify-between space-y-2.5 rounded-button border-2 p-3.5 text-center transition-colors",
+                  !compatible
+                    ? "cursor-not-allowed border-dashed border-border-default bg-surface-subtle opacity-60"
+                    : "cursor-pointer",
+                  isEquipped
+                    ? "border-accent-orange bg-accent-yellow/35 ring-2 ring-accent-orange/20"
+                    : isOwned
+                      ? "border-border-divider bg-surface hover:border-accent-green hover:bg-surface-subtle"
+                      : "border-border-default bg-surface-subtle/60 hover:border-accent-orange/60",
+                )}
+              >
+                {/* Equipped check badge */}
+                {isEquipped && (
+                  <span
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-[8px] bg-accent-orange text-text-inverse"
+                    title="Terpilih"
+                  >
+                    <Check className="h-3.5 w-3.5 stroke-[3]" />
+                  </span>
+                )}
+
+                {/* Lock icon only (no text) */}
+                {!isOwned && (
+                  <span
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-[8px] bg-surface border border-border-default"
+                    title="Item Terkunci"
+                    aria-label="Item Terkunci"
+                  >
+                    <Lock className="h-3.5 w-3.5 text-accent-orange" />
+                  </span>
+                )}
+
+                {!compatible && (
+                  <span
+                    className="absolute left-2 top-2 flex items-center gap-0.5 rounded-[8px] bg-destructive/10 px-1.5 py-0.5 text-xs font-bold text-destructive"
+                    title={`Aksesoris ini tidak cocok dengan siluet ${charDef.name}`}
+                  >
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>Tidak Cocok</span>
+                  </span>
+                )}
+
+                {/* Preview SVG */}
+                <div className="flex h-20 w-20 items-center justify-center pt-1">
+                  <AccessorySvgPreview itemId={item.id} />
+                </div>
+
+                {/* Title & Price */}
+                <div className="w-full space-y-1">
+                  <p className="w-full truncate text-sm font-extrabold text-text-primary">
+                    {item.name}
+                  </p>
+                  {!isOwned && !isFree && (
+                    <p className="text-sm font-bold text-accent-orange-dark flex items-center justify-center gap-1">
+                      <CircleDollarSign className="h-4 w-4 text-accent-orange" />
+                      <span>{item.priceCoins}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Action Button: Terpilih / Pasang / Beli (no drop shadow) */}
+                <div className="mt-auto w-full pt-1">
+                  {isOwned ? (
+                    <button
+                      type="button"
+                      disabled={!compatible}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!compatible) return;
+                        if (isNoneItem) {
+                          onUnequipItem(activeCategory.slot);
+                        } else if (isEquipped) {
+                          onUnequipItem(activeCategory.slot);
+                        } else {
+                          onEquipItem(activeCategory.slot, item.id);
+                        }
+                      }}
+                      className={cn(
+                        "w-full min-h-10 rounded-navigation py-2 text-sm font-extrabold transition-colors",
+                        isEquipped
+                          ? "bg-accent-orange text-text-inverse hover:bg-accent-orange-dark"
+                          : compatible
+                            ? "border border-border-default bg-surface text-text-primary hover:bg-accent-green-light"
+                            : "cursor-not-allowed bg-surface-subtle text-text-muted",
+                      )}
+                    >
+                      {isEquipped
+                        ? "Terpilih"
+                        : compatible
+                          ? "Pasang"
+                          : "Tidak Cocok"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!compatible}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!compatible) return;
+                        setConfirmModalItem(item);
+                      }}
+                      className="w-full min-h-10 rounded-navigation py-2 text-sm font-extrabold transition-colors bg-accent-green-light hover:bg-[#a9ce46] text-[#244710]"
+                    >
+                      Beli
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Dedicated "Kunjungi Toko" Card (strictly large Store icon + "Kunjungi Toko" button only) */}
+          <div className="flex flex-col items-center justify-between gap-4 rounded-button border-2 border-dashed border-border-divider bg-surface-subtle/50 p-4 text-center">
+            <div className="flex flex-1 items-center justify-center py-4">
+              <Store
+                className="h-14 w-14 text-text-primary stroke-[1.75]"
+                aria-hidden="true"
+              />
+            </div>
             <Link
               href="/pet-customization/shop"
-              className="inline-flex items-center gap-1 pt-1 font-bold text-text-primary hover:underline"
+              className="w-full min-h-11 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] px-3 py-2.5 text-sm font-extrabold text-[#244710] flex items-center justify-center transition-colors"
             >
-              <span>Buka Toko Calpal untuk Melihat Katalog Lengkap</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              Kunjungi Toko
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {categoryItems.map((item) => {
-              const isFree = Boolean(item.isDefaultFree);
-              const isOwned = isFree || ownedItemIds.includes(item.id);
-              const isEquipped = equipped[activeCategory.slot] === item.id;
-              const compatible =
-                isFree || isAccessoryCompatible(characterId, item.id);
-
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (!compatible) return;
-                    if (!isOwned) {
-                      setConfirmModalItem(item);
-                      return;
-                    }
-                    if (isEquipped) {
-                      onUnequipItem(activeCategory.slot);
-                    } else {
-                      onEquipItem(activeCategory.slot, item.id);
-                    }
-                  }}
-                  className={cn(
-                    "relative flex flex-col items-center justify-between space-y-2 rounded-button border-2 p-3 text-center shadow-2xs transition-all",
-                    !compatible
-                      ? "cursor-not-allowed border-dashed border-border-default bg-surface-subtle opacity-60"
-                      : "cursor-pointer",
-                    isEquipped
-                      ? "border-accent-orange bg-accent-yellow/35 ring-2 ring-accent-orange/20"
-                      : isOwned
-                        ? "border-border-divider bg-surface hover:border-accent-green hover:bg-surface-subtle"
-                        : "border-border-default bg-surface-subtle/60 hover:border-accent-orange/60",
-                  )}
-                >
-                  {/* Status Badges (Squircle) */}
-                  {isEquipped && (
-                    <span
-                      className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-[8px] bg-accent-orange text-text-inverse shadow-2xs"
-                      title="Sedang Terpasang"
-                    >
-                      <Check className="h-3 w-3 stroke-[3]" />
-                    </span>
-                  )}
-
-                  {!isOwned && (
-                    <span
-                      className="absolute right-2 top-2 flex items-center gap-1 rounded-[8px] bg-surface border border-border-default px-1.5 py-0.5 text-[9px] font-bold text-neutral-10 shadow-2xs"
-                      title="Item Terkunci"
-                    >
-                      <Lock className="h-2.5 w-2.5 text-accent-orange" />
-                      <span>Kunci</span>
-                    </span>
-                  )}
-
-                  {!compatible && (
-                    <span
-                      className="absolute left-2 top-2 flex items-center gap-0.5 rounded-[8px] bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold text-destructive"
-                      title={`Aksesoris ini tidak cocok dengan siluet ${charDef.name}`}
-                    >
-                      <AlertTriangle className="h-2.5 w-2.5" />
-                      <span>Tidak Cocok</span>
-                    </span>
-                  )}
-
-                  {/* Preview SVG */}
-                  <div className="flex h-16 w-16 items-center justify-center pt-2">
-                    <AccessorySvgPreview itemId={item.id} />
-                  </div>
-
-                  {/* Title & Price */}
-                  <div className="w-full space-y-0.5">
-                    <p className="w-full truncate text-xs sm:text-sm font-bold text-text-primary">
-                      {item.name}
-                    </p>
-                    {!isOwned && !isFree && (
-                      <p className="text-[11px] font-bold text-accent-orange-dark flex items-center justify-center gap-1">
-                        <Coins className="h-3 w-3 text-accent-orange" />
-                        <span>{item.priceCoins} Koin</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Action Button: Pasang (Owned) or Beli (Locked) (Squircle) */}
-                  <div className="mt-auto w-full pt-1">
-                    {isOwned ? (
-                      <button
-                        type="button"
-                        disabled={!compatible}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!compatible) return;
-                          if (isEquipped) {
-                            onUnequipItem(activeCategory.slot);
-                          } else {
-                            onEquipItem(activeCategory.slot, item.id);
-                          }
-                        }}
-                        className={cn(
-                          "w-full rounded-navigation py-1.5 text-[11px] font-bold transition-colors shadow-2xs",
-                          isEquipped
-                            ? "bg-accent-orange text-text-inverse hover:bg-accent-orange-dark"
-                            : compatible
-                              ? "border border-border-default bg-surface text-text-primary hover:bg-accent-green-light"
-                              : "cursor-not-allowed bg-surface-subtle text-text-muted",
-                        )}
-                      >
-                        {isEquipped
-                          ? "Terpasang (Lepas)"
-                          : compatible
-                            ? "Pasang"
-                            : "Tidak Kompatibel"}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={!compatible}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!compatible) return;
-                          setConfirmModalItem(item);
-                        }}
-                        className="w-full rounded-navigation py-1.5 text-[11px] font-bold transition-transform active:scale-95 flex items-center justify-center gap-1 bg-accent-yellow/40 hover:bg-accent-yellow border border-accent-orange/40 text-accent-orange-dark shadow-2xs"
-                      >
-                        <ShoppingBag className="h-3 w-3" />
-                        <span>Beli ({item.priceCoins} Koin)</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Shared Squircle Purchase Confirmation Modal */}
+      {/* Purchase Confirmation Modal */}
       <PurchaseModal
         item={confirmModalItem}
         userCoins={coins}
         isOpen={Boolean(confirmModalItem)}
         isPurchasing={isPurchasing}
-        onClose={() => setConfirmModalItem(null)}
+        onClose={() => {
+          if (!isPurchasing) setConfirmModalItem(null);
+        }}
         onConfirm={handleConfirmPurchase}
       />
     </div>

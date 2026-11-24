@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Coins, Sparkles, ShoppingBag } from "lucide-react";
+import { CircleDollarSign, Sparkles, ShoppingBag } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import {
@@ -66,12 +66,12 @@ export function PetCustomizationTopBar() {
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         {/* Currency Display (Squircle) */}
         <div
-          className="inline-flex h-10 items-center gap-2 rounded-navigation border border-border-default bg-accent-yellow px-3.5 text-xs sm:text-sm font-bold text-text-primary shadow-2xs transition-colors"
+          className="inline-flex h-11 items-center gap-2 rounded-navigation border border-border-default bg-accent-yellow px-4 text-sm font-extrabold text-text-primary transition-colors"
           title="Saldo Caloria Coins"
           aria-label={`Saldo Caloria Coins: ${coins} Koin`}
         >
-          <Coins
-            className="h-4 w-4 text-accent-orange shrink-0"
+          <CircleDollarSign
+            className="h-5 w-5 text-accent-orange shrink-0"
             aria-hidden="true"
           />
           <span suppressHydrationWarning className="tabular-nums">

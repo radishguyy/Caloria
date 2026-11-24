@@ -6,10 +6,7 @@ import {
   Send,
   CheckCircle2,
   Clock,
-  Sparkles,
   Utensils,
-  ChevronRight,
-  UserPlus,
 } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { Friend } from "@/types";
@@ -54,7 +51,7 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
     if (poke) {
       addNotification({
         type: "poke",
-        title: "Senggolan Terkirim! 👉",
+        title: "Senggolan Terkirim!",
         message: poke.message,
         actionUrl: "/social",
       });
@@ -62,74 +59,62 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
     }
   };
 
-  const completedCount = friends.filter((f) => f.dailyGoalMet).length;
-
   return (
     <section aria-label="Daftar Teman" className={cn("space-y-4", className)}>
-      {/* List Header & Filters */}
+      {/* List Header & Filters (no count badge, no subtitle, no filter counts) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-text-primary font-heading tracking-tight">
-              Teman Co-op Aktif
-            </h2>
-            <span className="flex h-5 min-w-5 px-1.5 items-center justify-center rounded-pill bg-[#FCF8E3] text-text-primary text-xs font-bold border border-accent-orange/30 font-sans">
-              {friends.length}
-            </span>
-          </div>
-          <p className="text-xs text-text-muted font-sans">
-            {completedCount} dari {friends.length} teman telah mencatat menu gizi hari ini
-          </p>
-        </div>
+        <h2 className="text-xl font-extrabold text-text-primary font-heading tracking-tight">
+          Teman Co-op Aktif
+        </h2>
 
-        {/* Filter Pills */}
+        {/* Filter Pills (clean labels without counts) */}
         <div className="flex items-center gap-1.5 p-1 rounded-navigation bg-surface-subtle border border-border-divider self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setFilter("all")}
             className={cn(
-              "px-3 py-1 rounded-navigation text-xs font-bold transition-all font-sans",
+              "min-h-10 px-4 py-1.5 rounded-navigation text-sm font-bold transition-colors font-sans",
               filter === "all"
-                ? "bg-surface text-text-primary shadow-xs border border-border-divider/50"
-                : "text-text-muted hover:text-text-primary"
+                ? "bg-surface text-text-primary border border-border-divider/70"
+                : "text-neutral-10 hover:text-text-primary"
             )}
           >
-            Semua ({friends.length})
+            Semua
           </button>
           <button
             type="button"
             onClick={() => setFilter("pending_log")}
             className={cn(
-              "px-3 py-1 rounded-navigation text-xs font-bold transition-all font-sans",
+              "min-h-10 px-4 py-1.5 rounded-navigation text-sm font-bold transition-colors font-sans",
               filter === "pending_log"
-                ? "bg-surface text-text-primary shadow-xs border border-border-divider/50"
-                : "text-text-muted hover:text-text-primary"
+                ? "bg-surface text-text-primary border border-border-divider/70"
+                : "text-neutral-10 hover:text-text-primary"
             )}
           >
-            Belum Log ({friends.length - completedCount})
+            Belum Log
           </button>
           <button
             type="button"
             onClick={() => setFilter("completed")}
             className={cn(
-              "px-3 py-1 rounded-navigation text-xs font-bold transition-all font-sans",
+              "min-h-10 px-4 py-1.5 rounded-navigation text-sm font-bold transition-colors font-sans",
               filter === "completed"
-                ? "bg-surface text-text-primary shadow-xs border border-border-divider/50"
-                : "text-text-muted hover:text-text-primary"
+                ? "bg-surface text-text-primary border border-border-divider/70"
+                : "text-neutral-10 hover:text-text-primary"
             )}
           >
-            Selesai ({completedCount})
+            Selesai
           </button>
         </div>
       </div>
 
       {/* Friends Cards */}
       {filteredFriends.length === 0 ? (
-        <div className="rounded-card bg-surface p-8 text-center border border-border-divider space-y-3">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-subtle text-text-muted">
+        <div className="rounded-card bg-surface p-8 text-center border border-border-divider space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-subtle text-neutral-10">
             <Utensils className="h-6 w-6" />
           </div>
-          <p className="text-sm font-semibold text-text-primary font-heading">
+          <p className="text-base font-bold text-text-primary font-heading">
             {filter === "completed"
               ? "Belum ada teman yang menyelesaikan target hari ini"
               : filter === "pending_log"
@@ -138,12 +123,11 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
           </p>
           {friends.length === 0 && onOpenAddModal && (
             <button
+              type="button"
               onClick={onOpenAddModal}
-              className="button-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold font-sans"
-              style={{ backgroundColor: "#FF9233", color: "#FFFFFF" }}
+              className="min-h-12 inline-flex items-center justify-center px-5 py-2.5 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold font-sans transition-colors cursor-pointer"
             >
-              <UserPlus className="h-4 w-4" />
-              <span>Tambah Teman Sekarang</span>
+              + Tambah Teman
             </button>
           )}
         </div>
@@ -162,7 +146,7 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
               <div
                 key={friend.id || friend.userId}
                 className={cn(
-                  "p-4 sm:p-5 rounded-card border transition-all shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4",
+                  "p-4 sm:p-5 rounded-card border transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4",
                   friend.dailyGoalMet
                     ? "border-accent-green/35 bg-surface hover:border-accent-green/50"
                     : "border-border-default bg-surface hover:border-accent-orange/40"
@@ -170,7 +154,6 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
               >
                 {/* Left: Avatar & Profile Info */}
                 <div className="flex items-center gap-3.5 min-w-0">
-                  {/* Pet Avatar Preview */}
                   <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-surface-subtle border border-border-divider overflow-hidden">
                     <AvatarRenderer characterId={petSpecies} size="sm" className="h-12 w-12" />
                     {friend.dailyGoalMet && (
@@ -182,26 +165,26 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
 
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm sm:text-base font-bold text-text-primary font-heading truncate">
+                      <h3 className="text-base sm:text-lg font-extrabold text-text-primary font-heading truncate">
                         {friend.fullName}
                       </h3>
-                      <span className="text-xs text-text-muted font-sans truncate">
+                      <span className="text-sm text-neutral-10 font-sans truncate">
                         @{friend.username}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-sans">
-                      <span className="px-2 py-0.5 rounded-pill bg-accent-green-light/40 text-text-primary font-semibold border border-border-default/50">
+                    <div className="flex items-center gap-2 flex-wrap text-sm font-sans">
+                      <span className="px-2.5 py-0.5 rounded-pill bg-accent-green-light/40 text-text-primary font-bold">
                         {friend.petName || "Pet"} • Lv.{petLevel} {petStage}
                       </span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-[#FCF8E3] text-text-primary font-bold border border-accent-orange/20">
-                        <Flame className="h-3 w-3 fill-accent-orange text-accent-orange" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill bg-[#FCF8E3] text-text-primary font-bold">
+                        <Flame className="h-3.5 w-3.5 fill-accent-orange text-accent-orange" />
                         {streak} Hari Streak
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-text-muted flex items-center gap-1 font-sans">
-                      <Clock className="h-3 w-3 text-text-muted" />
+                    <p className="text-sm text-neutral-10 flex items-center gap-1.5 font-sans">
+                      <Clock className="h-3.5 w-3.5 text-neutral-10" />
                       {friend.lastActiveText || "Aktif di Caloria"}
                     </p>
                   </div>
@@ -209,15 +192,14 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
 
                 {/* Right: Nutrition Progress & Senggol Action */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 border-t md:border-t-0 border-border-divider pt-3 md:pt-0">
-                  {/* Calorie Progress Bar */}
-                  <div className="space-y-1 sm:w-44">
-                    <div className="flex items-center justify-between text-[11px] font-sans">
-                      <span className="font-semibold text-text-muted">Progres Kalori</span>
-                      <span className="font-bold text-text-primary">
+                  <div className="space-y-1.5 sm:w-48">
+                    <div className="flex items-center justify-between text-sm font-sans">
+                      <span className="font-semibold text-neutral-10">Kalori</span>
+                      <span className="font-extrabold text-text-primary tabular-nums">
                         {calories} / {target} kcal
                       </span>
                     </div>
-                    <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
+                    <div className="h-2.5 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
                       <div
                         className={cn(
                           "h-full rounded-pill transition-all duration-500",
@@ -228,26 +210,21 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex items-center gap-2 self-end sm:self-center">
                     {friend.dailyGoalMet ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-navigation text-xs font-bold text-accent-green bg-accent-green-light/30 border border-accent-green/30 font-sans">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-navigation text-sm font-bold text-[#244710] bg-accent-green-light/40 font-sans">
+                        <CheckCircle2 className="h-4 w-4" />
                         Target Selesai!
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handlePoke(friend)}
-                        className="button-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold font-sans cursor-pointer active:scale-95"
-                        style={{
-                          backgroundColor: "#FF9233",
-                          color: "#FFFFFF",
-                        }}
+                        className="min-h-11 inline-flex items-center gap-1.5 px-4 py-2 rounded-button bg-accent-orange hover:bg-accent-orange-dark text-white text-sm font-extrabold font-sans cursor-pointer transition-colors"
                       >
-                          <Send className="h-3.5 w-3.5" />
-                          <span>Senggol</span>
-                        </button>
+                        <Send className="h-4 w-4" />
+                        <span>Senggol</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -259,4 +236,3 @@ export function FriendList({ className, onOpenAddModal }: FriendListProps) {
     </section>
   );
 }
-

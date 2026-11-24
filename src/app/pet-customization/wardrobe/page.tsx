@@ -265,9 +265,9 @@ export default function PetWardrobePage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        {/* Left Column: CalPal stage + draft actions */}
-        <div className="space-y-4 lg:sticky lg:top-20 lg:col-span-5">
+      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
+        {/* Left Column: CalPal stage + draft actions (equal height with right panel) */}
+        <div className="flex flex-col lg:col-span-5">
           <AvatarPreview
             nickname={name?.trim() || "CalPal"}
             characterId={draftState.characterId}
@@ -280,12 +280,13 @@ export default function PetWardrobePage() {
             changedCategoryCount={changedCategoryCount}
             onSave={handleSaveAvatar}
             onCancel={handleRevertDraft}
+            className="h-full"
           />
           <MintCalPalCard />
         </div>
 
         {/* Right Column: Dandani Calpal Wardrobe */}
-        <div className="space-y-4 lg:col-span-7">
+        <div className="flex flex-col lg:col-span-7">
           <AccessorySelector
             characterId={draftState.characterId}
             ownedItemIds={ownedItemIds}

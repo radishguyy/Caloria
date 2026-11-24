@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useCallback } from "react";
-import { Coins, X, AlertCircle, ShoppingBag, Loader2 } from "lucide-react";
+import { CircleDollarSign, X, AlertCircle, Loader2 } from "lucide-react";
 import { CosmeticItem } from "@/lib/cosmetics-catalog";
 import { AccessorySvgPreview } from "@/components/pet/character-svg";
 import { cn } from "@/lib/utils";
@@ -96,8 +96,8 @@ export function PurchaseModal({
         <div className="rounded-navigation border border-border-default bg-surface-subtle p-3.5 text-xs space-y-2 text-left">
           <div className="flex items-center justify-between">
             <span className="text-neutral-10">Saldo Koin Kamu:</span>
-            <span className="font-bold text-text-primary flex items-center gap-1">
-              <Coins className="h-3.5 w-3.5 text-accent-orange" />
+            <span className="font-bold text-text-primary flex items-center gap-1.5">
+              <CircleDollarSign className="h-4 w-4 text-accent-orange" />
               {userCoins} Koin
             </span>
           </div>
@@ -151,22 +151,19 @@ export function PurchaseModal({
             disabled={!canAfford || isPurchasing}
             onClick={() => onConfirm(item)}
             className={cn(
-              "py-2.5 rounded-button font-bold text-xs transition-transform active:scale-95 flex items-center justify-center gap-1.5 shadow-button-sm",
+              "min-h-11 py-2.5 rounded-button font-extrabold text-sm transition-colors flex items-center justify-center gap-1.5",
               canAfford && !isPurchasing
-                ? "bg-accent-green hover:bg-accent-green/90 text-text-inverse"
-                : "bg-surface-subtle border border-border-default text-text-muted cursor-not-allowed opacity-60 shadow-none",
+                ? "bg-accent-green-light hover:bg-[#a9ce46] text-[#244710]"
+                : "bg-surface-subtle border border-border-default text-text-muted cursor-not-allowed opacity-60",
             )}
           >
             {isPurchasing ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Memproses...</span>
               </>
             ) : (
-              <>
-                <ShoppingBag className="h-3.5 w-3.5" />
-                <span>{canAfford ? "Beli Sekarang" : "Koin Belum Cukup"}</span>
-              </>
+              <span>{canAfford ? "Beli" : "Koin Belum Cukup"}</span>
             )}
           </button>
         </div>

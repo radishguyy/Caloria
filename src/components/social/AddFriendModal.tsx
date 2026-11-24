@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Search, UserPlus, Check, AlertCircle, Copy, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Search, Check, AlertCircle, Copy, Users } from "lucide-react";
 import { useSocialStore } from "@/stores/social-store";
 import { toastFriendRequestSent } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,15 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
     text: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -85,34 +94,34 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="review-card w-full max-w-md bg-surface p-6 rounded-card border border-border-default shadow-lg space-y-5">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-border-divider pb-3.5">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-navigation bg-accent-orange/15 text-accent-orange">
-              <UserPlus className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-text-primary font-heading">
-                Tambah Teman & Squad
-              </h2>
-              <p className="text-xs text-text-muted font-sans">
-                Ajak teman akrabmu saling jaga streak di Caloria
-              </p>
-            </div>
-          </div>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Tambah Teman & Squad"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+    >
+      {/* Pure white background (removed review-card yellow override) */}
+      <div className="w-full max-w-md bg-surface p-6 rounded-card border border-border-default shadow-2xl space-y-5">
+        {/* Modal Header: no icon, no subtitle, enlarged title */}
+        <div className="flex items-center justify-between gap-3 border-b border-border-divider pb-3.5">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-text-primary font-heading">
+            Tambah Teman & Squad
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors"
+            aria-label="Tutup modal"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-full text-neutral-10 hover:text-text-primary hover:bg-surface-subtle transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Sub-tabs: Username Search vs Join by Party Code */}
-        <div className="flex items-center gap-2 border-b border-border-divider pb-2">
+        {/* Sub-tabs */}
+        <div className="flex items-center gap-2 border-b border-border-divider pb-2.5">
           <button
             type="button"
             onClick={() => {
@@ -120,10 +129,10 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
               setStatusMsg(null);
             }}
             className={cn(
-              "px-3 py-1.5 rounded-navigation text-xs font-bold transition-all",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm font-extrabold transition-colors",
               activeTab === "search"
-                ? "bg-[#FCF8E3] text-text-primary border border-accent-orange/30 font-bold"
-                : "text-text-muted hover:text-text-primary"
+                ? "bg-[#FCF8E3] text-text-primary border border-accent-orange/30"
+                : "text-neutral-10 hover:text-text-primary"
             )}
           >
             Cari Username / Tag
@@ -135,10 +144,10 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
               setStatusMsg(null);
             }}
             className={cn(
-              "px-3 py-1.5 rounded-navigation text-xs font-bold transition-all",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm font-extrabold transition-colors",
               activeTab === "code"
-                ? "bg-[#FCF8E3] text-text-primary border border-accent-orange/30 font-bold"
-                : "text-text-muted hover:text-text-primary"
+                ? "bg-[#FCF8E3] text-text-primary border border-accent-orange/30"
+                : "text-neutral-10 hover:text-text-primary"
             )}
           >
             Kode Co-op Squad
@@ -149,7 +158,7 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
         {statusMsg && (
           <div
             className={cn(
-              "p-3 rounded-navigation text-xs flex items-center gap-2 font-sans",
+              "p-3.5 rounded-navigation text-sm font-semibold flex items-center gap-2 font-sans",
               statusMsg.type === "success"
                 ? "bg-accent-green-light/40 border border-accent-green/30 text-text-primary"
                 : "bg-red-50 border border-red-200 text-red-700"
@@ -167,26 +176,26 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
         {/* Tab 1: Search by Username */}
         {activeTab === "search" && (
           <form onSubmit={handleSendInvite} className="space-y-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="friend-username"
-                className="text-xs font-bold text-text-primary font-heading"
+                className="block text-base sm:text-lg font-extrabold text-text-primary font-heading"
               >
                 Username atau Caloria Tag
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
                 <input
                   id="friend-username"
                   type="text"
                   placeholder="Contoh: @nuriman atau nuriman"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm rounded-navigation border border-border-default bg-surface focus:outline-none focus:ring-2 focus:ring-accent-orange/40 font-sans"
+                  className="w-full min-h-12 pl-11 pr-3.5 py-3 text-base rounded-navigation border border-border-default bg-surface focus:outline-none focus:ring-2 focus:ring-accent-green/50 font-sans"
                   autoFocus
                 />
               </div>
-              <p className="text-[11px] text-text-muted font-sans">
+              <p className="text-sm text-neutral-10 font-sans">
                 Undangan akan dikirimkan dan menunggu persetujuan temanmu.
               </p>
             </div>
@@ -195,8 +204,7 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
               <button
                 type="submit"
                 disabled={isSubmitting || !usernameInput.trim()}
-                className="button-primary px-4 py-2 text-xs font-bold font-sans cursor-pointer disabled:opacity-50"
-                style={{ backgroundColor: "#FF9233", color: "#FFFFFF" }}
+                className="min-h-12 px-6 py-2.5 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold font-sans cursor-pointer transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? "Mengirim..." : "Kirim Undangan"}
               </button>
@@ -204,46 +212,45 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
           </form>
         )}
 
-        {/* Tab 2: Join Squad by Code & Share My Code */}
+        {/* Tab 2: Join Squad by Code & Share My Code (consistent green flat buttons) */}
         {activeTab === "code" && (
           <div className="space-y-4">
-            {/* My Party Code Box */}
-            <div className="p-3.5 rounded-navigation bg-surface-subtle border border-border-divider space-y-1.5">
-              <span className="text-[11px] font-semibold text-text-muted font-sans">
+            <div className="p-4 rounded-navigation bg-surface-subtle border border-border-divider space-y-2">
+              <span className="text-sm font-bold text-neutral-10 font-sans">
                 Kode Squad Milikmu
               </span>
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-base font-extrabold tracking-wider text-text-primary">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-mono text-lg font-extrabold tracking-wider text-text-primary">
                   {partyCode}
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-navigation text-xs font-bold bg-surface border border-border-default hover:bg-surface-subtle transition-colors text-text-primary font-sans"
+                  className="min-h-11 inline-flex items-center gap-1.5 px-4 py-2 rounded-button text-sm font-extrabold bg-accent-green-light hover:bg-[#a9ce46] transition-colors text-[#244710] font-sans cursor-pointer"
                 >
-                  {copiedCode ? <Check className="h-3.5 w-3.5 text-accent-green" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copiedCode ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   <span>{copiedCode ? "Disalin" : "Salin"}</span>
                 </button>
               </div>
             </div>
 
             <form onSubmit={handleJoinSquad} className="space-y-4 pt-1">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label
                   htmlFor="party-code-input"
-                  className="text-xs font-bold text-text-primary font-heading"
+                  className="block text-base sm:text-lg font-extrabold text-text-primary font-heading"
                 >
                   Gabung ke Squad Teman
                 </label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                  <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
                   <input
                     id="party-code-input"
                     type="text"
                     placeholder="Contoh: CAL-8829"
                     value={partyCodeInput}
                     onChange={(e) => setPartyCodeInput(e.target.value.toUpperCase())}
-                    className="w-full pl-9 pr-3 py-2 text-sm font-mono uppercase rounded-navigation border border-border-default bg-surface focus:outline-none focus:ring-2 focus:ring-accent-orange/40"
+                    className="w-full min-h-12 pl-11 pr-3.5 py-3 text-base font-mono uppercase rounded-navigation border border-border-default bg-surface focus:outline-none focus:ring-2 focus:ring-accent-green/50"
                   />
                 </div>
               </div>
@@ -252,8 +259,7 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
                 <button
                   type="submit"
                   disabled={!partyCodeInput.trim()}
-                  className="button-primary px-4 py-2 text-xs font-bold font-sans cursor-pointer disabled:opacity-50"
-                  style={{ backgroundColor: "#5B8E55", color: "#FFFFFF" }}
+                  className="min-h-12 px-6 py-2.5 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold font-sans cursor-pointer transition-colors disabled:opacity-50"
                 >
                   Gabung Squad
                 </button>
@@ -265,4 +271,3 @@ export function AddFriendModal({ isOpen, onClose }: AddFriendModalProps) {
     </div>
   );
 }
-
