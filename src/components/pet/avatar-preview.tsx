@@ -275,7 +275,7 @@ export function AvatarPreview({
             </h2>
             <span
               suppressHydrationWarning
-              className="shrink-0 rounded-pill bg-accent-yellow px-2.5 py-0.5 text-sm font-black tracking-wide text-accent-orange-dark font-mono tabular-nums"
+              className="shrink-0 rounded-pill bg-accent-yellow px-2.5 py-0.5 text-sm font-black tracking-wide text-[#7C3A0D] font-mono tabular-nums"
             >
               Lv. {level}
             </span>
@@ -299,7 +299,7 @@ export function AvatarPreview({
         {/* XP Progress Bar */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-sm font-bold font-sans">
-            <span className="inline-flex items-center gap-1.5 text-text-primary">
+            <span className="inline-flex items-center gap-1.5 text-[#244710]">
               <Sparkles className="h-4 w-4 text-accent-green" />
               <span>XP</span>
             </span>

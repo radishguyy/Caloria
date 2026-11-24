@@ -66,7 +66,7 @@ export function PetCustomizationTopBar() {
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         {/* Currency Display (Squircle) */}
         <div
-          className="inline-flex h-11 items-center gap-2 rounded-navigation border border-border-default bg-accent-yellow px-4 text-sm font-extrabold text-text-primary transition-colors"
+          className="inline-flex h-11 items-center gap-2 rounded-navigation border border-border-default bg-accent-yellow px-4 text-sm font-extrabold text-[#244710] transition-colors"
           title="Saldo Caloria Coins"
           aria-label={`Saldo Caloria Coins: ${coins} Koin`}
         >
