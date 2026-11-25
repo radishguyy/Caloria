@@ -423,3 +423,179 @@
 :root {
   --brand-green-dark: #4f7a2a;
 }
+
+/* ── GlowTour.js Caloria Theme Overrides ── */
+[data-glow-tour-root] {
+  --glow-tour-color-surface: var(--color-surface);
+  --glow-tour-color-surface-muted: var(--color-surface-subtle);
+  --glow-tour-color-text: var(--color-neutral-10);
+  --glow-tour-color-text-muted: var(--color-text-muted);
+  --glow-tour-color-accent: var(--color-accent-green-light);
+  --glow-tour-color-accent-hover: color-mix(
+    in srgb,
+    var(--color-accent-green-light) 88%,
+    var(--color-accent-green)
+  );
+  --glow-tour-color-accent-active: var(--color-accent-green);
+  --glow-tour-color-on-accent: var(--color-text-primary);
+  --glow-tour-color-border: transparent;
+  --glow-tour-overlay-color: #0f172a;
+  --glow-tour-shadow: none;
+  --glow-tour-radius: var(--radius-button);
+  --glow-tour-popover-width: 340px;
+  --glow-tour-viewport-gap: 12px;
+  --glow-tour-control-height: 36px;
+  --glow-tour-spacing: 8px;
+}
+
+[data-glow-tour-root] [data-glow-tour-overlay] {
+  z-index: 10000;
+}
+
+[data-glow-tour-root] [data-glow-tour-pointer] {
+  z-index: 10001;
+}
+
+[data-glow-tour-root] [data-glow-tour-popover] {
+  z-index: 10002;
+  background: var(--color-surface);
+  border: 0;
+  border-radius: var(--radius-button);
+  box-shadow: none;
+  color: var(--color-neutral-10);
+  font-family: var(--font-body);
+  gap: 10px;
+  padding: 18px 20px;
+  width: min(340px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+}
+
+[data-glow-tour-root] [data-glow-tour-popover]::before,
+[data-glow-tour-root] [data-glow-tour-popover]::after {
+  border-width: 0;
+  box-shadow: none;
+}
+
+[data-glow-tour-root] .caloria-tour-progress {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+[data-glow-tour-root] [data-glow-tour-header] {
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+[data-glow-tour-root] [data-glow-tour-content] {
+  color: var(--color-neutral-10);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+[data-glow-tour-root] [data-glow-tour-footer] {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+[data-glow-tour-root] [data-glow-tour-cancel-trigger] {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-input);
+  box-shadow: none;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-inline-end: auto;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+[data-glow-tour-root] [data-glow-tour-cancel-trigger]:hover:not(:disabled) {
+  background: var(--color-surface-subtle);
+  color: var(--color-neutral-10);
+  text-decoration: none;
+}
+
+[data-glow-tour-root] [data-glow-tour-previous-trigger] {
+  background: var(--color-surface-subtle);
+  border: 0;
+  border-radius: var(--radius-input);
+  box-shadow: none;
+  color: var(--color-neutral-10);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+[data-glow-tour-root] [data-glow-tour-previous-trigger]:hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--color-surface-subtle) 80%,
+    var(--color-border-divider)
+  );
+}
+
+[data-glow-tour-root] [data-glow-tour-previous-trigger]:disabled {
+  display: none;
+}
+
+/* Primary action styled like Caloria's 3D CTA button */
+[data-glow-tour-root] [data-glow-tour-advance-trigger] {
+  background: var(--color-accent-green-light);
+  border: 0;
+  border-radius: var(--radius-button);
+  box-shadow: 0 4px 0 var(--color-text-primary);
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  min-height: 36px;
+  padding: 0 16px;
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    background-color var(--duration-fast) var(--ease-smooth);
+}
+
+[data-glow-tour-root] [data-glow-tour-advance-trigger]:hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--color-accent-green-light) 88%,
+    var(--color-accent-green)
+  );
+}
+
+[data-glow-tour-root] [data-glow-tour-advance-trigger]:active:not(:disabled) {
+  box-shadow: 0 2px 0 var(--color-text-primary);
+  transform: translateY(2px);
+}
+
+[data-glow-tour-root] [data-glow-tour-cancel-trigger]:focus-visible,
+[data-glow-tour-root] [data-glow-tour-previous-trigger]:focus-visible,
+[data-glow-tour-root] [data-glow-tour-advance-trigger]:focus-visible {
+  outline: 2px solid var(--color-accent-green);
+  outline-offset: 2px;
+}
+
+@media (max-width: 400px) {
+  [data-glow-tour-root] [data-glow-tour-popover] {
+    padding: 16px;
+  }
+
+  [data-glow-tour-root] [data-glow-tour-cancel-trigger],
+  [data-glow-tour-root] [data-glow-tour-previous-trigger],
+  [data-glow-tour-root] [data-glow-tour-advance-trigger] {
+    font-size: 0.75rem;
+    padding: 0 10px;
+  }
+}

@@ -15,6 +15,7 @@ import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { getCharacterDefinition } from "@/lib/character-assets/catalog";
 import {
@@ -50,6 +51,7 @@ const LEVEL_STAGE_META: Record<
 
 export default function QuestsPage() {
   const isHydrated = useHydrated();
+  useAutoTour("quests", { enabled: isHydrated });
   const {
     goalPlan,
     waterLoggedMl,
@@ -201,7 +203,10 @@ export default function QuestsPage() {
       </header>
 
       {/* 2. Highlighted Level Hero + Interactive Level Stepper Card */}
-      <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6 space-y-6">
+      <section
+        data-tour="quests-roadmap"
+        className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6 space-y-6"
+      >
         <div className="grid gap-6 lg:grid-cols-[1fr_1.6fr] lg:items-center">
           {/* Left: Big Highlighted Active Level */}
           <div className="flex items-baseline gap-4 lg:border-r lg:border-border-divider lg:pr-6">
@@ -541,7 +546,7 @@ export default function QuestsPage() {
       <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-0">
           {/* Left: Main Missions */}
-          <div className="lg:pr-6">
+          <div data-tour="quests-main" className="lg:pr-6">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-text-primary">Misi Utama</h2>
               <span className="text-xs font-semibold text-text-muted">
@@ -612,7 +617,10 @@ export default function QuestsPage() {
           </div>
 
           {/* Right: Side Missions */}
-          <div className="border-t border-border-divider pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <div
+            data-tour="quests-side"
+            className="border-t border-border-divider pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0"
+          >
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-text-primary">Misi Tambahan</h2>
               <span className="text-xs font-semibold text-text-muted">

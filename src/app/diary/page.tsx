@@ -22,10 +22,12 @@ import { QuestWidget } from "@/components/shared/QuestWidget";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { cn } from "@/lib/utils";
 
 export default function FoodDiaryPage() {
   const isHydrated = useHydrated();
+  useAutoTour("diary", { enabled: isHydrated });
   const {
     logs,
     removeLog,
@@ -82,6 +84,7 @@ export default function FoodDiaryPage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/diary/archive"
+            data-tour="diary-archive-btn"
             className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-text-primary text-xs font-bold transition-colors"
           >
             <Calendar className="h-4 w-4 text-accent-green" />
@@ -90,6 +93,7 @@ export default function FoodDiaryPage() {
 
           <Link
             href="/diary/add"
+            data-tour="diary-add-btn"
             className="button-primary inline-flex items-center gap-2 px-5 py-2.5 text-xs"
           >
             <Plus className="h-4 w-4" />
@@ -206,7 +210,10 @@ export default function FoodDiaryPage() {
       <QuestWidget />
 
       {/* Filter Tabs by Meal Time */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-border-divider">
+      <div
+        data-tour="diary-filter"
+        className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-border-divider"
+      >
         <button
           onClick={() => setActiveFilter("all")}
           className={cn(
@@ -269,6 +276,7 @@ export default function FoodDiaryPage() {
 
                   <Link
                     href={`/diary/add?meal=${meal.id}`}
+                    data-tour="diary-meal-add"
                     className="inline-flex items-center gap-1 px-3 py-1 rounded-navigation bg-accent-green-light text-text-primary hover:bg-accent-green hover:text-text-inverse transition-colors text-xs font-bold"
                   >
                     <Plus className="h-3.5 w-3.5" />

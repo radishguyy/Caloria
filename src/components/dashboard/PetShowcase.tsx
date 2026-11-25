@@ -464,6 +464,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
 
   return (
     <div
+      data-tour="dashboard-pet"
       className={cn(
         "rounded-card border border-border-divider bg-surface p-6 shadow-xs flex flex-col justify-between transition-colors",
         isEcstatic && "bg-gradient-to-b from-accent-green-light/40 to-surface border-accent-green/35",

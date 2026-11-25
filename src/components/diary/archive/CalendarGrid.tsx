@@ -171,7 +171,10 @@ export function CalendarGrid({
   }, [days, summariesMap]);
 
   return (
-    <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 shadow-xs space-y-4">
+    <div
+      data-tour="diary-archive-calendar"
+      className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 shadow-xs space-y-4"
+    >
       {/* Month Navigation Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-divider">
         <div className="flex items-center gap-2">
