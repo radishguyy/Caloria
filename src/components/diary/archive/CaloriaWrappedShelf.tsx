@@ -168,7 +168,7 @@ export function CaloriaWrappedShelf() {
         setIsModalOpen(true);
         fetchStatus();
       } else {
-        toastError(data.error || "Gagal membuat recap.");
+        toastError(data.error || "Gagal membuat rekap.");
       }
     } catch (err) {
       console.error("[WrappedShelf] Error generating recap:", err);
@@ -221,21 +221,12 @@ export function CaloriaWrappedShelf() {
   return (
     <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
       <div className="grid gap-5 lg:grid-cols-3 lg:gap-0">
-        {/* Left: Current Recap */}
+        {/* Left: Current Rekap */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:col-span-2 lg:pr-6">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-              Recap {unitLabel} •{" "}
-              {formatRecapDateRange(eligibility.startDate, eligibility.endDate)}
-            </p>
+          <div>
             <h2 className="font-heading text-2xl font-extrabold tracking-tight text-text-primary">
-              {unitLabel} {eligibility.cycleNumber}
+              Rekapmu Pekan ini
             </h2>
-            <p className="text-xs font-medium text-neutral-10">
-              {isAvailable
-                ? "Ringkasan nutrisi dan progres pet 7 hari terakhir siap dilihat."
-                : `Terbuka dalam ${eligibility.daysRemaining} hari lagi.`}
-            </p>
           </div>
 
           <div className="shrink-0">
@@ -250,7 +241,7 @@ export function CaloriaWrappedShelf() {
                   <>
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>
-                      {isGenerating ? "Memuat..." : "Putar Ulang Recap"}
+                      {isGenerating ? "Memuat..." : "Putar Ulang Rekap"}
                     </span>
                   </>
                 ) : (
@@ -259,7 +250,7 @@ export function CaloriaWrappedShelf() {
                       className="h-3.5 w-3.5 fill-current"
                       aria-hidden="true"
                     />
-                    <span>{isGenerating ? "Memuat..." : "Lihat Recap"}</span>
+                    <span>{isGenerating ? "Memuat..." : "Lihat Rekap"}</span>
                   </>
                 )}
               </button>
@@ -272,15 +263,15 @@ export function CaloriaWrappedShelf() {
           </div>
         </div>
 
-        {/* Right: Past Recaps List */}
+        {/* Right: Past Rekaps List */}
         <div className="border-t border-border-divider pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <h3 className="text-sm font-bold text-text-primary">
-            Riwayat Recap
+            Riwayat Rekap
           </h3>
           <div className="mt-2.5 max-h-[110px] overflow-y-auto pr-1 [scrollbar-width:thin]">
             {history.length === 0 ? (
               <p className="text-xs text-text-muted">
-                Belum ada riwayat recap tersimpan.
+                Belum ada riwayat rekap tersimpan.
               </p>
             ) : (
               <ul className="divide-y divide-border-divider/60">

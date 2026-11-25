@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, Suspense, useEffect } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -10,7 +10,6 @@ import {
   Minus,
   CheckCircle2,
   Coins,
-  X,
   Camera,
   Loader2,
   Copy,
@@ -34,6 +33,7 @@ import {
   BatchRewardEvaluationResult,
 } from "@/lib/reward-engine";
 import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
+import { ArScannerOverlay } from "@/components/diary/ArScannerOverlay";
 import { ReviewScanModal } from "@/components/diary/ReviewScanModal";
 import { CreateCustomFoodModal } from "@/components/diary/CreateCustomFoodModal";
 import { batchLogFoodsAction, searchFoodsAction } from "@/app/actions/diary";
@@ -42,62 +42,13 @@ import {
   toastMealsCommitted,
   toastOcrSuccess,
 } from "@/lib/toast";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { cn } from "@/lib/utils";
 
-/**
- * Compress image on client using HTML5 Canvas (max 1200px, 80% JPEG quality)
- */
-async function compressImageFile(
-  file: File,
-  maxDimension = 1200,
-  quality = 0.8
-): Promise<{ blob: Blob; previewUrl: string }> {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > maxDimension || height > maxDimension) {
-        if (width >= height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("Failed to get 2D canvas context for compression."));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error("Failed to compress image into JPEG blob."));
-            return;
-          }
-          resolve({ blob, previewUrl: objectUrl });
-        },
-        "image/jpeg",
-        quality
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error("Failed to load selected image file."));
-    };
-    img.src = objectUrl;
-  });
-}
-
 function DiaryAddFoodContent() {
+  const isHydrated = useHydrated();
+  useAutoTour("diary-add", { enabled: isHydrated });
   const router = useRouter();
   const searchParams = useSearchParams();
   const mealParam = searchParams.get("meal") as MealTypeId | null;
@@ -139,7 +90,6 @@ function DiaryAddFoodContent() {
     "all" | "recent" | "frequent" | "saved" | "branded"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
 
   // Multi-Select Staging Tray State (FatSecret-Style Staging)
   const [stagedItems, setStagedItems] = useState<StagedFoodItem[]>([]);
@@ -156,13 +106,19 @@ function DiaryAddFoodContent() {
     useState<BatchRewardEvaluationResult | null>(null);
   const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
 
-  // Nutrition Label Scanner states
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [isScanningLabel, setIsScanningLabel] = useState(false);
-  const [scanError, setScanError] = useState<string | null>(null);
+  // AR Nutrition Label Scanner states
+  const [isArScannerOpen, setIsArScannerOpen] = useState(false);
   const [scannedData, setScannedData] = useState<NutritionLabelData | null>(null);
   const [scannedImagePreviewUrl, setScannedImagePreviewUrl] = useState<string>("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (scannedImagePreviewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(scannedImagePreviewUrl);
+      }
+    };
+  }, [scannedImagePreviewUrl]);
 
   // Yesterday's historical logs for one-tap copy shortcut
   const yesterdayLogs = useMemo(() => {
@@ -176,11 +132,16 @@ function DiaryAddFoodContent() {
     let active = true;
     const fetchDbFoods = async () => {
       setIsSearchingDb(true);
-      const res = await searchFoodsAction(searchQuery);
-      if (active && res.success && res.data && res.data.length > 0) {
-        setDbCatalogItems(res.data);
+      try {
+        const res = await searchFoodsAction(searchQuery);
+        if (active && res.success && res.data && res.data.length > 0) {
+          setDbCatalogItems(res.data);
+        }
+      } catch (err) {
+        console.warn("[DiaryAdd] searchFoodsAction failed:", err);
+      } finally {
+        if (active) setIsSearchingDb(false);
       }
-      if (active) setIsSearchingDb(false);
     };
 
     const timer = setTimeout(() => {
@@ -198,59 +159,7 @@ function DiaryAddFoodContent() {
     return dbCatalogItems.length > 0 ? dbCatalogItems : customFoods;
   }, [dbCatalogItems, customFoods]);
 
-  // Handle OCR File Change
-  const handleLabelFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    e.target.value = "";
-    setIsScanningLabel(true);
-    setScanError(null);
-
-    try {
-      const { blob, previewUrl } = await compressImageFile(file, 1200, 0.8);
-      setScannedImagePreviewUrl(previewUrl);
-
-      const formData = new FormData();
-      formData.append("image", blob, "nutrition-label.jpg");
-
-      const res = await fetch("/api/nutrition/scan", {
-        method: "POST",
-        body: formData,
-      });
-
-      const json = await res.json();
-      if (!res.ok || !json.success || !json.data) {
-        throw new Error(
-          json.error || "Gagal mengekstrak informasi nilai gizi dari gambar."
-        );
-      }
-
-      setScannedData(json.data as NutritionLabelData);
-      setIsReviewModalOpen(true);
-      toastOcrSuccess();
-    } catch (err) {
-      setScanError(
-        err instanceof Error
-          ? err.message
-          : "Terjadi kesalahan saat memindai label nutrisi."
-      );
-    } finally {
-      setIsScanningLabel(false);
-    }
-  };
-
   const consumed = getConsumed();
-
-  // Extract unique categories
-  const categories = useMemo(() => {
-    return [
-      "Semua",
-      ...Array.from(new Set(allCatalogItems.map((f) => f.category))),
-    ];
-  }, [allCatalogItems]);
 
   // Base list determined by source tab
   const sourceItems = useMemo(() => {
@@ -274,7 +183,7 @@ function DiaryAddFoodContent() {
     return allCatalogItems;
   }, [sourceTab, allCatalogItems, customFoods, getRecentFoods, getFrequentFoods]);
 
-  // Filter catalog by search query and category pill
+  // Filter catalog by search query
   const filteredItems = useMemo(() => {
     return sourceItems.filter((item) => {
       const query = searchQuery.toLowerCase().trim();
@@ -284,12 +193,9 @@ function DiaryAddFoodContent() {
         item.category.toLowerCase().includes(query) ||
         (item.brandOrSource && item.brandOrSource.toLowerCase().includes(query));
 
-      const matchCat =
-        selectedCategory === "Semua" || item.category === selectedCategory;
-
-      return matchQuery && matchCat;
+      return matchQuery;
     });
-  }, [sourceItems, searchQuery, selectedCategory]);
+  }, [sourceItems, searchQuery]);
 
   // Staging Tray Handlers
   const toggleItemInTray = (food: FoodCatalogItem) => {
@@ -548,9 +454,6 @@ function DiaryAddFoodContent() {
               <UtensilsCrossed className="h-5 w-5 text-accent-green" />
               <span>Multi-Select Staging & Pencatatan Makanan</span>
             </h1>
-            <p className="text-xs text-text-muted">
-              Pilih beberapa menu sekaligus ke piring, atur porsi mandiri, dan dapatkan bonus Combo XP Pet.
-            </p>
           </div>
         </div>
 
@@ -560,8 +463,7 @@ function DiaryAddFoodContent() {
             onClick={() => setIsCustomModalOpen(true)}
             className="px-3.5 py-2 rounded-button border border-border-default bg-surface hover:bg-surface-subtle text-text-primary text-xs font-bold flex items-center gap-1.5 transition-colors"
           >
-            <Plus className="h-3.5 w-3.5 text-accent-green" />
-            <span>+ Buat Makanan Baru</span>
+            <span>+ Makanan Baru</span>
           </button>
         </div>
       </div>
@@ -617,7 +519,7 @@ function DiaryAddFoodContent() {
       <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 space-y-4 shadow-xs">
         {/* Search Bar & AI Label Scan */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <div className="relative flex-1">
+          <div data-tour="diary-add-search" className="relative flex-1">
             <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
             <input
               type="text"
@@ -628,61 +530,22 @@ function DiaryAddFoodContent() {
             />
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleLabelFileChange}
-            className="hidden"
-          />
-
           <button
             type="button"
-            disabled={isScanningLabel}
-            onClick={() => fileInputRef.current?.click()}
-            className={cn(
-              "px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 shrink-0 transition-colors",
-              isScanningLabel && "opacity-60 cursor-wait"
-            )}
+            data-tour="diary-add-scan"
+            onClick={() => setIsArScannerOpen(true)}
+            className="px-5 py-3 min-h-12 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
           >
-            {isScanningLabel ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Scanning...</span>
-              </>
-            ) : (
-              <>
-                <Camera className="h-4 w-4 text-accent-green" />
-                <span>Scan Label AI</span>
-              </>
-            )}
+            <Camera className="h-5 w-5 text-[#244710]" />
+            <span>Scan Label Gizi</span>
           </button>
         </div>
 
-        {/* Scan Status / Error */}
-        {isScanningLabel && (
-          <div className="review-card p-3 border border-accent-green/30 flex items-center gap-2.5 text-xs text-text-primary font-semibold animate-pulse">
-            <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            <span>Scanning nutrition label... Mengekstrak kalori & makronutrisi dengan AI Vision.</span>
-          </div>
-        )}
-
-        {scanError && (
-          <div className="p-3 rounded-input border border-destructive/30 bg-destructive/10 flex items-center justify-between gap-2 text-xs text-destructive font-medium">
-            <span>{scanError}</span>
-            <button
-              type="button"
-              onClick={() => setScanError(null)}
-              className="p-1 hover:bg-destructive/20 rounded-input"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
-
         {/* Quick Filter Source Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-border-divider text-xs">
+        <div
+          data-tour="diary-add-tabs"
+          className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-border-divider text-xs"
+        >
           <button
             onClick={() => setSourceTab("all")}
             className={cn(
@@ -749,26 +612,11 @@ function DiaryAddFoodContent() {
           </button>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={cn(
-                "nav-item px-3 py-1 border whitespace-nowrap transition-colors",
-                selectedCategory === cat
-                  ? "is-selected border-accent-orange font-bold"
-                  : "bg-surface-subtle text-neutral-10 border-border-default"
-              )}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
         {/* Multi-Select Item Rows */}
-        <div className="divide-y divide-border-divider/70 max-h-[500px] overflow-y-auto pr-1 space-y-1">
+        <div
+          data-tour="diary-add-staging"
+          className="divide-y divide-border-divider/70 max-h-[500px] overflow-y-auto pr-1 space-y-1"
+        >
           {filteredItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-text-muted space-y-2">
               <p className="font-semibold text-text-primary">
@@ -782,8 +630,7 @@ function DiaryAddFoodContent() {
                 onClick={() => setIsCustomModalOpen(true)}
                 className="button-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span>+ Buat Makanan Baru</span>
+                <span>+ Makanan Baru</span>
               </button>
             </div>
           ) : (
@@ -824,16 +671,15 @@ function DiaryAddFoodContent() {
                               {food.brandOrSource}
                             </span>
                           )}
-                          <span className="px-1.5 py-0.2 rounded-pill bg-surface-subtle text-[10px] text-text-muted">
-                            {food.category}
-                          </span>
                         </div>
-                        <p className="text-[11px] text-text-muted mt-0.5">
-                          Basis: 1 {food.servingUnit} • P:{" "}
-                          <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
-                          <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
-                          <span className="text-macro-fat font-semibold">{food.fatG}g</span>
-                        </p>
+                        {isChecked && (
+                          <p className="text-[11px] text-text-muted mt-0.5">
+                            Basis: 1 {food.servingUnit} • P:{" "}
+                            <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
+                            <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
+                            <span className="text-macro-fat font-semibold">{food.fatG}g</span>
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -1049,10 +895,10 @@ function DiaryAddFoodContent() {
                 <button
                   type="button"
                   onClick={handleBatchCommit}
-                  className="button-primary px-4 py-2 text-xs flex items-center justify-center gap-1.5 font-black shadow-md flex-1 sm:flex-none"
+                  className="rounded-button bg-accent-green-light hover:bg-accent-green-light/85 text-text-primary px-4 py-2 text-xs flex items-center justify-center gap-1.5 font-black shadow-none transition-colors flex-1 sm:flex-none cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Tambahkan Dipilih & Dapatkan XP</span>
+                  <span>Catat</span>
                 </button>
               </div>
             </div>
@@ -1194,6 +1040,20 @@ function DiaryAddFoodContent() {
         }}
       />
 
+      {/* AR Label Scanner Viewfinder Overlay */}
+      <ArScannerOverlay
+        isOpen={isArScannerOpen}
+        mealTime={activeMeal}
+        onClose={() => setIsArScannerOpen(false)}
+        onScanComplete={(data, previewUrl) => {
+          setIsArScannerOpen(false);
+          setScannedData(data);
+          setScannedImagePreviewUrl(previewUrl);
+          setIsReviewModalOpen(true);
+          toastOcrSuccess();
+        }}
+      />
+
       {/* AI Label Review & Staging Modal */}
       {scannedData && (
         <ReviewScanModal
@@ -1202,6 +1062,10 @@ function DiaryAddFoodContent() {
           mealTime={activeMeal}
           isOpen={isReviewModalOpen}
           onClose={() => setIsReviewModalOpen(false)}
+          onRescan={() => {
+            setIsReviewModalOpen(false);
+            setIsArScannerOpen(true);
+          }}
           onSuccess={() => {
             setIsReviewModalOpen(false);
             router.push("/diary");

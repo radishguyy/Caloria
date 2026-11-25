@@ -9,6 +9,7 @@ import { DailyArchiveDetail } from "@/components/diary/archive/DailyArchiveDetai
 import { CaloriaWrappedShelf } from "@/components/diary/archive/CaloriaWrappedShelf";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import {
   parseDateKey,
   getTodayKey,
@@ -29,6 +30,7 @@ function CalendarSkeleton() {
 
 function DiaryArchiveContent() {
   const isHydrated = useHydrated();
+  useAutoTour("diary-archive", { enabled: isHydrated });
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -76,7 +78,7 @@ function DiaryArchiveContent() {
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
           <h1 className="text-xl font-extrabold leading-tight tracking-tight text-text-primary font-heading sm:text-2xl">
-            Arsip & Recap Mingguan
+            Arsip
           </h1>
         </div>
 
@@ -90,7 +92,9 @@ function DiaryArchiveContent() {
       </header>
 
       {/* Weekly / Monthly Recap Shelf */}
-      <CaloriaWrappedShelf />
+      <div data-tour="diary-archive-wrapped">
+        <CaloriaWrappedShelf />
+      </div>
 
       {/* Main Two-Column Grid: Calendar on Left, Inspector on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -103,7 +107,7 @@ function DiaryArchiveContent() {
           />
         </div>
 
-        <div className="lg:col-span-5 sticky top-20">
+        <div data-tour="diary-archive-detail" className="lg:col-span-5 sticky top-20">
           <DailyArchiveDetail
             selectedDate={activeDate}
             onSelectDate={handleSelectDate}

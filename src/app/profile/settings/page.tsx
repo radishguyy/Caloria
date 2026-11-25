@@ -10,10 +10,17 @@ import {
   ShieldCheck,
   Smartphone,
   Mail,
+  Send,
+  Loader2,
+  AlertCircle,
+  Compass,
+  RotateCcw,
 } from "lucide-react";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useTour } from "@/components/tour/useTour";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { logoutAction } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +30,9 @@ export default function ProfileSettingsPage() {
   const router = useRouter();
   const { settings, updateSettings } = useNotificationStore();
   const { user, logout } = useAuthStore();
+  const { startTour, resetTour, resetAll } = useTour();
+  useAutoTour("settings");
+  const [tourFeedback, setTourFeedback] = useState<string | null>(null);
   const {
     isSupported,
     isSubscribed,
@@ -33,6 +43,69 @@ export default function ProfileSettingsPage() {
   } = usePushNotifications();
 
   const [savedFeedback, setSavedFeedback] = useState(false);
+  const [isTestingNotif, setIsTestingNotif] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    type: "success" | "warning" | "error";
+    message: string;
+  } | null>(null);
+
+  const handleSendTestNotification = async () => {
+    setIsTestingNotif(true);
+    setTestResult(null);
+    try {
+      // Ensure push is subscribed first if supported and permission granted
+      if (isSupported && !isSubscribed) {
+        await subscribeToPush();
+      }
+
+      const res = await fetch("/api/notifications/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sendPush: true,
+          sendEmail: true,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setTestResult({
+          type: "error",
+          message: data.error || "Gagal mengirim notifikasi uji coba.",
+        });
+        return;
+      }
+
+      const parts: string[] = [];
+      if (data.sentCount > 0) {
+        parts.push(`Web Push terkirim (${data.sentCount} perangkat)`);
+      } else {
+        parts.push("Web Push belum terdaftar di perangkat ini (aktifkan toggle di atas)");
+      }
+
+      if (data.emailSent) {
+        parts.push(`Email terkirim ke ${data.emailAddress || user?.email || "inbox"}`);
+      } else if (data.emailSimulated) {
+        parts.push(
+          "Email hanya disimulasikan di server karena RESEND_API_KEY belum diisi di .env.local"
+        );
+      } else if (data.emailError) {
+        parts.push(`Email gagal: ${data.emailError}`);
+      }
+
+      setTestResult({
+        type: data.sentCount > 0 && data.emailSent ? "success" : "warning",
+        message: parts.join(" • "),
+      });
+    } catch (err: any) {
+      setTestResult({
+        type: "error",
+        message: err.message || "Gagal menghubungi server.",
+      });
+    } finally {
+      setIsTestingNotif(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.email && user?.username) return;
@@ -136,7 +209,10 @@ export default function ProfileSettingsPage() {
 
       <div className="space-y-5">
         {/* Web Push Notification Toggle Card */}
-        <div className="rounded-card border border-border-divider bg-surface p-6 space-y-4 shadow-xs">
+        <div
+          data-tour="settings-notifications"
+          className="rounded-card border border-border-divider bg-surface p-6 space-y-4 shadow-xs"
+        >
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
@@ -202,10 +278,50 @@ export default function ProfileSettingsPage() {
               />
             </button>
           </div>
+
+          {/* Test Notification Action Bar */}
+          <div className="pt-3 border-t border-border-divider flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p className="text-xs text-text-muted">
+              Uji pengiriman Web Push & Email Reminder langsung ke perangkat dan email akunmu sekarang.
+            </p>
+            <button
+              type="button"
+              onClick={handleSendTestNotification}
+              disabled={isTestingNotif}
+              className="inline-flex items-center justify-center gap-2 rounded-navigation bg-accent-green px-4 py-2 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 disabled:opacity-50 shrink-0 cursor-pointer"
+            >
+              {isTestingNotif ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Send className="h-3.5 w-3.5" />
+              )}
+              <span>{isTestingNotif ? "Mengirim..." : "Tes Kirim Notifikasi"}</span>
+            </button>
+          </div>
+
+          {testResult && (
+            <div
+              className={cn(
+                "p-3 rounded-2xl border text-xs font-medium flex items-start gap-2",
+                testResult.type === "success" &&
+                  "bg-accent-green/15 border-accent-green/40 text-text-primary",
+                testResult.type === "warning" &&
+                  "bg-accent-yellow/50 border-accent-orange/40 text-neutral-10",
+                testResult.type === "error" &&
+                  "bg-destructive/10 border-destructive/30 text-destructive"
+              )}
+            >
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{testResult.message}</span>
+            </div>
+          )}
         </div>
 
         {/* Scheduled Reminders */}
-        <div className="rounded-card border border-border-divider bg-surface p-6 space-y-5 shadow-xs">
+        <div
+          data-tour="settings-schedule"
+          className="rounded-card border border-border-divider bg-surface p-6 space-y-5 shadow-xs"
+        >
           <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
             <Clock className="h-4 w-4 text-accent-green" />
             <span>Jadwal Pengingat Jam Makan</span>
@@ -314,6 +430,56 @@ export default function ProfileSettingsPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Panduan Aplikasi (Tour) */}
+        <div
+          data-tour="settings-guide"
+          className="rounded-card bg-surface p-6 space-y-4"
+        >
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+              <Compass className="h-4 w-4 text-accent-green" aria-hidden="true" />
+              <span>Panduan Aplikasi</span>
+            </h3>
+            <p className="text-xs text-text-muted">
+              Butuh pengingat cara pakai fitur Caloria? Kamu bisa mengulang panduan halaman ini atau semua halaman kapan saja.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                resetAll();
+                setTourFeedback(
+                  "Semua panduan direset. Panduan akan muncul lagi saat kamu membuka tiap halaman.",
+                );
+                setTimeout(() => setTourFeedback(null), 4000);
+              }}
+              className="btn-secondary inline-flex items-center gap-2 rounded-button bg-surface-subtle px-4 py-2 text-xs font-bold text-text-primary transition-colors hover:bg-accent-green-light/40 cursor-pointer"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Ulangi semua panduan</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                resetTour("settings");
+                startTour("settings");
+              }}
+              className="btn-ghost inline-flex items-center gap-2 rounded-button bg-transparent px-4 py-2 text-xs font-semibold text-neutral-10 transition-colors hover:bg-surface-subtle cursor-pointer"
+            >
+              <span>Ulangi panduan halaman ini</span>
+            </button>
+          </div>
+
+          {tourFeedback && (
+            <p className="text-xs font-medium text-text-primary">
+              {tourFeedback}
+            </p>
+          )}
         </div>
 
         {/* Account Information & Logout */}

@@ -10,6 +10,7 @@ import {
   notifications,
 } from "./gamification";
 import { recaps } from "./recaps";
+import { consultationRooms, consultationMessages } from "./consultations";
 
 // 1. Profiles Relations
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -31,6 +32,8 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   pushSubscriptions: many(pushSubscriptions),
   notifications: many(notifications),
   recaps: many(recaps),
+  userConsultationRooms: many(consultationRooms, { relationName: "consultation_user" }),
+  consultantConsultationRooms: many(consultationRooms, { relationName: "consultation_consultant" }),
 }));
 
 // 2. Weight Logs Relations
@@ -216,4 +219,37 @@ export const recapsRelations = relations(recaps, ({ one }) => ({
     references: [profiles.id],
   }),
 }));
+
+// 18. Consultation Rooms Relations
+export const consultationRoomsRelations = relations(
+  consultationRooms,
+  ({ one, many }) => ({
+    user: one(profiles, {
+      fields: [consultationRooms.userId],
+      references: [profiles.id],
+      relationName: "consultation_user",
+    }),
+    consultant: one(profiles, {
+      fields: [consultationRooms.consultantId],
+      references: [profiles.id],
+      relationName: "consultation_consultant",
+    }),
+    messages: many(consultationMessages),
+  })
+);
+
+// 19. Consultation Messages Relations
+export const consultationMessagesRelations = relations(
+  consultationMessages,
+  ({ one }) => ({
+    room: one(consultationRooms, {
+      fields: [consultationMessages.roomId],
+      references: [consultationRooms.id],
+    }),
+    sender: one(profiles, {
+      fields: [consultationMessages.senderId],
+      references: [profiles.id],
+    }),
+  })
+);
 

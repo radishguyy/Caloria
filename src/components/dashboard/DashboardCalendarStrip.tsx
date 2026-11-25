@@ -122,6 +122,7 @@ export function DashboardCalendarStrip({
 
   return (
     <section
+      data-tour="dashboard-calendar"
       className={cn(
         "rounded-card border border-border-divider bg-surface p-4 sm:p-5 shadow-xs space-y-3.5",
         className
@@ -173,8 +174,9 @@ export function DashboardCalendarStrip({
 
             <button
               onClick={handleNextWeek}
+              disabled={isViewingCurrentWeek}
               aria-label="Minggu Berikutnya"
-              className="p-1 rounded-input hover:bg-surface text-text-muted hover:text-text-primary transition-colors"
+              className="p-1 rounded-input hover:bg-surface text-text-muted hover:text-text-primary transition-colors disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             >
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
@@ -257,6 +259,17 @@ export function DashboardCalendarStrip({
           const isSelected = selectedDate === day.dateKey;
           const isCellFuture = day.isFuture;
           const status = summary.status;
+          const isFreezeDay = day.dateKey === lastFreezeUsedDate;
+          const isRestDay = day.dateKey === lastRestDayDate;
+          const dayTooltip = isCellFuture
+            ? "Belum tersedia"
+            : isFreezeDay
+              ? "Dilindungi Streak Freeze"
+              : isRestDay
+                ? "Rest Day"
+                : summary.hasLogs
+                  ? `${summary.consumed.calories} / ${summary.target.calories} kcal (${summary.percentage}%)`
+                  : "Belum dicatat";
 
           return (
             <button
@@ -264,6 +277,7 @@ export function DashboardCalendarStrip({
               onClick={() => !isCellFuture && handleDayClick(day.dateKey)}
               disabled={isCellFuture}
               aria-pressed={isSelected}
+              title={dayTooltip}
               className={cn(
                 "group flex flex-col items-center justify-between p-2 sm:p-2.5 rounded-2xl border text-center transition-all duration-150 select-none",
                 // Current / past / future styling

@@ -63,6 +63,10 @@ export const profiles = pgTable("profiles", {
   isOnboardingCompleted: boolean("is_onboarding_completed")
     .default(false)
     .notNull(),
+  role: text("role")
+    .$type<"user" | "nutritionist" | "admin">()
+    .default("user")
+    .notNull(),
   walletAddress: varchar("wallet_address", { length: 42 }).unique(),
   walletChainId: integer("wallet_chain_id"),
   createdAt: timestamp("created_at", { withTimezone: true })

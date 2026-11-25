@@ -173,7 +173,7 @@ export function CaloriaWrappedModal({
       ctx.fillStyle = "#8CA2C0";
       ctx.font = "600 24px 'Open Runde', sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`RECAP ${cycleUnit.toUpperCase()} ${cycleNum}`, 120, 150);
+      ctx.fillText(`REKAP ${cycleUnit.toUpperCase()} ${cycleNum}`, 120, 150);
 
       ctx.fillStyle = "#529028";
       ctx.font = "800 56px 'Secuela', sans-serif";
@@ -242,7 +242,7 @@ export function CaloriaWrappedModal({
           return;
         }
 
-        const fileName = `caloria-recap-${cycleUnit.toLowerCase()}-${cycleNum}.png`;
+        const fileName = `caloria-rekap-${cycleUnit.toLowerCase()}-${cycleNum}.png`;
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -294,7 +294,7 @@ export function CaloriaWrappedModal({
         {/* Clean Minimal Header */}
         <div className="px-5 pt-3 pb-3 border-b border-border-divider flex items-center justify-between z-40">
           <span className="text-xs font-semibold text-text-muted">
-            Recap {cycleUnit} {cycleNum}
+            Rekap {cycleUnit} {cycleNum}
             {isPaused ? " • Jeda" : ""}
           </span>
 

@@ -25,16 +25,40 @@ export function usePushNotifications() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
+    if (
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window
+    ) {
       setIsSupported(true);
       setPermission(Notification.permission);
 
-      // Check current registration and subscription
-      navigator.serviceWorker.ready.then((reg) => {
-        reg.pushManager.getSubscription().then((sub) => {
-          setIsSubscribed(!!sub);
+      // Register /sw.js immediately and sync any existing subscription to the backend DB
+      navigator.serviceWorker
+        .getRegistration()
+        .then((existingReg) => existingReg || navigator.serviceWorker.register("/sw.js"))
+        .then((reg) => reg.pushManager.getSubscription())
+        .then((sub) => {
+          const active = !!sub;
+          setIsSubscribed(active);
+          if (sub) {
+            fetch("/api/notifications/subscribe", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                endpoint: sub.endpoint,
+                keys: {
+                  p256dh: sub.toJSON().keys?.p256dh,
+                  auth: sub.toJSON().keys?.auth,
+                },
+                userAgent: navigator.userAgent,
+              }),
+            }).catch(() => {});
+          }
+        })
+        .catch((err) => {
+          console.warn("[usePushNotifications] Service worker init warning:", err);
         });
-      });
     }
   }, []);
 

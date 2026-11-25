@@ -27,8 +27,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Caloria 🍽️";
   const options = {
     body: payload.body || "Jangan lupa pantau nutrisi harianmu!",
-    icon: payload.icon || "/icons/icon-192x192.png",
-    badge: payload.badge || payload.icon || "/icons/icon-192x192.png",
+    icon: payload.icon || "/logos/caloria-01.svg",
+    badge: payload.badge || payload.icon || "/logos/caloria-01.svg",
     data: {
       url: payload.url || "/dashboard",
       dateOfArrival: Date.now(),

@@ -1,8 +1,10 @@
 import {
   LayoutDashboard,
   PawPrint,
+  Target,
   UtensilsCrossed,
   Users,
+  Stethoscope,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,6 +36,12 @@ export const NAV_ITEMS: NavItem[] = [
     matchPrefixes: ["/diary"],
   },
   {
+    href: "/quests",
+    label: "Misi",
+    icon: Target,
+    matchPrefixes: ["/quests"],
+  },
+  {
     href: "/pet-customization/wardrobe",
     label: "CalPal",
     icon: PawPrint,
@@ -45,6 +53,12 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Users,
     matchPrefixes: ["/social"],
     showStreak: true,
+  },
+  {
+    href: "/consult",
+    label: "Konsultasi",
+    icon: Stethoscope,
+    matchPrefixes: ["/consult"],
   },
 ];
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, UserPlus, Sparkles, X } from "lucide-react";
+import { Check, Flame, X } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { FriendRecommendation } from "@/types";
 import { useSocialStore } from "@/stores/social-store";
@@ -32,7 +32,6 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
     );
   }
 
-  // Strictly limit to 3 accounts
   const visibleRecommendations = recommendations.slice(0, 3);
 
   if (visibleRecommendations.length === 0) {
@@ -44,12 +43,12 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
           className
         )}
       >
-        <div className="flex items-center justify-center gap-2 text-text-muted text-xs font-bold font-sans">
-          <Sparkles className="h-4 w-4 text-accent-orange" />
+        <div className="flex items-center justify-center gap-2 text-neutral-10 text-sm font-bold font-sans">
+          <Flame className="h-4 w-4 text-accent-orange" />
           <span>Semua rekomendasi teman telah ditinjau!</span>
         </div>
-        <p className="text-xs text-text-muted font-sans">
-          Kamu juga bisa mengundang teman secara langsung dengan membagikan kode party atau tautan squad di atas.
+        <p className="text-sm text-neutral-10 font-sans">
+          Kamu juga bisa mengundang teman dengan membagikan kode party atau tautan di atas.
         </p>
       </section>
     );
@@ -61,7 +60,6 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
       await sendFriendRequest(rec.id);
       toastFriendRequestSent(rec.fullName || rec.username);
       setSentIds((prev) => ({ ...prev, [rec.id]: true }));
-      // Briefly show "Terkirim", then remove card smoothly
       setTimeout(() => {
         dismissRecommendation(rec.id);
         setSentIds((prev) => {
@@ -83,26 +81,17 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
         className
       )}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-orange/15 text-accent-orange">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-text-primary font-heading tracking-tight">
-              Rekomendasi Teman
-            </h2>
-            <p className="text-xs text-text-muted font-sans">
-              Teman dengan target kalori dan ritme logging yang cocok untukmu
-            </p>
-          </div>
+      {/* Header: Co-op Streak Squad icon (Flame), no subtitle, no calon teman badge */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-navigation bg-accent-orange text-text-inverse">
+          <Flame className="h-5 w-5 fill-text-inverse" />
         </div>
-        <span className="text-[11px] font-semibold text-text-muted bg-surface-subtle px-2.5 py-1 rounded-pill">
-          {visibleRecommendations.length} Calon Teman
-        </span>
+        <h2 className="text-xl font-extrabold text-text-primary font-heading tracking-tight">
+          Rekomendasi Teman
+        </h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleRecommendations.map((rec) => {
           const isSending = sendingIds[rec.id];
           const isSent = sentIds[rec.id];
@@ -110,20 +99,21 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
           return (
             <div
               key={rec.id}
-              className="group relative flex flex-col justify-between p-4 rounded-card border border-border-divider bg-surface hover:border-accent-orange/40 hover:bg-[#FCF8E3]/30 transition-all shadow-xs"
+              className="group relative flex flex-col justify-between p-4 rounded-card border border-border-divider bg-surface hover:border-accent-green/50 transition-colors"
             >
               {/* Dismiss button */}
               <button
+                type="button"
                 onClick={() => dismissRecommendation(rec.id)}
                 title="Abaikan rekomendasi"
-                className="absolute top-2.5 right-2.5 p-1 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors opacity-60 hover:opacity-100"
+                aria-label={`Abaikan ${rec.fullName}`}
+                className="absolute top-2.5 right-2.5 p-1.5 rounded-full text-neutral-10 hover:text-text-primary hover:bg-surface-subtle transition-colors"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
 
-              <div className="flex items-center gap-3">
-                {/* Mini Pet Avatar Preview */}
-                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-surface-subtle border border-border-divider overflow-hidden group-hover:scale-105 transition-transform">
+              <div className="flex items-center gap-3.5 pr-6">
+                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-surface-subtle border border-border-divider overflow-hidden">
                   <AvatarRenderer
                     characterId={rec.petSpecies || "bloomie"}
                     size="sm"
@@ -131,26 +121,23 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
                   />
                 </div>
 
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <h3 className="text-sm font-bold text-text-primary truncate font-sans">
+                {/* Enlarged name, no @username, no pet level */}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h3 className="text-base sm:text-lg font-extrabold text-text-primary truncate font-heading">
                     {rec.fullName}
                   </h3>
-                  <p className="text-xs text-text-muted truncate font-sans">@{rec.username}</p>
-                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                    <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-pill bg-accent-green-light/40 text-text-primary border border-border-default/50 font-sans">
-                      Lv. {rec.petLevel} {rec.petStage}
-                    </span>
-                    <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-pill bg-[#FCF8E3] text-text-primary border border-accent-orange/20 font-sans">
+                  {rec.mutualTag && (
+                    <span className="inline-flex items-center text-sm font-bold px-2.5 py-0.5 rounded-pill bg-[#FCF8E3] text-text-primary font-sans">
                       {rec.mutualTag}
                     </span>
-                  </div>
+                  )}
                 </div>
               </div>
 
-              {/* Action CTA */}
-              <div className="mt-3.5 pt-3 border-t border-border-divider/70 flex items-center justify-between">
-                <span className="text-[11px] text-text-muted font-sans">
-                  Target: <strong className="text-text-primary font-bold">{rec.calorieTarget} kcal</strong>
+              {/* Action CTA: green button, no icon, "+ Tambah" */}
+              <div className="mt-4 pt-3 border-t border-border-divider/70 flex items-center justify-between gap-2">
+                <span className="text-sm text-neutral-10 font-sans">
+                  Target: <strong className="text-text-primary font-extrabold">{rec.calorieTarget} kcal</strong>
                 </span>
 
                 <button
@@ -158,22 +145,19 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
                   disabled={isSending || isSent}
                   onClick={() => handleAdd(rec)}
                   className={cn(
-                    "inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-navigation text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95",
+                    "min-h-11 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-navigation text-sm font-extrabold transition-colors cursor-pointer",
                     isSent
-                      ? "bg-accent-green text-text-inverse border-0"
-                      : "bg-accent-orange hover:bg-accent-orange/90 text-text-inverse border-0"
+                      ? "bg-accent-green text-text-inverse"
+                      : "bg-accent-green-light hover:bg-[#a9ce46] text-[#244710]"
                   )}
                 >
                   {isSent ? (
                     <>
-                      <Check className="h-3.5 w-3.5 stroke-[3]" />
+                      <Check className="h-4 w-4 stroke-[3]" />
                       <span>Terkirim</span>
                     </>
                   ) : (
-                    <>
-                      <UserPlus className="h-3.5 w-3.5" />
-                      <span>+ Tambah</span>
-                    </>
+                    <span>+ Tambah</span>
                   )}
                 </button>
               </div>
@@ -184,4 +168,3 @@ export function FriendRecommendations({ className }: FriendRecommendationsProps)
     </section>
   );
 }
-
