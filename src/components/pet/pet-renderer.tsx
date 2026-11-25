@@ -23,7 +23,6 @@ import {
   toastPetPetted,
   toastPetBlocked,
   toastFeedBlocked,
-  toastMealsCommitted,
   toastFeedingSuccess,
   toastInsufficientCoins,
 } from "@/lib/toast";
@@ -53,16 +52,13 @@ export function PetRenderer({
     stage,
     level,
     exp,
-    coins,
     hunger,
     happiness,
     animationState,
     moodStatus,
-    customColors,
     earsVariant,
     tailVariant,
     faceVariant,
-    feedPet,
     feedWithCoins,
     petInteract,
     toggleSleep,
@@ -158,7 +154,7 @@ export function PetRenderer({
 
   return (
     <div className="flex flex-col items-center justify-center p-3 relative">
-      {/* Dialog Speech Bubble (if provided) */}
+      {/* Dialog Speech Bubble */}
       <AnimatePresence>
         {dialogMessage && (
           <motion.div
@@ -298,7 +294,7 @@ export function PetRenderer({
         {statusIndicators ? null : (
           <p className="text-xs text-text-muted mt-0.5">
             {speciesInfo.name} ({charDef.speciesLabel}) • Tahap {stage}{" "}
-            {roomItem && !roomItem.isDefaultFree && `(${roomItem.name})`}\n{" "}
+            {roomItem && !roomItem.isDefaultFree && `(${roomItem.name})`}
           </p>
         )}
       </div>
@@ -535,12 +531,12 @@ export function PetRenderer({
             className="button-primary text-xs flex items-center gap-1.5 py-2 px-4 shadow-sm active:scale-95 transition-all disabled:opacity-50"
           >
             <Utensils className="h-4 w-4" />
-            <span>Makan (5 🪙)</span>
+            <span>Makan (5 Koin)</span>
           </button>
           <button
             onClick={handlePetClick}
             disabled={animationState === "sleeping"}
-            className="button-ghost text-xs flex items-center gap-1.5 py-2 px-4 active:scale-95 transition-all disabled:opacity-50"
+            className="rounded-button border border-border-default bg-surface hover:bg-accent-green-light text-text-primary font-bold text-xs flex items-center gap-1.5 py-2 px-4 shadow-2xs active:scale-95 transition-all disabled:opacity-50"
           >
             <Heart className="h-4 w-4 text-macro-fat" />
             <span>Elus (+10 EXP)</span>

@@ -33,7 +33,7 @@ import {
   NewNotificationRecord,
 } from "@/db/schema";
 import { MealTypeId, PetSpeciesId } from "@/lib/constants";
-import { CosmeticCategory } from "@/lib/cosmetics-catalog";
+import type { CosmeticCategory } from "@/lib/cosmetics-catalog";
 
 export type { CosmeticCategory, PetSpeciesId, MealTypeId };
 
@@ -80,10 +80,10 @@ export type NewCoopParty = NewCoopGroup;
 export interface MacroTargets {
   calories: number;
   protein: number; // grams
-  carbs: number;   // grams
-  fat: number;     // grams
-  fiber?: number;  // grams
-  sugar?: number;  // grams
+  carbs: number; // grams
+  fat: number; // grams
+  fiber?: number; // grams
+  sugar?: number; // grams
   waterMl?: number;
 }
 
@@ -111,7 +111,8 @@ export interface UserGoalPlan {
   age: number;
   activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
   bmiScore: number;
-  bmiCategory: "Underweight" | "Normal" | "Overweight" | "Obese" | "Obese I" | "Obese II";
+  bmiCategory:
+    "Underweight" | "Normal" | "Overweight" | "Obese" | "Obese I" | "Obese II";
   totalProjectedDays: number;
   currentDayNumber: number;
   dailyMarginKcal: number; // e.g. -500 for diet, +400 for bulking, 0 for maintenance
@@ -212,7 +213,8 @@ export interface FoodItemInput {
 }
 
 // Pet Types
-export type PetAnimationState = "idle" | "eating" | "happy" | "sleeping" | "sad" | "complaining";
+export type PetAnimationState =
+  "idle" | "eating" | "happy" | "sleeping" | "sad" | "complaining";
 export type PetMoodStatus = "happy" | "neutral" | "complaining";
 
 export interface EquippedCosmetics {
@@ -284,7 +286,12 @@ export interface WeightLogEntry {
 // Notification Center
 export interface AppNotification {
   id: string;
-  type: "meal_reminder" | "poke" | "nutrition_eval" | "achievement" | "friend_request";
+  type:
+    | "meal_reminder"
+    | "poke"
+    | "nutrition_eval"
+    | "achievement"
+    | "friend_request";
   title: string;
   message: string;
   timestamp: string;
@@ -293,4 +300,3 @@ export interface AppNotification {
 }
 
 export * from "./social";
-

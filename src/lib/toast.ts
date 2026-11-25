@@ -176,10 +176,7 @@ export function toastFeedingSuccess(slotLabel?: string) {
   const title = slotLabel
     ? `Nyam nyam! ${slotLabel} selesai (-5 Koin) 🐾✨`
     : "Nyam nyam! CalPal kenyang & ceria! (-5 Koin) 🐾✨";
-  return toastSuccess(
-    title,
-    "CalPal kenyang, suasana hatinya kembali ceria!",
-  );
+  return toastSuccess(title, "CalPal kenyang, suasana hatinya kembali ceria!");
 }
 
 export function toastFeedBlocked(message: string) {
@@ -197,10 +194,9 @@ export function toastInsufficientCoins() {
 
 export function toastDailyLoginReward() {
   return toastReward(
-    "+20 Daily Login Coins! 🪙",
+    "+20 Koin Login Harian!",
     0,
     20,
     "Welcome back! Koin harian berhasil diklaim.",
   );
 }
-

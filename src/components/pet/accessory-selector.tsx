@@ -97,7 +97,8 @@ export function AccessorySelector({
 
     return COSMETICS_CATALOG.filter((item) => {
       if (getWardrobeCategory(item.id) !== activeCategory.id) return false;
-      const isOwned = Boolean(item.isDefaultFree) || ownedItemIds.includes(item.id);
+      const isOwned =
+        Boolean(item.isDefaultFree) || ownedItemIds.includes(item.id);
       if (!isOwned) return false;
       if (!query) return true;
       return (

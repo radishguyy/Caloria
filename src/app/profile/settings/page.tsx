@@ -10,14 +10,13 @@ import {
   ShieldCheck,
   Smartphone,
   Mail,
-  Send,
-  Loader2,
-  AlertCircle,
   Compass,
   RotateCcw,
+  ClipboardList,
 } from "lucide-react";
 import { useNotificationStore } from "@/store/use-notification-store";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useOnboardingDemoStore } from "@/store/use-onboarding-demo-store";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useTour } from "@/components/tour/useTour";
 import { useAutoTour } from "@/components/tour/useAutoTour";
@@ -43,69 +42,6 @@ export default function ProfileSettingsPage() {
   } = usePushNotifications();
 
   const [savedFeedback, setSavedFeedback] = useState(false);
-  const [isTestingNotif, setIsTestingNotif] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    type: "success" | "warning" | "error";
-    message: string;
-  } | null>(null);
-
-  const handleSendTestNotification = async () => {
-    setIsTestingNotif(true);
-    setTestResult(null);
-    try {
-      // Ensure push is subscribed first if supported and permission granted
-      if (isSupported && !isSubscribed) {
-        await subscribeToPush();
-      }
-
-      const res = await fetch("/api/notifications/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sendPush: true,
-          sendEmail: true,
-        }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setTestResult({
-          type: "error",
-          message: data.error || "Gagal mengirim notifikasi uji coba.",
-        });
-        return;
-      }
-
-      const parts: string[] = [];
-      if (data.sentCount > 0) {
-        parts.push(`Web Push terkirim (${data.sentCount} perangkat)`);
-      } else {
-        parts.push("Web Push belum terdaftar di perangkat ini (aktifkan toggle di atas)");
-      }
-
-      if (data.emailSent) {
-        parts.push(`Email terkirim ke ${data.emailAddress || user?.email || "inbox"}`);
-      } else if (data.emailSimulated) {
-        parts.push(
-          "Email hanya disimulasikan di server karena RESEND_API_KEY belum diisi di .env.local"
-        );
-      } else if (data.emailError) {
-        parts.push(`Email gagal: ${data.emailError}`);
-      }
-
-      setTestResult({
-        type: data.sentCount > 0 && data.emailSent ? "success" : "warning",
-        message: parts.join(" • "),
-      });
-    } catch (err: any) {
-      setTestResult({
-        type: "error",
-        message: err.message || "Gagal menghubungi server.",
-      });
-    } finally {
-      setIsTestingNotif(false);
-    }
-  };
 
   useEffect(() => {
     if (user?.email && user?.username) return;
@@ -170,7 +106,7 @@ export default function ProfileSettingsPage() {
 
   const handleTimeChange = (
     key: "breakfastTime" | "lunchTime" | "dinnerTime",
-    value: string
+    value: string,
   ) => {
     updateSettings({
       [key]: value,
@@ -192,6 +128,11 @@ export default function ProfileSettingsPage() {
       localStorage.removeItem("caloria-auth-storage");
     } catch {}
     window.location.href = "/login";
+  };
+
+  const handleStartOnboardingDemo = () => {
+    useOnboardingDemoStore.getState().resetDemo();
+    router.push("/onboarding/goal?demo=1");
   };
 
   return (
@@ -237,13 +178,14 @@ export default function ProfileSettingsPage() {
               className={cn(
                 "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-pill border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
                 isSubscribed ? "bg-accent-green" : "bg-border-default",
-                (!isSupported || isPushLoading) && "opacity-50 cursor-not-allowed"
+                (!isSupported || isPushLoading) &&
+                  "opacity-50 cursor-not-allowed",
               )}
             >
               <span
                 className={cn(
                   "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
-                  isSubscribed ? "translate-x-5" : "translate-x-0"
+                  isSubscribed ? "translate-x-5" : "translate-x-0",
                 )}
               />
             </button>
@@ -259,7 +201,16 @@ export default function ProfileSettingsPage() {
                 <span>Notifikasi via Email</span>
               </h3>
               <p className="text-xs text-text-muted">
-                Terima ringkasan jam makan, alert streak 10 malam, dan pemberitahuan co-op langsung ke inbox {user?.email ? <span className="font-semibold text-text-primary font-mono">({user.email})</span> : "email kamu"}.
+                Terima ringkasan jam makan, alert streak 10 malam, dan
+                pemberitahuan co-op langsung ke inbox{" "}
+                {user?.email ? (
+                  <span className="font-semibold text-text-primary font-mono">
+                    ({user.email})
+                  </span>
+                ) : (
+                  "email kamu"
+                )}
+                .
               </p>
             </div>
 
@@ -267,54 +218,21 @@ export default function ProfileSettingsPage() {
               onClick={() => handleToggle("emailNotificationsEnabled")}
               className={cn(
                 "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-pill border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
-                settings.emailNotificationsEnabled ? "bg-accent-green" : "bg-border-default"
+                settings.emailNotificationsEnabled
+                  ? "bg-accent-green"
+                  : "bg-border-default",
               )}
             >
               <span
                 className={cn(
                   "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
-                  settings.emailNotificationsEnabled ? "translate-x-5" : "translate-x-0"
+                  settings.emailNotificationsEnabled
+                    ? "translate-x-5"
+                    : "translate-x-0",
                 )}
               />
             </button>
           </div>
-
-          {/* Test Notification Action Bar */}
-          <div className="pt-3 border-t border-border-divider flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <p className="text-xs text-text-muted">
-              Uji pengiriman Web Push & Email Reminder langsung ke perangkat dan email akunmu sekarang.
-            </p>
-            <button
-              type="button"
-              onClick={handleSendTestNotification}
-              disabled={isTestingNotif}
-              className="inline-flex items-center justify-center gap-2 rounded-navigation bg-accent-green px-4 py-2 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 disabled:opacity-50 shrink-0 cursor-pointer"
-            >
-              {isTestingNotif ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
-              <span>{isTestingNotif ? "Mengirim..." : "Tes Kirim Notifikasi"}</span>
-            </button>
-          </div>
-
-          {testResult && (
-            <div
-              className={cn(
-                "p-3 rounded-2xl border text-xs font-medium flex items-start gap-2",
-                testResult.type === "success" &&
-                  "bg-accent-green/15 border-accent-green/40 text-text-primary",
-                testResult.type === "warning" &&
-                  "bg-accent-yellow/50 border-accent-orange/40 text-neutral-10",
-                testResult.type === "error" &&
-                  "bg-destructive/10 border-destructive/30 text-destructive"
-              )}
-            >
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{testResult.message}</span>
-            </div>
-          )}
         </div>
 
         {/* Scheduled Reminders */}
@@ -337,7 +255,9 @@ export default function ProfileSettingsPage() {
               <input
                 type="time"
                 value={settings.breakfastTime}
-                onChange={(e) => handleTimeChange("breakfastTime", e.target.value)}
+                onChange={(e) =>
+                  handleTimeChange("breakfastTime", e.target.value)
+                }
                 className="input-field w-full px-3 py-1.5 text-xs font-semibold"
               />
             </div>
@@ -386,20 +306,23 @@ export default function ProfileSettingsPage() {
                   Alert Senggolan Teman (Poke Nudge)
                 </p>
                 <p className="text-text-muted text-[11px]">
-                  Terima pemberitahuan seketika saat rekan squad menyenggolmu menjelang malam.
+                  Terima pemberitahuan seketika saat rekan squad menyenggolmu
+                  menjelang malam.
                 </p>
               </div>
               <button
                 onClick={() => handleToggle("friendPokes")}
                 className={cn(
                   "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-pill border-2 border-transparent transition-colors duration-200 ease-in-out",
-                  settings.friendPokes ? "bg-accent-green" : "bg-border-default"
+                  settings.friendPokes
+                    ? "bg-accent-green"
+                    : "bg-border-default",
                 )}
               >
                 <span
                   className={cn(
                     "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
-                    settings.friendPokes ? "translate-x-5" : "translate-x-0"
+                    settings.friendPokes ? "translate-x-5" : "translate-x-0",
                   )}
                 />
               </button>
@@ -411,20 +334,25 @@ export default function ProfileSettingsPage() {
                   Notifikasi Evaluasi Gizi & XP
                 </p>
                 <p className="text-text-muted text-[11px]">
-                  Pengingat saat target protein harian belum terpenuhi menjelang jam tidur.
+                  Pengingat saat target protein harian belum terpenuhi menjelang
+                  jam tidur.
                 </p>
               </div>
               <button
                 onClick={() => handleToggle("nutritionEvaluations")}
                 className={cn(
                   "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-pill border-2 border-transparent transition-colors duration-200 ease-in-out",
-                  settings.nutritionEvaluations ? "bg-accent-green" : "bg-border-default"
+                  settings.nutritionEvaluations
+                    ? "bg-accent-green"
+                    : "bg-border-default",
                 )}
               >
                 <span
                   className={cn(
                     "pointer-events-none inline-block h-5 w-5 transform rounded-pill bg-surface shadow-md ring-0 transition duration-200 ease-in-out",
-                    settings.nutritionEvaluations ? "translate-x-5" : "translate-x-0"
+                    settings.nutritionEvaluations
+                      ? "translate-x-5"
+                      : "translate-x-0",
                   )}
                 />
               </button>
@@ -439,11 +367,16 @@ export default function ProfileSettingsPage() {
         >
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
-              <Compass className="h-4 w-4 text-accent-green" aria-hidden="true" />
+              <Compass
+                className="h-4 w-4 text-accent-green"
+                aria-hidden="true"
+              />
               <span>Panduan Aplikasi</span>
             </h3>
             <p className="text-xs text-text-muted">
-              Butuh pengingat cara pakai fitur Caloria? Kamu bisa mengulang panduan halaman ini atau semua halaman kapan saja.
+              Butuh pengingat cara pakai fitur Caloria? Kamu bisa mengulang
+              panduan halaman atau mencoba demo alur onboarding dan input data
+              diri kapan saja.
             </p>
           </div>
 
@@ -457,7 +390,7 @@ export default function ProfileSettingsPage() {
                 );
                 setTimeout(() => setTourFeedback(null), 4000);
               }}
-              className="btn-secondary inline-flex items-center gap-2 rounded-button bg-surface-subtle px-4 py-2 text-xs font-bold text-text-primary transition-colors hover:bg-accent-green-light/40 cursor-pointer"
+              className="btn-secondary inline-flex items-center gap-2 rounded-button bg-surface-subtle px-4 py-2 text-xs font-bold text-text-primary transition-colors hover:bg-accent-green-light/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Ulangi semua panduan</span>
@@ -469,9 +402,18 @@ export default function ProfileSettingsPage() {
                 resetTour("settings");
                 startTour("settings");
               }}
-              className="btn-ghost inline-flex items-center gap-2 rounded-button bg-transparent px-4 py-2 text-xs font-semibold text-neutral-10 transition-colors hover:bg-surface-subtle cursor-pointer"
+              className="btn-ghost inline-flex items-center gap-2 rounded-button bg-transparent px-4 py-2 text-xs font-semibold text-neutral-10 transition-colors hover:bg-surface-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink cursor-pointer"
             >
               <span>Ulangi panduan halaman ini</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleStartOnboardingDemo}
+              className="btn-secondary inline-flex items-center gap-2 rounded-button bg-surface-subtle px-4 py-2 text-xs font-bold text-text-primary transition-colors hover:bg-accent-green-light/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink cursor-pointer"
+            >
+              <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Demo onboarding &amp; input data diri</span>
             </button>
           </div>
 
@@ -504,9 +446,7 @@ export default function ProfileSettingsPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-text-muted">Email:</span>
-              <span className="text-foreground">
-                {user?.email || "-"}
-              </span>
+              <span className="text-foreground">{user?.email || "-"}</span>
             </div>
           </div>
 

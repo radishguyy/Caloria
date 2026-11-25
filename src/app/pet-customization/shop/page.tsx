@@ -3,30 +3,26 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  ShoppingBag,
-  Coins,
+  CircleDollarSign,
   Check,
   AlertCircle,
   X,
-  Lock,
   ArrowRight,
   Sparkles,
   RefreshCw,
   Loader2,
   ShieldCheck,
+  ShieldMinus,
   ExternalLink,
-  Snowflake,
-  Moon,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useAccount, useSwitchChain, useWriteContract } from "wagmi";
 import { toast } from "sonner";
 import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useSocialStore } from "@/store/use-social-store";
-import {
-  buyStreakFreezeAction,
-  buyRestPassAction,
-} from "@/app/actions/streak";
+import { buyStreakFreezeAction, buyRestPassAction } from "@/app/actions/streak";
 import { STREAK_RULES } from "@/lib/constants";
 import {
   COSMETICS_CATALOG,
@@ -81,12 +77,26 @@ export default function PetShopPage() {
   const [buyingPowerUp, setBuyingPowerUp] = useState<"freeze" | "rest" | null>(
     null,
   );
+  const [expandedPowerUps, setExpandedPowerUps] = useState<{
+    freeze: boolean;
+    rest: boolean;
+  }>({
+    freeze: false,
+    rest: false,
+  });
   const [mintingItemId, setMintingItemId] = useState<string | null>(null);
   const [isSyncingNfts, setIsSyncingNfts] = useState(false);
   const [purchaseFeedback, setPurchaseFeedback] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
+
+  const togglePowerUpDescription = (key: "freeze" | "rest") => {
+    setExpandedPowerUps((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   useEffect(() => {
     let active = true;
@@ -109,7 +119,9 @@ export default function PetShopPage() {
     }
 
     if (!isConnected || !address) {
-      toast.error("Hubungkan wallet EVM terlebih dahulu di tombol Connect Wallet.");
+      toast.error(
+        "Hubungkan wallet EVM terlebih dahulu di tombol Connect Wallet.",
+      );
       return;
     }
 
@@ -119,7 +131,10 @@ export default function PetShopPage() {
         await switchChainAsync({ chainId: TARGET_CHAIN.id });
       }
 
-      const voucherRes = await requestAccessoryMintVoucherAction(item.id, address);
+      const voucherRes = await requestAccessoryMintVoucherAction(
+        item.id,
+        address,
+      );
       if (!voucherRes.success || !voucherRes.voucher) {
         toast.error(voucherRes.message || "Gagal membuat voucher mint.");
         return;
@@ -155,10 +170,15 @@ export default function PetShopPage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("UserRejectedRequestError") || msg.includes("rejected")) {
+      if (
+        msg.includes("UserRejectedRequestError") ||
+        msg.includes("rejected")
+      ) {
         toast.error("Transaksi mint aksesoris dibatalkan.");
       } else {
-        toast.error("Gagal mencetak NFT aksesoris. Pastikan saldo Base Sepolia ETH cukup.");
+        toast.error(
+          "Gagal mencetak NFT aksesoris. Pastikan saldo Base Sepolia ETH cukup.",
+        );
       }
     } finally {
       setMintingItemId(null);
@@ -264,7 +284,7 @@ export default function PetShopPage() {
     } catch {
       setPurchaseFeedback({
         success: false,
-        message: "Gagal membeli Streak Freeze.",
+        message: "Gagal membeli Pembeku Streak.",
       });
     } finally {
       setBuyingPowerUp(null);
@@ -286,12 +306,33 @@ export default function PetShopPage() {
     } catch {
       setPurchaseFeedback({
         success: false,
-        message: "Gagal membeli Rest Day Pass.",
+        message: "Gagal membeli Kupon Jeda.",
       });
     } finally {
       setBuyingPowerUp(null);
     }
   };
+
+  const powerUpItems = [
+    {
+      key: "freeze" as const,
+      name: "Pembeku Streak",
+      description: "Menjaga streak tetap menyala saat lupa mencatat",
+      count: streakFreezes,
+      maxCount: STREAK_RULES.MAX_FREEZE_COUNT,
+      price: STREAK_RULES.FREEZE_PRICE_COINS,
+      onBuy: handleBuyFreeze,
+    },
+    {
+      key: "rest" as const,
+      name: "Kupon Jeda",
+      description: "Jadwalkan hari istirahat tanpa kehilangan streak-mu",
+      count: restPasses,
+      maxCount: STREAK_RULES.MAX_REST_PASS_COUNT,
+      price: STREAK_RULES.REST_PASS_PRICE_COINS,
+      onBuy: handleBuyRestPass,
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -308,9 +349,15 @@ export default function PetShopPage() {
         >
           <div className="flex items-center gap-2.5">
             {purchaseFeedback.success ? (
-              <Check className="h-4 w-4 shrink-0 text-accent-green stroke-[2.5]" />
+              <Check
+                className="h-4 w-4 shrink-0 text-accent-green stroke-[2.5]"
+                aria-hidden="true"
+              />
             ) : (
-              <AlertCircle className="h-4 w-4 shrink-0 text-destructive stroke-[2.5]" />
+              <AlertCircle
+                className="h-4 w-4 shrink-0 text-destructive stroke-[2.5]"
+                aria-hidden="true"
+              />
             )}
             <p className="font-semibold">{purchaseFeedback.message}</p>
           </div>
@@ -318,140 +365,134 @@ export default function PetShopPage() {
             type="button"
             onClick={() => setPurchaseFeedback(null)}
             aria-label="Tutup notifikasi"
-            className="p-1 rounded-navigation hover:bg-black/10 transition-colors"
+            className="p-1.5 rounded-navigation text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       )}
 
-      {/* Pelindung Streak (Power-Up) Section */}
+      {/* Power-Up Section */}
       <section
         data-tour="shop-powerups"
-        className="rounded-card border border-border-divider bg-surface p-4 sm:p-5 space-y-3 shadow-xs"
+        className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 space-y-4 shadow-xs"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-black text-text-primary font-heading flex items-center gap-1.5">
-              <Snowflake className="h-4 w-4 text-sky-500" />
-              <span>Pelindung Streak (Power-Up)</span>
-            </h2>
-            <p className="text-[11px] text-text-muted">
-              Lindungi konsistensi nutrisi harianmu dari hari sibuk atau akhir pekan santai.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-[#FCF8E3] border border-accent-orange/30 text-[11px] font-bold text-accent-orange-dark">
-            <Coins className="h-3.5 w-3.5 text-accent-orange" />
-            {coins} Koin
-          </span>
+        <div className="flex items-center">
+          <h2 className="text-lg sm:text-xl font-extrabold text-text-primary font-heading flex items-center gap-2">
+            <ShieldMinus
+              className="h-5 w-5 text-accent-green shrink-0"
+              aria-hidden="true"
+            />
+            <span>Power-Up</span>
+          </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Streak Freeze Card */}
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50/50 p-3.5">
-            <div className="flex items-start gap-2.5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
-                <Snowflake className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-extrabold text-text-primary">Streak Freeze</p>
-                  <span className="px-1.5 py-0.5 rounded-pill bg-sky-100 text-sky-700 text-[10px] font-bold">
-                    {streakFreezes}/{STREAK_RULES.MAX_FREEZE_COUNT}
-                  </span>
-                </div>
-                <p className="text-[11px] text-text-muted mt-0.5">
-                  Otomatis menahan streak agar tidak putus saat terlewat 1 hari.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleBuyFreeze}
-              disabled={
-                buyingPowerUp !== null ||
-                streakFreezes >= STREAK_RULES.MAX_FREEZE_COUNT ||
-                coins < STREAK_RULES.FREEZE_PRICE_COINS
-              }
-              className="shrink-0 rounded-xl bg-sky-600 hover:bg-sky-700 text-white px-3 py-2 text-[11px] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-            >
-              {buyingPowerUp === "freeze" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : streakFreezes >= STREAK_RULES.MAX_FREEZE_COUNT ? (
-                <span>Penuh</span>
-              ) : (
-                <>
-                  <Coins className="h-3 w-3" />
-                  <span>{STREAK_RULES.FREEZE_PRICE_COINS}</span>
-                </>
-              )}
-            </button>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {powerUpItems.map((powerUp) => {
+            const isExpanded = expandedPowerUps[powerUp.key];
+            const isMaxed = powerUp.count >= powerUp.maxCount;
+            const isBuying = buyingPowerUp === powerUp.key;
+            const descId = `powerup-desc-${powerUp.key}`;
 
-          {/* Rest Day / Weekend Pass Card */}
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50/50 p-3.5">
-            <div className="flex items-start gap-2.5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
-                <Moon className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-extrabold text-text-primary">Rest Day Pass</p>
-                  <span className="px-1.5 py-0.5 rounded-pill bg-indigo-100 text-indigo-700 text-[10px] font-bold">
-                    {restPasses}/{STREAK_RULES.MAX_REST_PASS_COUNT}
-                  </span>
+            return (
+              <div
+                key={powerUp.key}
+                className="rounded-button border border-border-divider bg-surface-subtle p-4 sm:p-5 flex flex-col justify-between gap-2 shadow-2xs"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center flex-wrap gap-2 min-w-0">
+                    <p className="text-base sm:text-lg font-extrabold text-text-primary leading-snug">
+                      {powerUp.name}
+                    </p>
+                    <span className="inline-flex items-center rounded-pill border border-border-default bg-surface px-2.5 py-0.5 text-xs font-bold text-neutral-10 tabular-nums">
+                      {powerUp.count}/{powerUp.maxCount}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => togglePowerUpDescription(powerUp.key)}
+                      aria-expanded={isExpanded}
+                      aria-controls={descId}
+                      aria-label={
+                        isExpanded
+                          ? `Sembunyikan deskripsi ${powerUp.name}`
+                          : `Lihat deskripsi ${powerUp.name}`
+                      }
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-navigation border border-border-default bg-surface text-text-muted transition-colors hover:bg-accent-green-light hover:text-text-primary"
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={powerUp.onBuy}
+                    disabled={
+                      buyingPowerUp !== null || isMaxed || coins < powerUp.price
+                    }
+                    className="button-primary inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs shrink-0"
+                  >
+                    {isBuying ? (
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                    ) : isMaxed ? (
+                      <span>Penuh</span>
+                    ) : (
+                      <>
+                        <CircleDollarSign
+                          className="h-4 w-4 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="tabular-nums">{powerUp.price}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-                <p className="text-[11px] text-text-muted mt-0.5">
-                  Aktifkan hari istirahat terencana di kalender tanpa memutus streak.
-                </p>
+
+                {isExpanded && (
+                  <p
+                    id={descId}
+                    className="text-xs sm:text-sm text-neutral-10 leading-relaxed pt-1"
+                  >
+                    {powerUp.description}
+                  </p>
+                )}
               </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleBuyRestPass}
-              disabled={
-                buyingPowerUp !== null ||
-                restPasses >= STREAK_RULES.MAX_REST_PASS_COUNT ||
-                coins < STREAK_RULES.REST_PASS_PRICE_COINS
-              }
-              className="shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 text-[11px] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-            >
-              {buyingPowerUp === "rest" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : restPasses >= STREAK_RULES.MAX_REST_PASS_COUNT ? (
-                <span>Penuh</span>
-              ) : (
-                <>
-                  <Coins className="h-3 w-3" />
-                  <span>{STREAK_RULES.REST_PASS_PRICE_COINS}</span>
-                </>
-              )}
-            </button>
-          </div>
+            );
+          })}
         </div>
       </section>
 
-      {/* Category Filter Pills (Squircle) + On-Chain NFT Sync */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      {/* Category Filter Tabs + On-Chain NFT Sync */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div
           data-tour="shop-categories"
-          className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none"
+          className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none"
         >
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={cn(
-                "nav-item rounded-navigation px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors border",
-                selectedCategory === cat.id
-                  ? "is-selected border-accent-orange font-bold shadow-2xs"
-                  : "bg-surface text-neutral-10 border-border-default hover:bg-surface-subtle",
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                aria-pressed={isActive}
+                className={cn(
+                  "nav-item rounded-navigation px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors border cursor-pointer",
+                  isActive
+                    ? "is-selected border-accent-orange font-bold shadow-2xs"
+                    : "bg-surface text-neutral-10 border-border-default hover:bg-accent-green-light hover:text-text-primary",
+                )}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
 
         <button
@@ -462,9 +503,9 @@ export default function PetShopPage() {
           title="Sinkronkan aksesoris ERC-1155 yang kamu miliki di wallet ke lemari Caloria"
         >
           {isSyncingNfts ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
           ) : (
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
           )}
           <span>Sync Wallet NFTs</span>
         </button>
@@ -483,59 +524,48 @@ export default function PetShopPage() {
             <div
               key={item.id}
               className={cn(
-                "rounded-card border bg-surface p-5 shadow-xs flex flex-col justify-between space-y-3 relative group transition-colors",
+                "rounded-card border bg-surface p-5 shadow-xs flex flex-col justify-between gap-4 relative transition-colors",
                 isOwned
                   ? "border-accent-green/40 hover:border-accent-green"
                   : "border-border-divider hover:border-accent-orange/60",
               )}
             >
-              {isOwned ? (
-                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-[8px] text-[10px] font-bold bg-accent-green/15 text-text-primary border border-accent-green/30 flex items-center gap-1">
-                  <Check className="h-3 w-3 stroke-[3]" />
+              {isOwned && (
+                <span className="absolute top-4 right-4 px-2.5 py-0.5 rounded-pill text-[11px] font-bold bg-accent-green/15 text-text-primary border border-accent-green/30 flex items-center gap-1">
+                  <Check className="h-3 w-3 stroke-[3]" aria-hidden="true" />
                   <span>Dimiliki</span>
                 </span>
-              ) : (
-                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-[8px] text-[10px] font-bold bg-surface-subtle text-neutral-10 border border-border-default flex items-center gap-1">
-                  <Lock className="h-3 w-3 text-text-muted" />
-                  <span>Terkunci</span>
-                </span>
               )}
 
-              {item.theme && (
-                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-[8px] text-[9px] font-bold uppercase bg-surface-subtle border border-border-divider text-text-muted">
-                  {item.theme}
-                </span>
-              )}
-
-              <div className="space-y-2 text-center pt-3">
-                <div className="h-16 w-16 mx-auto flex items-center justify-center">
-                  <AccessorySvgPreview itemId={item.id} />
+              <div className="flex flex-col items-center text-center gap-3 pt-4">
+                <div className="h-28 w-28 sm:h-32 sm:w-32 mx-auto flex items-center justify-center">
+                  <AccessorySvgPreview
+                    itemId={item.id}
+                    className="h-full w-full"
+                  />
                 </div>
-                <h3 className="text-sm font-bold text-text-primary">
+                <h3 className="text-base sm:text-lg font-extrabold text-text-primary leading-snug">
                   {item.name}
                 </h3>
-                <p className="text-[11px] text-neutral-10 leading-relaxed line-clamp-2">
-                  {item.description}
-                </p>
               </div>
 
-              <div className="pt-2 border-t border-border-divider space-y-2.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-text-muted font-medium">Harga:</span>
-                  <span className="font-extrabold text-accent-orange-dark flex items-center gap-1">
-                    <Coins className="h-3.5 w-3.5 text-accent-orange" />
-                    {item.priceCoins} Koin
-                  </span>
+              <div className="space-y-3 mt-auto">
+                <div className="flex items-center justify-center gap-1.5 text-sm sm:text-base font-extrabold text-accent-orange-dark">
+                  <CircleDollarSign
+                    className="h-4 w-4 sm:h-5 sm:w-5 text-accent-orange shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="tabular-nums">{item.priceCoins} Koin</span>
                 </div>
 
                 {isOwned ? (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Link
                       href="/pet-customization/wardrobe"
-                      className="w-full py-2 rounded-navigation bg-accent-yellow hover:bg-accent-green-light text-text-primary font-bold text-xs text-center flex items-center justify-center gap-1 transition-colors"
+                      className="w-full py-2 px-3 rounded-navigation bg-accent-yellow hover:bg-accent-green-light text-text-primary font-bold text-xs text-center flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <span>Dandani Calpal</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </Link>
 
                     {mintedItemIds.includes(item.id) ? (
@@ -543,27 +573,41 @@ export default function PetShopPage() {
                         href={`/api/nft/accessory/${getAccessoryTokenId(item.id)}/image.svg`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full py-1.5 rounded-navigation border border-accent-green/35 bg-accent-green/10 text-accent-green font-bold text-[11px] flex items-center justify-center gap-1 hover:bg-accent-green/20 transition-colors"
+                        className="w-full py-1.5 px-3 rounded-navigation border border-accent-green/35 bg-accent-green/10 text-accent-green font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-accent-green/20 transition-colors"
                       >
-                        <ShieldCheck className="h-3.5 w-3.5" />
-                        <span>NFT On-Chain #{getAccessoryTokenId(item.id)}</span>
-                        <ExternalLink className="h-3 w-3 opacity-70" />
+                        <ShieldCheck
+                          className="h-3.5 w-3.5 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span>
+                          NFT On-Chain #{getAccessoryTokenId(item.id)}
+                        </span>
+                        <ExternalLink
+                          className="h-3 w-3 opacity-70 shrink-0"
+                          aria-hidden="true"
+                        />
                       </a>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleMintAccessoryNft(item)}
                         disabled={mintingItemId === item.id}
-                        className="w-full py-1.5 rounded-navigation border border-border-default bg-surface-subtle hover:bg-accent-green-light text-text-primary font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                        className="w-full py-1.5 px-3 rounded-navigation border border-border-default bg-surface-subtle hover:bg-accent-green-light text-text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
                       >
                         {mintingItemId === item.id ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <Loader2
+                              className="h-3.5 w-3.5 animate-spin"
+                              aria-hidden="true"
+                            />
                             <span>Mencetak NFT...</span>
                           </>
                         ) : (
                           <>
-                            <Sparkles className="h-3 w-3 text-accent-orange" />
+                            <Sparkles
+                              className="h-3.5 w-3.5 text-accent-orange"
+                              aria-hidden="true"
+                            />
                             <span>Mint NFT (ERC-1155)</span>
                           </>
                         )}
@@ -575,14 +619,13 @@ export default function PetShopPage() {
                     type="button"
                     onClick={() => setConfirmModalItem(item)}
                     className={cn(
-                      "w-full py-2 rounded-navigation font-bold text-xs transition-transform active:scale-95 flex items-center justify-center gap-1.5 shadow-xs",
+                      "w-full py-2.5 px-4 rounded-button font-bold text-sm transition-all flex items-center justify-center gap-1.5",
                       canAfford
-                        ? "bg-accent-green hover:bg-accent-green/90 text-text-inverse"
+                        ? "button-primary"
                         : "bg-surface-subtle border border-border-default text-text-muted hover:bg-surface hover:text-text-primary",
                     )}
                   >
-                    <ShoppingBag className="h-3.5 w-3.5" />
-                    <span>{canAfford ? "Beli Aksesoris" : "Lihat & Beli"}</span>
+                    Beli
                   </button>
                 )}
               </div>

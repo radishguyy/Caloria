@@ -115,7 +115,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 caloria/
 ├── drizzle/                 # Generated SQL migrations
-├── public/                  # Static assets & HTML wireframes
+├── public/                  # Static assets
 ├── src/
 │   ├── app/                 # Next.js App Router (pages & layouts)
 │   │   ├── (auth)/          # Authentication routes (login, register)
@@ -176,7 +176,6 @@ Design references live alongside the app:
 
 - `Grand Design - Caloria (Gamified Nutrition & Virtual Pet Web App).md` — main design document.
 - `caloria-design-system-agent-files/` — design tokens (`design-tokens.css`, `design-tokens.json`) and implementation rules for agents (`AGENTS.md`).
-- `public/wireframes/` — HTML wireframes for per-page layout reference.
 
 Caloria tokens are already wired into `src/app/globals.css` (colors, typography, spacing, radius, shadows) and mapped to shadcn semantic variables.
 

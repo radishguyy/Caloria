@@ -241,7 +241,8 @@ export default function PetWardrobePage() {
 
     // Feedback toast
     const hasColorChanged =
-      JSON.stringify(customColors || {}) !== JSON.stringify(draftState.colors || {});
+      JSON.stringify(customColors || {}) !==
+      JSON.stringify(draftState.colors || {});
     if (hasColorChanged) {
       toastPaletteSaved();
     } else {

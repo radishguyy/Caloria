@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
@@ -136,7 +142,10 @@ export function AvatarPreview({
   }, [animationState, isComplaining, condition.hoursSinceFed]);
 
   const expNeeded = getExpNeededForNextLevel();
-  const expPercent = Math.min(100, Math.round((exp / Math.max(1, expNeeded)) * 100));
+  const expPercent = Math.min(
+    100,
+    Math.round((exp / Math.max(1, expNeeded)) * 100),
+  );
   const canAffordFeed = coins >= 5;
 
   useEffect(() => {
@@ -333,7 +342,7 @@ export function AvatarPreview({
       className={cn(
         "flex flex-col justify-between border border-border-divider bg-surface shadow-xs",
         isFullscreenView
-          ? "fixed inset-0 z-50 h-[100dvh] rounded-none border-0 p-4 sm:p-8"
+          ? "fixed inset-0 z-50 h-[100dvh] w-screen rounded-none border-0 p-4 sm:p-8"
           : "relative flex-1 rounded-card p-5 sm:p-6",
         className,
       )}
@@ -375,11 +384,14 @@ export function AvatarPreview({
               <Sparkles className="h-4 w-4 text-accent-green" />
               <span>XP</span>
             </span>
-            <span suppressHydrationWarning className="text-neutral-10 tabular-nums">
+            <span
+              suppressHydrationWarning
+              className="text-neutral-10 tabular-nums"
+            >
               {exp} / {expNeeded} ({expPercent}%)
             </span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-pill bg-surface-subtle border border-border-divider">
+          <div className="h-2.5 w-full overflow-hidden rounded-pill border border-border-divider bg-surface-subtle">
             <div
               className={cn(
                 "h-full rounded-pill transition-all duration-500",

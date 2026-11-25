@@ -37,7 +37,11 @@ export function PetCustomizationTopBar() {
       if (res.coins !== null) {
         setCoins(res.coins);
       }
-      if (res.ownedItemIds && res.ownedItemIds.length > 0) {
+      if (
+        res.authenticated &&
+        res.ownedItemIds &&
+        res.ownedItemIds.length > 0
+      ) {
         setOwnedItemIds(res.ownedItemIds);
       }
     });

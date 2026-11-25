@@ -178,7 +178,10 @@ export default function SocialHubPage() {
               </div>
 
               {/* Enlarged flat green Salin Kode & Undang Teman buttons */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div
+                data-tour="social-party-code"
+                className="flex flex-wrap items-center gap-3"
+              >
                 <button
                   type="button"
                   onClick={handleCopyCode}

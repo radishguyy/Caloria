@@ -99,9 +99,7 @@ export function TourProvider({ children, defs }: TourProviderProps) {
     });
 
   const isTourActive =
-    status === "starting" ||
-    status === "transitioning" ||
-    status === "active";
+    status === "starting" || status === "transitioning" || status === "active";
 
   const getStepsForTour = useCallback(
     (id: TourId): TourStepDef[] => {
@@ -163,7 +161,7 @@ export function TourProvider({ children, defs }: TourProviderProps) {
           gap: 14,
           arrow: {
             size: 10,
-            borderWidth: 0,
+            borderWidth: 1,
           },
         },
         behavior: {
@@ -231,6 +229,9 @@ export function TourProvider({ children, defs }: TourProviderProps) {
   );
 
   const showProgress = totalSteps > 0 && currentStepIndex >= 0;
+  const progressPercent = showProgress
+    ? ((currentStepIndex + 1) / totalSteps) * 100
+    : 0;
 
   return (
     <TourEngineContext.Provider value={contextValue}>
@@ -240,8 +241,19 @@ export function TourProvider({ children, defs }: TourProviderProps) {
         <GlowTourPointer />
         <GlowTourPopover>
           {showProgress && (
-            <div className="caloria-tour-progress" aria-live="off">
-              Langkah {currentStepIndex + 1} dari {totalSteps}
+            <div
+              className="caloria-tour-progress flex flex-col gap-1.5"
+              aria-live="off"
+            >
+              <span className="text-[11px] font-medium tabular-nums leading-none text-text-muted">
+                {currentStepIndex + 1} / {totalSteps}
+              </span>
+              <div className="h-1 w-full overflow-hidden rounded-full bg-border-divider">
+                <div
+                  className="h-full rounded-full bg-accent-green transition-[width] duration-200 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
           )}
           <GlowTourHeader />

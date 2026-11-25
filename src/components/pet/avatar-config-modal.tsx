@@ -83,6 +83,7 @@ export function AvatarConfigModal({
             type="button"
             onClick={onClose}
             className="p-1 rounded-pill text-text-muted hover:text-text-primary hover:bg-surface-subtle"
+            aria-label="Tutup modal"
           >
             <X className="h-4 w-4" />
           </button>

@@ -26,6 +26,8 @@ import { evaluateEffectiveStreak } from "@/lib/server/streak-service";
 /**
  * Returns the authenticated user's profile data for client-side rendering.
  * Used by the SessionProvider and any server component that needs profile info.
+ *
+ * Returns null when the user is not authenticated.
  */
 export async function getProfileData() {
   const supabase = await createClient();
@@ -38,6 +40,8 @@ export async function getProfileData() {
     return null;
   }
 
+  // Ensure profile exists (idempotent) — this is also where a fresh Google
+  // user gets their first profile row.
   let profileRow;
   try {
     profileRow = await ensureProfileForUser({

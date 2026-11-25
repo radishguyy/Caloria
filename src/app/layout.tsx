@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SessionProvider } from "@/components/shared/session-provider";
 import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
-import { SessionProvider } from "@/components/shared/session-provider";
 import { Web3Provider } from "@/components/shared/web3-provider";
 import { AppToaster } from "@/components/shared/app-toaster";
 import { TourProvider } from "@/components/tour/TourProvider";
@@ -49,7 +49,7 @@ export default function RootLayout({
       lang="id"
       className={`h-full antialiased ${openRunde.variable} ${secuela.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+      <body className="min-h-full flex flex-col bg-canvas text-ink font-sans">
         <Web3Provider>
           <SessionProvider>
             <TourProvider>

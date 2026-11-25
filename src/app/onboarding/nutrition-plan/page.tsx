@@ -1,11 +1,9 @@
 "use client";
 
-import { useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft,
-  ArrowRight,
   Flame,
   Beef,
   Wheat,
@@ -16,33 +14,46 @@ import {
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useOnboardingDemoStore } from "@/store/use-onboarding-demo-store";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
+import { OnboardingDemoBanner } from "@/components/onboarding/onboarding-demo-banner";
 import { generateNutritionPlan } from "@/lib/nutrition-calculator";
 
-export default function OnboardingNutritionPlanPage() {
+function OnboardingNutritionPlanContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams?.get("demo") === "1";
+
   const { goalPlan, setTargets } = useFoodStore();
   const { setOnboardingStep, onboardingCompleted } = useAuthStore();
+  const demoStore = useOnboardingDemoStore();
 
   useEffect(() => {
-    if (onboardingCompleted) {
+    if (!isDemo && onboardingCompleted) {
       router.replace("/dashboard");
     }
-  }, [onboardingCompleted, router]);
+  }, [isDemo, onboardingCompleted, router]);
+
+  const activeSource = isDemo ? demoStore : goalPlan;
 
   const plan = useMemo(() => {
     return generateNutritionPlan({
-      gender: goalPlan.gender || "male",
-      age: goalPlan.age || 24,
-      heightCm: goalPlan.heightCm || 172,
-      currentWeightKg: goalPlan.currentWeightKg || 75,
-      targetWeightKg: goalPlan.targetWeightKg || 68,
-      activityLevel: goalPlan.activityLevel || "moderate",
-      goalType: goalPlan.goalType || "diet",
+      gender: activeSource.gender || "male",
+      age: activeSource.age || 24,
+      heightCm: activeSource.heightCm || 172,
+      currentWeightKg: activeSource.currentWeightKg || 75,
+      targetWeightKg: activeSource.targetWeightKg || 68,
+      activityLevel: activeSource.activityLevel || "moderate",
+      goalType: activeSource.goalType || "diet",
     });
-  }, [goalPlan]);
+  }, [activeSource]);
 
   const handleNext = () => {
+    if (isDemo) {
+      router.push("/onboarding/adopt-pet?demo=1");
+      return;
+    }
+
     setTargets({
       calories: plan.dailyCalories,
       protein: plan.proteinG,
@@ -58,107 +69,91 @@ export default function OnboardingNutritionPlanPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-6 sm:py-10 space-y-5">
+    <div className="container mx-auto max-w-2xl px-4 py-6 sm:py-10 space-y-6">
+      {isDemo && <OnboardingDemoBanner />}
       <OnboardingStepper currentStep={4} />
 
-      <div className="text-center space-y-1.5">
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary font-heading">
-          Langkah 4: Target Gizi Harian Caloria
+      <div className="text-center">
+        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+          Target Gizi Harian
         </h1>
-        <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
-          Rincian pembagian makronutrisi harian yang dirancang khusus untuk mencapai target tubuh idealmu secara seimbang.
-        </p>
       </div>
 
-      <div className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 space-y-4 shadow-xs">
-        {/* Total Calories Banner */}
-        <div className="review-card border border-accent-green/30 p-4 sm:p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-navigation bg-accent-green text-text-inverse flex items-center justify-center font-bold shadow-2xs">
-              <Flame className="w-5 h-5 fill-current" />
-            </div>
-            <div>
-              <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
-                Total Kalori Harian
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-text-primary font-heading">
-                {plan.dailyCalories}{" "}
-                <span className="text-xs sm:text-sm font-semibold text-text-muted font-sans">
-                  kkal / hari
-                </span>
-              </h2>
-            </div>
+      <div className="rounded-2xl border border-border-divider bg-surface p-5 sm:p-6 space-y-4">
+        <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-accent-green text-text-inverse flex items-center justify-center shrink-0">
+            <Flame className="w-5 h-5" aria-hidden="true" />
           </div>
-          <span className="px-3 py-1 rounded-pill bg-surface text-xs font-bold border border-border-default text-accent-green-dark">
-            Rekomendasi Ahli
-          </span>
+          <div>
+            <span className="text-xs font-semibold text-text-muted block">
+              Target Kalori
+            </span>
+            <p className="font-heading text-2xl sm:text-3xl font-extrabold text-text-primary tabular-nums">
+              {plan.dailyCalories} kkal
+            </p>
+          </div>
         </div>
 
-        {/* 3 Main Macronutrient Cards */}
         <div className="grid grid-cols-3 gap-2.5">
-          {/* Protein */}
-          <div className="p-3 rounded-navigation bg-macro-protein/10 border border-macro-protein/25 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-macro-protein">
-              <Beef className="w-3.5 h-3.5" />
+          <div className="p-3.5 rounded-xl bg-macro-protein/8 border border-macro-protein/25 text-center space-y-1">
+            <div className="flex items-center justify-center gap-1 text-xs font-bold text-macro-protein">
+              <Beef className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Protein</span>
             </div>
-            <p className="text-lg sm:text-xl font-extrabold text-foreground font-heading">
+            <p className="font-heading text-xl sm:text-2xl font-extrabold text-text-primary tabular-nums">
               {plan.proteinG}g
             </p>
-            <p className="text-[10px] text-text-muted">Otot & Kenyang</p>
           </div>
 
-          {/* Carbs */}
-          <div className="p-3 rounded-navigation bg-accent-yellow/60 border border-accent-orange/30 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-accent-orange-dark">
-              <Wheat className="w-3.5 h-3.5" />
+          <div className="p-3.5 rounded-xl bg-accent-orange/8 border border-accent-orange/25 text-center space-y-1">
+            <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-orange-dark">
+              <Wheat className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Karbo</span>
             </div>
-            <p className="text-lg sm:text-xl font-extrabold text-foreground font-heading">
+            <p className="font-heading text-xl sm:text-2xl font-extrabold text-text-primary tabular-nums">
               {plan.carbsG}g
             </p>
-            <p className="text-[10px] text-text-muted">Energi Aktif</p>
           </div>
 
-          {/* Fat */}
-          <div className="p-3 rounded-navigation bg-macro-fat/10 border border-macro-fat/25 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-macro-fat">
-              <Droplets className="w-3.5 h-3.5" />
+          <div className="p-3.5 rounded-xl bg-macro-fat/8 border border-macro-fat/25 text-center space-y-1">
+            <div className="flex items-center justify-center gap-1 text-xs font-bold text-macro-fat">
+              <Droplets className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Lemak</span>
             </div>
-            <p className="text-lg sm:text-xl font-extrabold text-foreground font-heading">
+            <p className="font-heading text-xl sm:text-2xl font-extrabold text-text-primary tabular-nums">
               {plan.fatG}g
             </p>
-            <p className="text-[10px] text-text-muted">Hormon & Sendi</p>
           </div>
         </div>
 
-        {/* Micro & Vital Targets */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          <div className="flex items-center justify-between p-2.5 rounded-navigation bg-surface-subtle border border-border-default">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-subtle border border-border-divider">
             <div className="flex items-center gap-2">
-              <Apple className="w-4 h-4 text-accent-green" />
-              <span className="text-xs text-text-muted">Target Serat</span>
+              <Apple className="w-4 h-4 text-accent-green" aria-hidden="true" />
+              <span className="text-xs font-medium text-text-muted">Serat</span>
             </div>
             <span className="text-xs font-bold text-text-primary">
               {plan.fiberG} g
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-2.5 rounded-navigation bg-surface-subtle border border-border-default">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-subtle border border-border-divider">
             <div className="flex items-center gap-2">
-              <Candy className="w-4 h-4 text-macro-sugar" />
-              <span className="text-xs text-text-muted">Batas Gula</span>
+              <Candy className="w-4 h-4 text-macro-sugar" aria-hidden="true" />
+              <span className="text-xs font-medium text-text-muted">Gula</span>
             </div>
             <span className="text-xs font-bold text-macro-sugar">
               &lt; {plan.sugarG} g
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-2.5 rounded-navigation bg-surface-subtle border border-border-default">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-subtle border border-border-divider">
             <div className="flex items-center gap-2">
-              <GlassWater className="w-4 h-4 text-blue-500" />
-              <span className="text-xs text-text-muted">Target Air</span>
+              <GlassWater
+                className="w-4 h-4 text-blue-500"
+                aria-hidden="true"
+              />
+              <span className="text-xs font-medium text-text-muted">Air</span>
             </div>
             <span className="text-xs font-bold text-text-primary">
               {plan.waterMl} ml
@@ -167,25 +162,38 @@ export default function OnboardingNutritionPlanPage() {
         </div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex items-center justify-between gap-3 pt-1">
         <Link
-          href="/onboarding/projection"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-button border border-border-default bg-surface text-xs font-bold hover:bg-accent-green-light text-text-primary transition-colors"
+          href={
+            isDemo ? "/onboarding/projection?demo=1" : "/onboarding/projection"
+          }
+          className="inline-flex min-h-[44px] items-center justify-center px-5 py-2.5 rounded-xl border border-border-default bg-surface text-xs sm:text-sm font-bold text-neutral-10 hover:bg-surface-subtle transition-colors"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Kembali</span>
+          Kembali
         </Link>
 
         <button
+          type="button"
           onClick={handleNext}
-          className="button-primary inline-flex items-center gap-2 px-6 py-3 text-xs sm:text-sm"
+          className="inline-flex min-h-[44px] items-center justify-center px-7 py-2.5 rounded-xl bg-accent-green text-text-inverse text-xs sm:text-sm font-bold hover:bg-accent-green/90 transition-colors cursor-pointer"
         >
-          <span>Lanjut: Adopsi Virtual Pet</span>
-          <ArrowRight className="h-4 w-4" />
+          Lanjut
         </button>
       </div>
     </div>
   );
 }
 
+export default function OnboardingNutritionPlanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto max-w-2xl px-4 py-20 text-center">
+          <div className="h-8 w-8 rounded-full border-2 border-accent-green border-t-transparent animate-spin mx-auto" />
+        </div>
+      }
+    >
+      <OnboardingNutritionPlanContent />
+    </Suspense>
+  );
+}

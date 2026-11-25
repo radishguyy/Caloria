@@ -29,10 +29,10 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
       role="status"
       aria-live="polite"
       aria-busy="true"
-      className="relative z-20 mx-4 w-full max-w-md rounded-card bg-[#111F18]/95 backdrop-blur-md p-5 sm:p-6 space-y-4 shadow-2xl text-white"
+      className="relative z-20 mx-4 w-full max-w-md rounded-card border border-white/15 bg-[#111F18]/95 backdrop-blur-md p-5 sm:p-6 space-y-4 text-white shadow-xl"
     >
       {previewUrl && (
-        <div className="relative h-32 sm:h-40 w-full rounded-2xl overflow-hidden bg-black/80">
+        <div className="relative h-32 sm:h-40 w-full rounded-2xl overflow-hidden bg-black/80 border border-white/10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
@@ -41,27 +41,27 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-0 h-1/4 caloria-scan-beam bg-gradient-to-b from-transparent via-accent-green-light/35 to-accent-green-light/85 border-b-2 border-accent-green-light"
+            className="pointer-events-none absolute inset-x-0 top-0 h-1/4 caloria-scan-beam bg-accent-green-light/40 border-b-2 border-accent-green-light"
           />
         </div>
       )}
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-accent-green/30 text-accent-green-light flex items-center justify-center shrink-0 mt-0.5">
+          <div className="h-10 w-10 rounded-input bg-accent-green/30 text-accent-green-light flex items-center justify-center shrink-0 mt-0.5">
             <ScanLine className="h-5 w-5" />
           </div>
           <div className="min-w-0">
             <p className="text-base sm:text-lg font-extrabold font-heading leading-snug">
               {waitState.headline}
             </p>
-            <p className="text-sm font-semibold text-[#E2F3D1] leading-snug mt-1">
+            <p className="text-sm font-semibold text-accent-green-light/90 leading-snug mt-1">
               {waitState.detail}
             </p>
           </div>
         </div>
 
-        <span className="shrink-0 px-3 py-1 rounded-pill bg-accent-green/25 text-[#D9F99D] text-sm font-mono font-extrabold tabular-nums">
+        <span className="shrink-0 px-3 py-1 rounded-pill bg-accent-green/25 text-accent-green-light text-sm font-mono font-extrabold tabular-nums">
           {waitState.elapsedLabel}
         </span>
       </div>
@@ -84,7 +84,7 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
         {waitState.steps.map((step) => (
           <li key={step.id} className="flex items-center gap-3 text-sm">
             {step.status === "done" && (
-              <span className="h-6 w-6 rounded-full bg-accent-green-light text-[#1E3A10] flex items-center justify-center shrink-0">
+              <span className="h-6 w-6 rounded-full bg-accent-green-light text-text-primary flex items-center justify-center shrink-0">
                 <Check className="h-3.5 w-3.5 stroke-[3]" />
               </span>
             )}
@@ -94,16 +94,16 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
               </span>
             )}
             {step.status === "pending" && (
-              <span className="h-6 w-6 rounded-full bg-white/10 text-[#94A3B8] flex items-center justify-center shrink-0">
+              <span className="h-6 w-6 rounded-full bg-white/10 text-text-muted flex items-center justify-center shrink-0">
                 <span className="h-2 w-2 rounded-full bg-current" />
               </span>
             )}
             <span
               className={cn(
                 "leading-snug",
-                step.status === "done" && "text-[#D9F99D] font-bold",
+                step.status === "done" && "text-accent-green-light font-bold",
                 step.status === "active" && "text-white font-extrabold",
-                step.status === "pending" && "text-[#CBD5E1] font-semibold"
+                step.status === "pending" && "text-white/70 font-semibold",
               )}
             >
               {step.label}

@@ -52,7 +52,10 @@ export function ScanInfoTooltip({
   }, [open]);
 
   return (
-    <div ref={rootRef} className={cn("relative inline-flex items-center", className)}>
+    <div
+      ref={rootRef}
+      className={cn("relative inline-flex items-center", className)}
+    >
       <button
         type="button"
         aria-label={buttonText ? `${buttonText}: ${label}` : label}
@@ -60,10 +63,10 @@ export function ScanInfoTooltip({
         aria-controls={popoverId}
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          "min-h-11 min-w-11 px-2.5 rounded-2xl inline-flex items-center justify-center gap-1.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:outline-none",
+          "min-h-11 min-w-11 px-2.5 rounded-navigation inline-flex items-center justify-center gap-1.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:outline-none",
           tone === "dark"
             ? "bg-white/15 hover:bg-white/25 text-white focus-visible:ring-accent-green-light"
-            : "bg-[#ECF7E4] hover:bg-[#D5F0C1] text-[#244710] focus-visible:ring-[#244710]"
+            : "border border-border-default bg-surface hover:bg-accent-green-light/40 text-text-primary focus-visible:ring-accent-green",
         )}
       >
         <Info className="h-4 w-4 shrink-0" />
@@ -79,10 +82,10 @@ export function ScanInfoTooltip({
             "absolute top-full mt-2 z-40 w-64 sm:w-72 rounded-2xl p-3.5 text-sm font-semibold leading-relaxed shadow-lg",
             tone === "dark"
               ? "bg-[#182920] text-white border border-white/15"
-              : "bg-[#1E293B] text-white",
+              : "bg-surface text-neutral-10 border border-border-divider",
             align === "right" && "right-0",
             align === "left" && "left-0",
-            align === "center" && "left-1/2 -translate-x-1/2"
+            align === "center" && "left-1/2 -translate-x-1/2",
           )}
         >
           {content}

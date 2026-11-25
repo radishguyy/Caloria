@@ -9,7 +9,6 @@ import {
   Plus,
   Minus,
   CheckCircle2,
-  Coins,
   Camera,
   Loader2,
   Copy,
@@ -108,8 +107,11 @@ function DiaryAddFoodContent() {
 
   // AR Nutrition Label Scanner states
   const [isArScannerOpen, setIsArScannerOpen] = useState(false);
-  const [scannedData, setScannedData] = useState<NutritionLabelData | null>(null);
-  const [scannedImagePreviewUrl, setScannedImagePreviewUrl] = useState<string>("");
+  const [scannedData, setScannedData] = useState<NutritionLabelData | null>(
+    null,
+  );
+  const [scannedImagePreviewUrl, setScannedImagePreviewUrl] =
+    useState<string>("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   useEffect(() => {
@@ -446,6 +448,7 @@ function DiaryAddFoodContent() {
           <Link
             href="/diary"
             className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors shrink-0"
+            aria-label="Kembali ke Food Diary"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -534,9 +537,9 @@ function DiaryAddFoodContent() {
             type="button"
             data-tour="diary-add-scan"
             onClick={() => setIsArScannerOpen(true)}
-            className="px-5 py-3 min-h-12 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
+            className="px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 shrink-0 transition-colors"
           >
-            <Camera className="h-5 w-5 text-[#244710]" />
+            <Camera className="h-4 w-4 text-accent-green" />
             <span>Scan Label Gizi</span>
           </button>
         </div>
@@ -849,6 +852,7 @@ function DiaryAddFoodContent() {
                   type="button"
                   onClick={() => setIsTrayDrawerOpen(!isTrayDrawerOpen)}
                   className="h-9 w-9 rounded-navigation bg-accent-green text-text-inverse flex items-center justify-center font-black shrink-0 shadow-xs hover:opacity-90"
+                  aria-label="Buka atau tutup piring"
                 >
                   {isTrayDrawerOpen ? (
                     <ChevronDown className="h-5 w-5" />
