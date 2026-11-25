@@ -460,21 +460,267 @@ export function assessProduct(
 }
 
 /**
+ * Deterministic meal assessment for real/unlabeled food photos.
+ * Uses per-serving meal thresholds & remaining daily calorie budget instead of
+ * packaged UK FSA per-100g traffic light rules.
+ */
+export function assessRealFood(
+  input: ProductNutritionInput,
+  ctx: PersonalContext = {}
+): ProductAssessment {
+  const T = NUTRITION_THRESHOLDS;
+  const servings = Math.max(0.25, ctx.servingsConsumed ?? 1);
+  const calories = safe(input.caloriesKcal);
+  const protein = safe(input.proteinG);
+  const fat = safe(input.fatG);
+  const fiber = safe(input.fiberG);
+  const sugar = safe(input.sugarG);
+  const satFat = input.saturatedFatG == null ? null : safe(input.saturatedFatG);
+  const sodium = input.sodiumMg == null ? null : safe(input.sodiumMg);
+  const isBeverage = input.category === "beverage";
+
+  const warnings: NutrientFlag[] = [];
+  const missing: FlaggedNutrient[] = [];
+  if (satFat === null) missing.push("saturatedFat");
+  if (sodium === null) missing.push("sodium");
+
+  const addFlag = (
+    nutrient: FlaggedNutrient,
+    level: NutrientLevel,
+    value: number,
+    unit: string,
+    title: string,
+    limit: number | null
+  ) => {
+    if (level === "low") return;
+    const dailyLimitPct = limit ? Math.round((value / limit) * 100) : null;
+    const shortLabel = `${title} ${level === "high" ? "tinggi" : "cukup tinggi"}`;
+    const pctPart = dailyLimitPct !== null ? ` (~${dailyLimitPct}% batas harian)` : "";
+    warnings.push({
+      nutrient,
+      level,
+      per100: null,
+      perServing: round1(value),
+      dailyLimitPct,
+      label: `${shortLabel} (${round1(value)} ${unit}/porsi)`,
+      shortLabel,
+      message: `Estimasi ${title.toLowerCase()} sekitar ${round1(value)} ${unit} per porsi${pctPart}.`,
+    });
+  };
+
+  // Meal-level thresholds (per 1 visible serving)
+  if (fat >= 25) addFlag("fat", "high", fat, "g", "Lemak", T.dailyLimit.fat);
+  else if (fat >= 18) addFlag("fat", "medium", fat, "g", "Lemak", T.dailyLimit.fat);
+
+  if (sugar >= 25) addFlag("sugar", "high", sugar, "g", "Gula", T.dailyLimit.sugar);
+  else if (sugar >= 15) addFlag("sugar", "medium", sugar, "g", "Gula", T.dailyLimit.sugar);
+
+  if (calories >= 650) addFlag("calories", "high", calories, "kkal", "Kalori", T.dailyLimit.calories);
+  else if (calories >= 500) addFlag("calories", "medium", calories, "kkal", "Kalori", T.dailyLimit.calories);
+
+  if (satFat !== null) {
+    if (satFat >= 10) addFlag("saturatedFat", "high", satFat, "g", "Lemak jenuh", T.dailyLimit.saturatedFat);
+    else if (satFat >= 6) addFlag("saturatedFat", "medium", satFat, "g", "Lemak jenuh", T.dailyLimit.saturatedFat);
+  }
+
+  if (sodium !== null) {
+    if (sodium >= 1000) addFlag("sodium", "high", sodium, "mg", "Natrium", T.dailyLimit.sodium);
+    else if (sodium >= 600) addFlag("sodium", "medium", sodium, "mg", "Natrium", T.dailyLimit.sodium);
+  }
+
+  warnings.sort((a, b) => (a.level === "high" ? 0 : 1) - (b.level === "high" ? 0 : 1));
+
+  const positives: string[] = [];
+  if (protein >= 18) positives.push("Sumber protein yang baik");
+  if (fiber >= 5) positives.push("Tinggi serat");
+  else if (fiber >= 3) positives.push("Sumber serat");
+  if (ctx.goalType === "bulking" && protein >= 18) {
+    positives.push("Cocok untuk misi bulking kamu");
+  }
+  if (calories > 0 && calories <= 450 && fat <= 15 && sugar <= 10) {
+    positives.push("Porsi ringan & seimbang");
+  }
+
+  const totalKcal = Math.round(calories * servings);
+  let personalNote: string | null = null;
+  let overDietBudget = false;
+  let heavyDietBudget = false;
+
+  if (typeof ctx.remainingCalories === "number") {
+    if (ctx.remainingCalories <= 0) {
+      personalNote = `Target kalori harianmu sudah tercapai; porsi ini menambah sekitar ${totalKcal} kkal.`;
+      overDietBudget = ctx.goalType === "diet";
+    } else if (totalKcal > ctx.remainingCalories) {
+      personalNote = `${servings} porsi (~${totalKcal} kkal) melebihi sisa budget harianmu (${Math.round(ctx.remainingCalories)} kkal).`;
+      overDietBudget = ctx.goalType === "diet";
+    } else {
+      const pct = Math.round((totalKcal / ctx.remainingCalories) * 100);
+      personalNote = `${servings} porsi (~${totalKcal} kkal) memakai sekitar ${pct}% sisa kalori harianmu.`;
+      heavyDietBudget = ctx.goalType === "diet" && pct >= T.personalBudgetWarnPct;
+    }
+  }
+
+  const highCount = warnings.filter((w) => w.level === "high").length;
+  const mediumCount = warnings.filter((w) => w.level === "medium").length;
+
+  let verdict: ProductVerdict;
+  if (highCount >= 2 || (highCount >= 1 && overDietBudget)) {
+    verdict = "poor";
+  } else if (highCount >= 1 || mediumCount >= 1 || overDietBudget || heavyDietBudget) {
+    verdict = "moderate";
+  } else {
+    verdict = "good";
+  }
+
+  const suggestions: string[] = [];
+  if (warnings.some((w) => w.nutrient === "fat")) {
+    suggestions.push(
+      "Kurangi lauk gorengan atau kuah santan kental, lalu imbangi dengan sayur rebus atau lalapan."
+    );
+  }
+  if (warnings.some((w) => w.nutrient === "sugar")) {
+    suggestions.push(
+      isBeverage
+        ? "Pilih versi tanpa atau kurang gula, atau imbangi dengan air putih."
+        : "Batasi porsi makanan manis ini dan imbangi dengan air putih atau serat."
+    );
+  }
+  if (overDietBudget || heavyDietBudget) {
+    suggestions.push("Pertimbangkan setengah porsi dulu atau kurangi porsi nasi/karbonya.");
+  }
+  if (protein < 12 && calories >= 300 && !isBeverage) {
+    suggestions.push("Tambahkan protein tanpa goreng seperti telur rebus, tahu/tempe kukus, atau dada ayam panggang.");
+  }
+  if (fiber < 3 && calories >= 250 && !isBeverage) {
+    suggestions.push("Tambahkan sayur hijau atau buah potong agar kenyang lebih tahan lama.");
+  }
+  if (suggestions.length === 0) {
+    suggestions.push("Sesuaikan jumlah porsi dengan foto aslimu sebelum menyimpan ke Food Diary.");
+  }
+
+  const highLabels = warnings
+    .filter((w) => w.level === "high")
+    .map((w) => w.shortLabel.replace(/ tinggi$/i, "").toLowerCase());
+  const summary =
+    verdict === "good"
+      ? positives.length > 0
+        ? `${joinId(positives.slice(0, 2))}. Perkiraan kalori dan makronya cukup seimbang.`
+        : "Perkiraan porsi dan kandungan gizinya cukup seimbang."
+      : highLabels.length > 0
+      ? `Estimasi ${joinId(highLabels)} cukup tinggi untuk 1 porsi. Cek lagi takaran dan minyak/bumbu.`
+      : "Porsi cukup padat kalori untuk 1 kali makan. Atur takaran sesuai kebutuhan harian.";
+
+  const calpalReaction: CalpalReaction =
+    verdict === "good"
+      ? {
+          expression: "happy",
+          moodStatus: "happy",
+          bubbleText: "Mantap, porsinya seimbang!",
+        }
+      : verdict === "moderate"
+      ? {
+          expression: "idle",
+          moodStatus: "neutral",
+          bubbleText: "Enak nih! Cek porsinya ya!",
+        }
+      : {
+          expression: "idle",
+          moodStatus: "complaining",
+          bubbleText: "Porsinya lumayan berat nih!",
+        };
+
+  let actionFeedback: string;
+  if (verdict === "good") {
+    if (typeof ctx.remainingCalories === "number" && ctx.remainingCalories <= 0) {
+      actionFeedback = "Porsi seimbang, tapi sisa kalori hari ini sudah habis.";
+    } else if (ctx.goalType === "bulking" && protein >= 18) {
+      actionFeedback = "Cocok! Bagus untuk mendukung target protein harianmu.";
+    } else {
+      actionFeedback = "Porsi seimbang! Cek lagi takaran lalu catat ke diary.";
+    }
+  } else if (verdict === "moderate") {
+    if (overDietBudget || heavyDietBudget) {
+      actionFeedback = "Cukup 1/2 porsi saja atau kurangi karbonya.";
+    } else if (warnings[0]?.nutrient === "sugar") {
+      actionFeedback = "Nikmati secukupnya, imbangi dengan air putih.";
+    } else {
+      actionFeedback = "Boleh dimakan 1 porsi, tambah sayur agar seimbang.";
+    }
+  } else {
+    if (warnings.some((w) => w.nutrient === "fat")) {
+      actionFeedback = "Lemak & kalori cukup tinggi. Coba 1/2 porsi + sayur.";
+    } else {
+      actionFeedback = "Porsi cukup berat. Kurangi takaran atau bagi 2 kali makan.";
+    }
+  }
+
+  return {
+    verdict,
+    headline:
+      verdict === "good"
+        ? "Estimasi Seimbang"
+        : verdict === "moderate"
+        ? "Perhatikan Porsi"
+        : "Porsi Cukup Berat",
+    actionFeedback,
+    summary,
+    warnings,
+    positives,
+    suggestions: Array.from(new Set(suggestions)).slice(0, 3),
+    personalNote,
+    missing,
+    basis: "perServing",
+    isBeverage,
+    thresholdsVersion: T.version,
+    calpalReaction,
+  };
+}
+
+export interface NutritionistSummaryOptions {
+  scanMode?: "label" | "food";
+  detectedItems?: string[];
+  hiddenCalorieNotes?: string[];
+}
+
+/**
  * Formats a clean, shareable summary for manual consultation with a nutritionist
  * ("Tanyakan Ahli Gizi") alongside an explicit AI-estimation disclaimer.
  */
 export function formatNutritionistSummary(
   foodName: string,
   input: ProductNutritionInput,
-  assessment: ProductAssessment
+  assessment: ProductAssessment,
+  options: NutritionistSummaryOptions = {}
 ): string {
+  const isRealFood = options.scanMode === "food";
   const servingText = input.servingSize
-    ? `${input.servingSize} ${input.servingUnit || "g"}`
-    : input.servingUnit || "1 sajian";
+    ? isRealFood
+      ? `1 ${input.servingUnit || "porsi"} (~${input.servingSize} g)`
+      : `${input.servingSize} ${input.servingUnit || "g"}`
+    : input.servingUnit || "1 porsi";
   const warningsText =
     assessment.warnings.length > 0
       ? assessment.warnings.map((w) => w.shortLabel).join(", ")
       : "Tidak ada catatan tinggi";
+
+  if (isRealFood) {
+    const lines = [
+      `Halo Ahli Gizi, saya ingin menanyakan makanan hasil estimasi visual AI di Caloria:`,
+      `- Makanan: ${foodName || "Makanan Hasil Scan"} (${servingText})`,
+      `- Estimasi Makro: ~${round1(safe(input.caloriesKcal))} kkal | Protein: ${round1(safe(input.proteinG))} g | Karbo: ${round1(safe(input.carbsG))} g | Lemak: ${round1(safe(input.fatG))} g | Serat: ${round1(safe(input.fiberG))} g | Gula: ${round1(safe(input.sugarG))} g`,
+    ];
+    if (options.detectedItems && options.detectedItems.length > 0) {
+      lines.push(`- Komponen terlihat: ${options.detectedItems.join(", ")}`);
+    }
+    if (options.hiddenCalorieNotes && options.hiddenCalorieNotes.length > 0) {
+      lines.push(`- Catatan bahan tersembunyi: ${options.hiddenCalorieNotes.join(" ")}`);
+    }
+    lines.push(`- Catatan awal AI: ${assessment.headline} (${warningsText})`);
+    lines.push(
+      `Catatan: angka di atas adalah estimasi visual AI dari foto makanan (bukan label kemasan). Mohon sertakan foto makanan aslinya saat berkonsultasi agar ahli gizi dapat memberi saran yang tepat.`
+    );
+    return lines.join("\n");
+  }
 
   const lines = [
     `Halo Ahli Gizi, saya ingin menanyakan produk hasil scan di Caloria:`,

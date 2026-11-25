@@ -3,6 +3,7 @@ import {
   computeReticleCropRect,
   createScanClient,
   fitWithinMaxDimension,
+  ScanApiError,
 } from "../scan-client";
 import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 
@@ -33,6 +34,7 @@ console.log("  ✓ fitWithinMaxDimension preserves aspect ratio within max bound
 
 async function run() {
   const sampleData: NutritionLabelData = {
+    scanMode: "label",
     foodName: "Susu Cokelat",
     servingSize: 200,
     servingUnit: "ml",
@@ -47,6 +49,8 @@ async function run() {
     sodiumMg: 90,
     productCategory: "dairy",
     isReadableNutritionLabel: true,
+    detectedItems: [],
+    hiddenCalorieNotes: [],
   };
 
   let fetchCalls = 0;
@@ -81,20 +85,66 @@ async function run() {
   assert.equal(second.caloriesKcal, 140);
   console.log("  ✓ session SHA-256 cache deduplicates identical scan requests");
 
-  // 3. Server error surfaces clear message and is not cached
+  // 2b. Mode-separated cache & FormData mode field
+  {
+    const seenModes: string[] = [];
+    const dualClient = createScanClient({
+      hashFn: async () => "same-image-hash",
+      fetchFn: async (_url, init) => {
+        const fd = init?.body as FormData;
+        const mode = String(fd.get("mode") ?? "");
+        seenModes.push(mode);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              ...sampleData,
+              foodName: mode === "food" ? "Nasi Goreng" : "Susu Cokelat",
+              scanMode: mode === "food" ? "food" : "label",
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      },
+    });
+
+    const asLabel = await dualClient.scanBlob(blobA, { mode: "label" });
+    const asFood = await dualClient.scanBlob(blobA, { mode: "food" });
+    const asFoodCached = await dualClient.scanBlob(blobA, { mode: "food" });
+
+    assert.deepEqual(seenModes, ["label", "food"]);
+    assert.equal(asLabel.foodName, "Susu Cokelat");
+    assert.equal(asFood.foodName, "Nasi Goreng");
+    assert.equal(asFoodCached.foodName, "Nasi Goreng");
+    console.log("  ✓ cache isolates label vs food mode for the same image");
+  }
+
+  // 3. Server error surfaces structured ScanApiError with code and suggestedMode
   const failingClient = createScanClient({
     hashFn: async () => "err-hash",
     fetchFn: async () =>
-      new Response(JSON.stringify({ success: false, error: "Rate limit" }), {
-        status: 429,
-      }),
+      new Response(
+        JSON.stringify({
+          success: false,
+          code: "WRONG_MODE",
+          suggestedMode: "food",
+          error: "Foto ini terlihat seperti makanan langsung.",
+        }),
+        { status: 422 }
+      ),
   });
 
   await assert.rejects(
-    () => failingClient.scanBlob(blobA),
-    /Rate limit/
+    () => failingClient.scanBlob(blobA, { mode: "label" }),
+    (err: unknown) => {
+      assert.ok(err instanceof ScanApiError);
+      assert.equal(err.code, "WRONG_MODE");
+      assert.equal(err.suggestedMode, "food");
+      assert.match(err.message, /makanan langsung/i);
+      return true;
+    }
   );
-  console.log("  ✓ non-OK response rejects with API error message");
+  console.log("  ✓ non-OK response rejects with structured ScanApiError");
 
   // 4. Client timeout aborts hanging fetch and surfaces clear Indonesian guidance
   {

@@ -31,7 +31,7 @@ import {
   evaluateBatchFoodReward,
   BatchRewardEvaluationResult,
 } from "@/lib/reward-engine";
-import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
+import { NutritionLabelData, type ScanMode } from "@/lib/schemas/nutrition-scan";
 import { ArScannerOverlay } from "@/components/diary/ArScannerOverlay";
 import { ReviewScanModal } from "@/components/diary/ReviewScanModal";
 import { CreateCustomFoodModal } from "@/components/diary/CreateCustomFoodModal";
@@ -40,6 +40,7 @@ import {
   toastFoodStaged,
   toastMealsCommitted,
   toastOcrSuccess,
+  toastSuccess,
 } from "@/lib/toast";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useAutoTour } from "@/components/tour/useAutoTour";
@@ -105,8 +106,9 @@ function DiaryAddFoodContent() {
     useState<BatchRewardEvaluationResult | null>(null);
   const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
 
-  // AR Nutrition Label Scanner states
+  // AR Nutrition Label & Real Food Scanner states
   const [isArScannerOpen, setIsArScannerOpen] = useState(false);
+  const [lastScanMode, setLastScanMode] = useState<ScanMode>("label");
   const [scannedData, setScannedData] = useState<NutritionLabelData | null>(
     null,
   );
@@ -537,10 +539,10 @@ function DiaryAddFoodContent() {
             type="button"
             data-tour="diary-add-scan"
             onClick={() => setIsArScannerOpen(true)}
-            className="px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+            className="px-5 py-3 min-h-12 rounded-button border border-accent-green bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none"
           >
-            <Camera className="h-4 w-4 text-accent-green" />
-            <span>Scan Label Gizi</span>
+            <Camera className="h-5 w-5 shrink-0" />
+            <span>Scan Label &amp; Makanan</span>
           </button>
         </div>
 
@@ -1044,17 +1046,26 @@ function DiaryAddFoodContent() {
         }}
       />
 
-      {/* AR Label Scanner Viewfinder Overlay */}
+      {/* AR Label & Real Food Scanner Viewfinder Overlay */}
       <ArScannerOverlay
         isOpen={isArScannerOpen}
         mealTime={activeMeal}
+        initialMode={lastScanMode}
         onClose={() => setIsArScannerOpen(false)}
         onScanComplete={(data, previewUrl) => {
           setIsArScannerOpen(false);
+          setLastScanMode(data.scanMode ?? "label");
           setScannedData(data);
           setScannedImagePreviewUrl(previewUrl);
           setIsReviewModalOpen(true);
-          toastOcrSuccess();
+          if (data.scanMode === "food") {
+            toastSuccess(
+              "Makanan Terdeteksi! 🍽️",
+              "Estimasi visual AI siap dicek dan disesuaikan porsinya."
+            );
+          } else {
+            toastOcrSuccess();
+          }
         }}
       />
 

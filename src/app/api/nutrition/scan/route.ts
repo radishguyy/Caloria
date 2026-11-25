@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, ThinkingLevel, Type, Schema } from "@google/genai";
-import { NutritionLabelSchema } from "@/lib/schemas/nutrition-scan";
+import {
+  NutritionLabelSchema,
+  SCAN_MODES,
+  type ScanMode,
+} from "@/lib/schemas/nutrition-scan";
 import { PRODUCT_CATEGORIES } from "@/lib/nutrition/product-assessment";
 import {
   checkScanRateLimit,
@@ -18,7 +22,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 15;
 
-const SYSTEM_PROMPT = `You are an expert nutrition label OCR and food packaging parser.
+const LABEL_SYSTEM_PROMPT = `You are an expert nutrition label OCR and food packaging parser.
 Analyze the provided image of a food packaging's Nutrition Facts / Informasi Nilai Gizi table and extract the nutritional values into structured JSON.
 
 Strict Extraction Guidelines:
@@ -38,10 +42,32 @@ Strict Extraction Guidelines:
 6. Infer foodName from visible product title/branding, or provide a descriptive name (e.g., "Scanned Food Product").
 7. Classify productCategory strictly as one of: ${PRODUCT_CATEGORIES.join(", ")}. Use "other" if unclear.
 8. Set confidenceScore between 0.0 and 1.0 reflecting actual visual legibility of the printed nutrition numbers.
-9. Anti-hallucination check (CRITICAL): Set isReadableNutritionLabel to true ONLY if an actual printed Nutrition Facts / Informasi Nilai Gizi table on packaged food is clearly visible and legible. If the photo shows loose or plated food without a nutrition table (e.g., nasi goreng, rice bowls, fruit, home-cooked dishes), set isReadableNutritionLabel to false with unreadableReason = "Scan ini khusus tabel Informasi Nilai Gizi di kemasan. Untuk makanan tanpa label (mis. nasi goreng), catat lewat pencarian menu." If a packaging photo is too blurry, tiny, dark, or obstructed to read numbers directly, set isReadableNutritionLabel to false with short Indonesian guidance in unreadableReason, set rawLabelExcerpt to null, and set all macro numbers to 0 (NEVER guess or invent values).
-10. When isReadableNutritionLabel is true, set rawLabelExcerpt to 1 or 2 short exact phrases read verbatim from the label (for example: "Takaran saji 250 ml, Energi total 150 kkal, Gula 10 g") so the user can verify extraction directly against the packaging.`;
+9. Anti-hallucination check (CRITICAL): Set isReadableNutritionLabel to true ONLY if an actual printed Nutrition Facts / Informasi Nilai Gizi table on packaged food is clearly visible and legible. If the photo shows loose or plated real food or prepared drinks without a nutrition table (e.g., nasi goreng, ayam geprek, rice bowls, fruit, home-cooked dishes, iced tea), set isReadableNutritionLabel to false, set suggestedMode to "food", and set unreadableReason = "Foto ini terlihat seperti makanan langsung, bukan tabel gizi kemasan. Pindah ke mode Makanan Real untuk estimasi gizi." If a packaging photo is too blurry, tiny, dark, or obstructed to read numbers directly (or not food/label at all), set isReadableNutritionLabel to false, set suggestedMode to "none", give short Indonesian guidance in unreadableReason, set rawLabelExcerpt to null, and set all macro numbers to 0 (NEVER guess or invent values).
+10. When isReadableNutritionLabel is true, set suggestedMode to "none" and set rawLabelExcerpt to 1 or 2 short exact phrases read verbatim from the label (for example: "Takaran saji 250 ml, Energi total 150 kkal, Gula 10 g") so the user can verify extraction directly against the packaging.`;
 
-const geminiResponseSchema: Schema = {
+const FOOD_SYSTEM_PROMPT = `You are an expert Indonesian & global culinary visual nutrition estimator for Caloria.
+Analyze the provided photo of real, unlabeled food or drink (plated meals, bowls, street food, fruits, snacks, beverages) and provide a realistic, honest per-serving visual estimate in structured JSON.
+
+Strict Guidelines:
+1. Identify the main dish clearly in natural Indonesian (e.g., "Nasi Goreng Telur & Ayam", "Nasi Putih + Ayam Goreng + Lalapan", "Soto Ayam", "Es Kopi Susu Gula Aren", "Pisang Ambon").
+2. Estimate ONE visible serving on the plate/bowl/glass:
+   - servingSize: estimated total weight in grams (or ml for drinks), e.g., 320.
+   - servingUnit: natural Indonesian unit such as "porsi", "piring", "mangkuk", "gelas", "potong", "buah".
+   - servingsPerContainer: always null.
+   - portionNote: concise Indonesian visual scale note, e.g., "1 piring standar (~320 g)" or "1 gelas sedang (~300 ml)".
+3. Estimate realistic nutritional values for that 1 visible serving using Indonesian culinary references (TKPI / standard portion baselines):
+   - caloriesKcal, proteinG, carbsG, fatG, fiberG, sugarG (realistic non-negative numbers).
+   - saturatedFatG and sodiumMg: set to null unless clearly inferable; do not invent false precision.
+4. detectedItems: list 1 to 6 visible components in concise Indonesian with rough visual quantity (e.g., ["Nasi putih (~1 centong)", "Ayam goreng (~1 potong)", "Telur dadar (~1 butir)", "Timun & sambal"]).
+5. hiddenCalorieNotes: list 1 to 3 concise Indonesian notes highlighting elements a 2D photo cannot measure accurately when relevant (e.g., "Minyak goreng terserap dapat menambah kalori", "Kadar gula/sirup pada minuman tidak terlihat dari foto", "Santan atau bumbu di bagian bawah mangkuk mungkin tertutup"). Use an empty array only for simple plain whole foods (e.g., fresh banana, plain boiled egg).
+6. Classify productCategory strictly as one of: ${PRODUCT_CATEGORIES.join(", ")} (use "beverage" for drinks, "snack" for fritters/snacks, "ready_meal" for main plated meals, "other" if fruit/misc).
+7. Set confidenceScore honestly between 0.45 and 0.85 for real food estimates (visual estimates are never 1.0); use lower scores (< 0.65) for heavily mixed, occluded, dark, or distant dishes.
+8. Anti-hallucination & mode check (CRITICAL):
+   - If the photo clearly shows a printed Nutrition Facts / Informasi Nilai Gizi table on packaging instead of real food, set isRecognizableFood to false, set suggestedMode to "label", set unreadableReason = "Foto ini menampilkan tabel Informasi Nilai Gizi kemasan. Pindah ke mode Label Gizi agar hasil lebih akurat.", and set all numeric macros to 0.
+   - If the photo does NOT contain recognizable food/drink (empty table, person, laptop, document, non-food object, or far too blurry/dark to tell what food it is), set isRecognizableFood to false, set suggestedMode to "none", give short Indonesian guidance in unreadableReason, and set all numeric macros to 0.
+   - Otherwise set isRecognizableFood to true, suggestedMode to "none", unreadableReason to null.`;
+
+const geminiLabelResponseSchema: Schema = {
   type: Type.OBJECT,
   properties: {
     foodName: {
@@ -122,7 +148,13 @@ const geminiResponseSchema: Schema = {
       type: Type.STRING,
       nullable: true,
       description:
-        "1-2 short verbatim phrases read from the nutrition table (e.g., 'Takaran saji 250 ml, Energi total 150 kkal'); null if unreadable.",
+        "1-2 short verbatim phrases read from the nutrition table; null if unreadable.",
+    },
+    suggestedMode: {
+      type: Type.STRING,
+      enum: ["none", ...SCAN_MODES],
+      description:
+        "Set to 'food' ONLY if photo clearly shows real plated/loose food without a nutrition table; otherwise 'none'.",
     },
   },
   required: [
@@ -143,8 +175,235 @@ const geminiResponseSchema: Schema = {
     "isReadableNutritionLabel",
     "unreadableReason",
     "rawLabelExcerpt",
+    "suggestedMode",
   ],
 };
+
+const geminiFoodResponseSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    foodName: {
+      type: Type.STRING,
+      description: "Natural Indonesian dish name recognized from the photo.",
+    },
+    servingSize: {
+      type: Type.NUMBER,
+      nullable: true,
+      description: "Estimated weight in grams (or ml for drinks) for 1 visible serving.",
+    },
+    servingUnit: {
+      type: Type.STRING,
+      description: "Natural serving unit in Indonesian (e.g., 'porsi', 'piring', 'mangkuk', 'gelas', 'buah').",
+    },
+    servingsPerContainer: {
+      type: Type.NUMBER,
+      nullable: true,
+      description: "Always null for real food.",
+    },
+    caloriesKcal: {
+      type: Type.NUMBER,
+      description: "Estimated calories (kcal) for 1 visible serving.",
+    },
+    proteinG: {
+      type: Type.NUMBER,
+      description: "Estimated protein in grams.",
+    },
+    carbsG: {
+      type: Type.NUMBER,
+      description: "Estimated carbohydrates in grams.",
+    },
+    fatG: {
+      type: Type.NUMBER,
+      description: "Estimated fat in grams.",
+    },
+    fiberG: {
+      type: Type.NUMBER,
+      description: "Estimated fiber in grams.",
+    },
+    sugarG: {
+      type: Type.NUMBER,
+      description: "Estimated sugar in grams.",
+    },
+    saturatedFatG: {
+      type: Type.NUMBER,
+      nullable: true,
+      description: "Estimated saturated fat in grams if inferable, otherwise null.",
+    },
+    sodiumMg: {
+      type: Type.NUMBER,
+      nullable: true,
+      description: "Estimated sodium in mg if clearly inferable, otherwise null.",
+    },
+    productCategory: {
+      type: Type.STRING,
+      enum: [...PRODUCT_CATEGORIES],
+      description: "Best matching category (ready_meal, beverage, snack, other, etc.).",
+    },
+    confidenceScore: {
+      type: Type.NUMBER,
+      description: "Honest visual estimate confidence score between 0.45 and 0.85 (lower if occluded/unclear).",
+    },
+    isRecognizableFood: {
+      type: Type.BOOLEAN,
+      description:
+        "True if recognizable real food or drink is visible; false if non-food, unreadable, or a packaged nutrition label table.",
+    },
+    unreadableReason: {
+      type: Type.STRING,
+      nullable: true,
+      description: "Short Indonesian guidance when isRecognizableFood is false; null otherwise.",
+    },
+    detectedItems: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "1-6 visible food components in Indonesian with rough visual portion.",
+    },
+    hiddenCalorieNotes: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "0-3 short Indonesian notes about hidden oil, santan, sauces, or sugar.",
+    },
+    portionNote: {
+      type: Type.STRING,
+      nullable: true,
+      description: "Short Indonesian portion note, e.g., '1 piring standar (~320 g)'.",
+    },
+    suggestedMode: {
+      type: Type.STRING,
+      enum: ["none", ...SCAN_MODES],
+      description:
+        "Set to 'label' ONLY if photo clearly shows a printed Nutrition Facts table; otherwise 'none'.",
+    },
+  },
+  required: [
+    "foodName",
+    "servingSize",
+    "servingUnit",
+    "servingsPerContainer",
+    "caloriesKcal",
+    "proteinG",
+    "carbsG",
+    "fatG",
+    "fiberG",
+    "sugarG",
+    "saturatedFatG",
+    "sodiumMg",
+    "productCategory",
+    "confidenceScore",
+    "isRecognizableFood",
+    "unreadableReason",
+    "detectedItems",
+    "hiddenCalorieNotes",
+    "portionNote",
+    "suggestedMode",
+  ],
+};
+
+function buildOpenAiJsonSchema(mode: ScanMode) {
+  if (mode === "food") {
+    return {
+      name: "nutrition_food_schema",
+      strict: true,
+      schema: {
+        type: "object",
+        properties: {
+          foodName: { type: "string" },
+          servingSize: { type: ["number", "null"] },
+          servingUnit: { type: "string" },
+          servingsPerContainer: { type: ["number", "null"] },
+          caloriesKcal: { type: "number" },
+          proteinG: { type: "number" },
+          carbsG: { type: "number" },
+          fatG: { type: "number" },
+          fiberG: { type: "number" },
+          sugarG: { type: "number" },
+          saturatedFatG: { type: ["number", "null"] },
+          sodiumMg: { type: ["number", "null"] },
+          productCategory: { type: "string", enum: [...PRODUCT_CATEGORIES] },
+          confidenceScore: { type: "number" },
+          isRecognizableFood: { type: "boolean" },
+          unreadableReason: { type: ["string", "null"] },
+          detectedItems: { type: "array", items: { type: "string" } },
+          hiddenCalorieNotes: { type: "array", items: { type: "string" } },
+          portionNote: { type: ["string", "null"] },
+          suggestedMode: { type: "string", enum: ["none", ...SCAN_MODES] },
+        },
+        required: [
+          "foodName",
+          "servingSize",
+          "servingUnit",
+          "servingsPerContainer",
+          "caloriesKcal",
+          "proteinG",
+          "carbsG",
+          "fatG",
+          "fiberG",
+          "sugarG",
+          "saturatedFatG",
+          "sodiumMg",
+          "productCategory",
+          "confidenceScore",
+          "isRecognizableFood",
+          "unreadableReason",
+          "detectedItems",
+          "hiddenCalorieNotes",
+          "portionNote",
+          "suggestedMode",
+        ],
+        additionalProperties: false,
+      },
+    };
+  }
+
+  return {
+    name: "nutrition_label_schema",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        foodName: { type: "string" },
+        servingSize: { type: ["number", "null"] },
+        servingUnit: { type: "string" },
+        servingsPerContainer: { type: ["number", "null"] },
+        caloriesKcal: { type: "number" },
+        proteinG: { type: "number" },
+        carbsG: { type: "number" },
+        fatG: { type: "number" },
+        fiberG: { type: "number" },
+        sugarG: { type: "number" },
+        saturatedFatG: { type: ["number", "null"] },
+        sodiumMg: { type: ["number", "null"] },
+        productCategory: { type: "string", enum: [...PRODUCT_CATEGORIES] },
+        confidenceScore: { type: "number" },
+        isReadableNutritionLabel: { type: "boolean" },
+        unreadableReason: { type: ["string", "null"] },
+        rawLabelExcerpt: { type: ["string", "null"] },
+        suggestedMode: { type: "string", enum: ["none", ...SCAN_MODES] },
+      },
+      required: [
+        "foodName",
+        "servingSize",
+        "servingUnit",
+        "servingsPerContainer",
+        "caloriesKcal",
+        "proteinG",
+        "carbsG",
+        "fatG",
+        "fiberG",
+        "sugarG",
+        "saturatedFatG",
+        "sodiumMg",
+        "productCategory",
+        "confidenceScore",
+        "isReadableNutritionLabel",
+        "unreadableReason",
+        "rawLabelExcerpt",
+        "suggestedMode",
+      ],
+      additionalProperties: false,
+    },
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -168,7 +427,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Silakan login terlebih dahulu untuk memindai label nutrisi.",
+          error: "Silakan login terlebih dahulu untuk memindai makanan atau label nutrisi.",
         },
         { status: 401 }
       );
@@ -194,6 +453,8 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const imageFile = formData.get("image");
+    const rawMode = formData.get("mode");
+    const mode: ScanMode = rawMode === "food" ? "food" : "label";
 
     if (!imageFile || !(imageFile instanceof File)) {
       return NextResponse.json(
@@ -224,6 +485,14 @@ export async function POST(request: NextRequest) {
       process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     const openAiApiKey = process.env.OPENAI_API_KEY;
 
+    const systemPrompt = mode === "food" ? FOOD_SYSTEM_PROMPT : LABEL_SYSTEM_PROMPT;
+    const geminiSchema =
+      mode === "food" ? geminiFoodResponseSchema : geminiLabelResponseSchema;
+    const openAiUserText =
+      mode === "food"
+        ? "Identify the real food or drink in this photo and estimate its nutritional values per visible serving into JSON."
+        : "Extract the nutrition facts from this food label image into JSON.";
+
     let rawJsonResult: unknown = null;
     try {
       rawJsonResult = await extractNutritionWithFallback({
@@ -239,7 +508,7 @@ export async function POST(request: NextRequest) {
               {
                 role: "user",
                 parts: [
-                  { text: SYSTEM_PROMPT },
+                  { text: systemPrompt },
                   {
                     inlineData: {
                       mimeType,
@@ -251,7 +520,7 @@ export async function POST(request: NextRequest) {
             ],
             config: {
               responseMimeType: "application/json",
-              responseSchema: geminiResponseSchema,
+              responseSchema: geminiSchema,
               temperature: 0,
               abortSignal: signal,
               ...(modelName === "gemini-3.5-flash-lite"
@@ -278,14 +547,14 @@ export async function POST(request: NextRequest) {
                 messages: [
                   {
                     role: "system",
-                    content: SYSTEM_PROMPT,
+                    content: systemPrompt,
                   },
                   {
                     role: "user",
                     content: [
                       {
                         type: "text",
-                        text: "Extract the nutrition facts from this food label image into JSON.",
+                        text: openAiUserText,
                       },
                       {
                         type: "image_url",
@@ -299,55 +568,7 @@ export async function POST(request: NextRequest) {
                 ],
                 response_format: {
                   type: "json_schema",
-                  json_schema: {
-                    name: "nutrition_label_schema",
-                    strict: true,
-                    schema: {
-                      type: "object",
-                      properties: {
-                        foodName: { type: "string" },
-                        servingSize: { type: ["number", "null"] },
-                        servingUnit: { type: "string" },
-                        servingsPerContainer: { type: ["number", "null"] },
-                        caloriesKcal: { type: "number" },
-                        proteinG: { type: "number" },
-                        carbsG: { type: "number" },
-                        fatG: { type: "number" },
-                        fiberG: { type: "number" },
-                        sugarG: { type: "number" },
-                        saturatedFatG: { type: ["number", "null"] },
-                        sodiumMg: { type: ["number", "null"] },
-                        productCategory: {
-                          type: "string",
-                          enum: [...PRODUCT_CATEGORIES],
-                        },
-                        confidenceScore: { type: "number" },
-                        isReadableNutritionLabel: { type: "boolean" },
-                        unreadableReason: { type: ["string", "null"] },
-                        rawLabelExcerpt: { type: ["string", "null"] },
-                      },
-                      required: [
-                        "foodName",
-                        "servingSize",
-                        "servingUnit",
-                        "servingsPerContainer",
-                        "caloriesKcal",
-                        "proteinG",
-                        "carbsG",
-                        "fatG",
-                        "fiberG",
-                        "sugarG",
-                        "saturatedFatG",
-                        "sodiumMg",
-                        "productCategory",
-                        "confidenceScore",
-                        "isReadableNutritionLabel",
-                        "unreadableReason",
-                        "rawLabelExcerpt",
-                      ],
-                      additionalProperties: false,
-                    },
-                  },
+                  json_schema: buildOpenAiJsonSchema(mode),
                 },
               }),
             }
@@ -386,12 +607,39 @@ export async function POST(request: NextRequest) {
       throw providerErr;
     }
 
-    const parsed = NutritionLabelSchema.safeParse(rawJsonResult);
+    const normalizedRaw =
+      rawJsonResult && typeof rawJsonResult === "object"
+        ? (() => {
+            const obj = rawJsonResult as Record<string, unknown>;
+            const rawSuggested = obj.suggestedMode;
+            const normalizedSuggested: ScanMode | null =
+              rawSuggested === "label" || rawSuggested === "food"
+                ? rawSuggested
+                : null;
+            return {
+              ...obj,
+              scanMode: mode,
+              suggestedMode: normalizedSuggested,
+              ...(mode === "food"
+                ? {
+                    isReadableNutritionLabel: Boolean(obj.isRecognizableFood),
+                    servingsPerContainer: null,
+                    rawLabelExcerpt: null,
+                  }
+                : {}),
+            };
+          })()
+        : rawJsonResult;
+
+    const parsed = NutritionLabelSchema.safeParse(normalizedRaw);
     if (!parsed.success) {
       return NextResponse.json(
         {
           success: false,
-          error: "Failed to validate extracted nutrition label data.",
+          error:
+            mode === "food"
+              ? "Gagal memvalidasi estimasi gizi makanan."
+              : "Failed to validate extracted nutrition label data.",
           details: parsed.error.flatten(),
         },
         { status: 400 }
@@ -399,13 +647,26 @@ export async function POST(request: NextRequest) {
     }
 
     if (!parsed.data.isReadableNutritionLabel) {
+      const suggestedMode =
+        parsed.data.suggestedMode && parsed.data.suggestedMode !== mode
+          ? parsed.data.suggestedMode
+          : null;
+      const code = suggestedMode
+        ? "WRONG_MODE"
+        : mode === "food"
+        ? "UNREADABLE_FOOD"
+        : "UNREADABLE_LABEL";
+
       return NextResponse.json(
         {
           success: false,
-          code: "UNREADABLE_LABEL",
+          code,
+          suggestedMode,
           error:
             parsed.data.unreadableReason?.trim() ||
-            "Tabel Informasi Nilai Gizi tidak terbaca jelas. Coba foto lebih dekat dan pastikan teks fokus.",
+            (mode === "food"
+              ? "Makanan tidak terlihat jelas di foto. Coba arahkan ke seluruh hidangan dengan cahaya cukup."
+              : "Tabel Informasi Nilai Gizi tidak terbaca jelas. Coba foto lebih dekat dan pastikan teks fokus."),
         },
         { status: 422 }
       );
@@ -421,7 +682,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error:
-          "Gagal memproses foto label nutrisi. Coba ulangi beberapa saat lagi.",
+          "Gagal memproses foto. Coba ulangi beberapa saat lagi.",
       },
       { status: 500 }
     );

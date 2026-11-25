@@ -19,18 +19,22 @@ import {
   Plus,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
+  UtensilsCrossed,
   Wheat,
   X,
 } from "lucide-react";
 import { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
 import {
   assessProduct,
+  assessRealFood,
   formatNutritionistSummary,
   PRODUCT_CATEGORIES,
   type FlaggedNutrient,
   type ProductCategory,
   type ProductVerdict,
 } from "@/lib/nutrition/product-assessment";
+import { formatDateKey } from "@/lib/date-utils";
 import { logScannedNutritionAction } from "@/app/actions/nutrition-scan";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
@@ -50,6 +54,8 @@ export interface ReviewScanModalProps {
   onAddToStaging?: (item: StagedFoodItem) => void;
   onRescan?: () => void;
 }
+
+const EMPTY_LIST: string[] = [];
 
 const CATEGORY_LABELS: Record<ProductCategory, string> = {
   beverage: "Minuman",
@@ -115,7 +121,7 @@ export function ReviewScanModal(props: ReviewScanModalProps) {
 
   if (!isOpen) return null;
 
-  const resetKey = `${props.imagePreviewUrl}::${props.initialData.foodName}::${props.initialData.caloriesKcal}`;
+  const resetKey = `${props.initialData.scanMode ?? "label"}::${props.imagePreviewUrl}::${props.initialData.foodName}::${props.initialData.caloriesKcal}`;
   return <ReviewScanModalBody key={resetKey} {...props} />;
 }
 
@@ -139,20 +145,27 @@ function ReviewScanModalBody({
     feedPet: feedPetStore,
   } = usePetStore();
 
+  const isRealFood = initialData.scanMode === "food";
+  const detectedItems = initialData.detectedItems ?? EMPTY_LIST;
+  const hiddenCalorieNotes = initialData.hiddenCalorieNotes ?? EMPTY_LIST;
+
   const [foodName, setFoodName] = useState(
-    initialData.foodName || "Produk Kemasan",
+    initialData.foodName ||
+      (isRealFood ? "Makanan Hasil Scan" : "Produk Kemasan"),
   );
   const [servingSize, setServingSize] = useState<string>(
     initialData.servingSize !== null && initialData.servingSize !== undefined
       ? String(initialData.servingSize)
-      : "100",
+      : isRealFood
+        ? "250"
+        : "100",
   );
   const [servingUnit, setServingUnit] = useState(
-    initialData.servingUnit || "g",
+    initialData.servingUnit || (isRealFood ? "porsi" : "g"),
   );
   const [servingsConsumed, setServingsConsumed] = useState<number>(1.0);
   const [productCategory, setProductCategory] = useState<ProductCategory>(
-    initialData.productCategory ?? "other",
+    initialData.productCategory ?? (isRealFood ? "ready_meal" : "other"),
   );
 
   const [caloriesKcal, setCaloriesKcal] = useState<string>(
@@ -177,7 +190,9 @@ function ReviewScanModalBody({
       : "",
   );
 
-  const isLowConfidence = (initialData.confidenceScore ?? 1) < 0.75;
+  const lowConfidenceThreshold = isRealFood ? 0.65 : 0.75;
+  const isLowConfidence =
+    (initialData.confidenceScore ?? 1) < lowConfidenceThreshold;
   const [isEditExpanded, setIsEditExpanded] = useState(isLowConfidence);
   const [selectedWarning, setSelectedWarning] =
     useState<FlaggedNutrient | null>(null);
@@ -239,7 +254,7 @@ function ReviewScanModalBody({
     return {
       servingSize:
         Number.isFinite(numServing) && numServing > 0 ? numServing : null,
-      servingUnit: servingUnit || "g",
+      servingUnit: servingUnit || (isRealFood ? "porsi" : "g"),
       caloriesKcal: parsedPerServing.caloriesKcal,
       proteinG: parsedPerServing.proteinG,
       carbsG: parsedPerServing.carbsG,
@@ -250,32 +265,47 @@ function ReviewScanModalBody({
       sodiumMg: parsedPerServing.sodiumMg,
       category: productCategory,
     };
-  }, [servingSize, servingUnit, parsedPerServing, productCategory]);
+  }, [servingSize, servingUnit, isRealFood, parsedPerServing, productCategory]);
 
-  const assessment = useMemo(
-    () =>
-      assessProduct(assessmentInput, {
-        goalType: goalPlan.goalType,
-        remainingCalories: targets.calories > 0 ? remainingCalories : null,
-        servingsConsumed,
-      }),
-    [
-      assessmentInput,
-      goalPlan.goalType,
-      targets.calories,
-      remainingCalories,
+  const assessment = useMemo(() => {
+    const ctx = {
+      goalType: goalPlan.goalType,
+      remainingCalories: targets.calories > 0 ? remainingCalories : null,
       servingsConsumed,
-    ],
-  );
+    };
+    return isRealFood
+      ? assessRealFood(assessmentInput, ctx)
+      : assessProduct(assessmentInput, ctx);
+  }, [
+    isRealFood,
+    assessmentInput,
+    goalPlan.goalType,
+    targets.calories,
+    remainingCalories,
+    servingsConsumed,
+  ]);
 
   const nutritionistSummary = useMemo(
     () =>
       formatNutritionistSummary(
-        foodName.trim() || "Produk Kemasan",
+        foodName.trim() ||
+          (isRealFood ? "Makanan Hasil Scan" : "Produk Kemasan"),
         assessmentInput,
         assessment,
+        {
+          scanMode: isRealFood ? "food" : "label",
+          detectedItems,
+          hiddenCalorieNotes,
+        },
       ),
-    [foodName, assessmentInput, assessment],
+    [
+      foodName,
+      isRealFood,
+      assessmentInput,
+      assessment,
+      detectedItems,
+      hiddenCalorieNotes,
+    ],
   );
 
   const verdictStyle = VERDICT_STYLES[assessment.verdict];
@@ -287,6 +317,15 @@ function ReviewScanModalBody({
 
   const extraLabelInfo = useMemo(() => {
     const parts: string[] = [];
+    if (isRealFood) {
+      parts.push(
+        "Hasil ini merupakan estimasi visual AI dari foto makanan (bukan label kemasan). Minyak, santan, bumbu, dan kedalaman piring dapat memengaruhi kalori asli.",
+      );
+      if (assessment.summary) {
+        parts.push(assessment.summary);
+      }
+      return parts.join(" ");
+    }
     if (initialData.rawLabelExcerpt?.trim()) {
       parts.push(`Teks terbaca: "${initialData.rawLabelExcerpt.trim()}"`);
     }
@@ -300,7 +339,12 @@ function ReviewScanModalBody({
       parts.push(`Info ${missingText} tidak tercantum di label.`);
     }
     return parts.join(" ");
-  }, [initialData.rawLabelExcerpt, assessment.summary, assessment.missing]);
+  }, [
+    isRealFood,
+    initialData.rawLabelExcerpt,
+    assessment.summary,
+    assessment.missing,
+  ]);
 
   const handleAdjustServings = (delta: number) => {
     setServingsConsumed((prev) => {
@@ -324,7 +368,7 @@ function ReviewScanModalBody({
       const actionResult = await logScannedNutritionAction({
         foodName: foodName.trim() || "Scanned Food",
         servingSize: cleanServingSize,
-        servingUnit: servingUnit.trim() || "g",
+        servingUnit: servingUnit.trim() || (isRealFood ? "porsi" : "g"),
         servingsConsumed,
         mealTime,
         perServing: {
@@ -335,7 +379,7 @@ function ReviewScanModalBody({
           fiberG: parsedPerServing.fiberG,
           sugarG: parsedPerServing.sugarG,
         },
-        saveToCatalog,
+        saveToCatalog: isRealFood ? false : saveToCatalog,
       });
 
       if (!actionResult.success && actionResult.error) {
@@ -352,10 +396,14 @@ function ReviewScanModalBody({
         fiberG: totals.fiber,
         sugarG: totals.sugar,
         servingSize: servingsConsumed,
-        servingUnit: `${servingsConsumed}x (${cleanServingSize ?? 100}${
-          servingUnit || "g"
-        })`,
-        loggedDate: new Date().toISOString().split("T")[0],
+        servingUnit: isRealFood
+          ? `${servingsConsumed} ${servingUnit || "porsi"} (~${Math.round(
+              (cleanServingSize ?? 250) * servingsConsumed,
+            )}g)`
+          : `${servingsConsumed}x (${cleanServingSize ?? 100}${
+              servingUnit || "g"
+            })`,
+        loggedDate: formatDateKey(new Date()),
       });
 
       feedPetStore(totals.calories, 10, 5);
@@ -382,7 +430,9 @@ function ReviewScanModalBody({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Hasil Scan Label Gizi"
+      aria-label={
+        isRealFood ? "Hasil Estimasi Makanan Real" : "Hasil Scan Label Gizi"
+      }
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-y-auto"
     >
       {/* Outer wrapper reserves headroom so PeekingCalpal tucks cleanly behind modal top */}
@@ -404,17 +454,24 @@ function ReviewScanModalBody({
 
         <form
           onSubmit={handleConfirmAndLog}
-          className="relative z-10 w-full max-h-[86dvh] flex flex-col rounded-t-[28px] sm:rounded-card border border-border-divider bg-surface shadow-2xl overflow-hidden"
+          className="relative z-10 w-full max-h-[86dvh] flex flex-col rounded-t-[28px] sm:rounded-card border border-border-divider bg-surface overflow-hidden"
         >
           {/* Sticky Header */}
           <div className="shrink-0 flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-border-divider bg-accent-yellow/35">
             <div className="min-w-0">
               <h2 className="text-xl sm:text-2xl font-extrabold text-text-primary font-heading truncate leading-tight">
-                {foodName || "Produk Hasil Scan"}
+                {foodName ||
+                  (isRealFood ? "Makanan Hasil Scan" : "Produk Hasil Scan")}
               </h2>
               <p className="text-sm sm:text-base font-bold text-neutral-10 mt-0.5">
-                {CATEGORY_LABELS[productCategory]} • 1 sajian ={" "}
-                {servingSize || "100"} {servingUnit || "g"}
+                {isRealFood
+                  ? `Estimasi Visual AI • ${
+                      initialData.portionNote?.trim() ||
+                      `1 ${servingUnit || "porsi"} (~${servingSize || "250"} g)`
+                    }`
+                  : `${CATEGORY_LABELS[productCategory]} • 1 sajian = ${
+                      servingSize || "100"
+                    } ${servingUnit || "g"}`}
               </p>
             </div>
 
@@ -438,11 +495,15 @@ function ReviewScanModalBody({
                 verdictStyle.surface,
               )}
             >
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-button border border-border-default overflow-hidden bg-surface-subtle shrink-0">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-button border border-border-default overflow-hidden bg-card shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreviewUrl}
-                  alt="Foto label gizi yang dipindai"
+                  alt={
+                    isRealFood
+                      ? "Foto makanan yang dianalisis"
+                      : "Foto label gizi yang dipindai"
+                  }
                   className="w-full h-full object-cover"
                 />
                 {confidencePercent !== null && (
@@ -467,6 +528,12 @@ function ReviewScanModalBody({
                       />
                       <span>{verdictStyle.label}</span>
                     </span>
+                    {isRealFood && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill border border-border-default bg-surface text-text-primary text-sm font-extrabold">
+                        <Sparkles className="h-3.5 w-3.5 text-accent-orange-dark" />
+                        <span>Estimasi AI</span>
+                      </span>
+                    )}
                     <span
                       className={cn(
                         "text-lg sm:text-xl font-extrabold",
@@ -479,7 +546,11 @@ function ReviewScanModalBody({
 
                   {extraLabelInfo && (
                     <ScanInfoTooltip
-                      label="Detail bacaan label dan ringkasan gizi"
+                      label={
+                        isRealFood
+                          ? "Detail estimasi visual AI dan ringkasan gizi"
+                          : "Detail bacaan label dan ringkasan gizi"
+                      }
                       buttonText="Info"
                       content={extraLabelInfo}
                       align="right"
@@ -487,8 +558,8 @@ function ReviewScanModalBody({
                   )}
                 </div>
 
-                {/* Direct Action Feedback ("ini ngapain") */}
-                <div className="rounded-2xl border border-border-divider bg-surface px-4 py-3 text-base font-extrabold text-neutral-10 leading-snug">
+                {/* Direct Action Feedback */}
+                <div className="rounded-2xl border border-border-divider bg-surface px-4 py-3 text-base font-extrabold text-text-primary leading-snug">
                   {assessment.actionFeedback}
                 </div>
 
@@ -503,17 +574,57 @@ function ReviewScanModalBody({
             {isLowConfidence && (
               <div
                 role="status"
-                className="rounded-2xl border border-accent-orange/35 bg-accent-yellow/50 text-accent-orange-dark px-4 py-3.5 flex items-start gap-3 text-sm sm:text-base font-bold leading-snug"
+                className="rounded-2xl border border-accent-orange/35 bg-accent-yellow/55 text-accent-orange-dark px-4 py-3.5 flex items-start gap-3 text-sm sm:text-base font-bold leading-snug"
               >
                 <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-accent-orange-dark" />
                 <span>
-                  Akurasi foto rendah ({confidencePercent}%). Cek ulang angka di
-                  form koreksi bawah sebelum mencatat.
+                  {isRealFood
+                    ? `Tingkat keyakinan visual masih rendah (${confidencePercent}%). Cek porsi dan sesuaikan estimasi angka di bawah sebelum mencatat.`
+                    : `Akurasi foto rendah (${confidencePercent}%). Cek ulang angka di form koreksi bawah sebelum mencatat.`}
                 </span>
               </div>
             )}
 
-            {/* 2. Scannable Warning & Positive Chips (Tap chip for detail) */}
+            {/* 1b. Real Food Detected Components & Hidden Calorie Notes */}
+            {isRealFood &&
+              (detectedItems.length > 0 || hiddenCalorieNotes.length > 0) && (
+                <div className="rounded-3xl border border-border-divider bg-card p-4 sm:p-5 space-y-3.5">
+                  {detectedItems.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-base font-extrabold text-text-primary">
+                        <UtensilsCrossed className="h-4 w-4 text-accent-green shrink-0" />
+                        <span>Komponen Terdeteksi</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {detectedItems.map((item) => (
+                          <span
+                            key={item}
+                            className="inline-flex items-center px-3.5 py-1.5 rounded-pill border border-border-default bg-surface text-text-primary text-sm sm:text-base font-bold"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {hiddenCalorieNotes.length > 0 && (
+                    <div className="rounded-2xl border border-accent-orange/35 bg-accent-yellow/45 text-accent-orange-dark px-4 py-3 space-y-1">
+                      <div className="flex items-center gap-2 text-sm font-extrabold">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        <span>Catatan Bahan Tersembunyi</span>
+                      </div>
+                      <ul className="space-y-1 text-sm font-semibold leading-snug">
+                        {hiddenCalorieNotes.map((note) => (
+                          <li key={note}>• {note}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            {/* 2. Scannable Warning & Positive Chips */}
             {(assessment.warnings.length > 0 ||
               assessment.positives.length > 0) && (
               <div className="space-y-3">
@@ -533,10 +644,10 @@ function ReviewScanModalBody({
                               )
                             }
                             className={cn(
-                              "min-h-11 inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
+                              "min-h-11 inline-flex items-center gap-2 px-4 py-2 rounded-button border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
                               flag.level === "high"
                                 ? "border-destructive/30 bg-destructive/10 hover:bg-destructive/20 text-destructive"
-                                : "border-accent-orange/35 bg-accent-yellow/45 hover:bg-accent-yellow/70 text-accent-orange-dark",
+                                : "border-accent-orange/35 bg-accent-yellow/55 hover:bg-accent-yellow text-accent-orange-dark",
                               isSelected && "ring-2 ring-current",
                             )}
                           >
@@ -555,7 +666,7 @@ function ReviewScanModalBody({
                     {activeWarningDetail && (
                       <div
                         role="status"
-                        className="rounded-2xl border border-border-divider bg-surface-subtle text-neutral-10 px-4 py-3 text-sm font-semibold leading-snug"
+                        className="rounded-2xl bg-text-primary text-text-inverse px-4 py-3 text-sm font-semibold leading-snug"
                       >
                         {activeWarningDetail.message}
                       </div>
@@ -581,7 +692,7 @@ function ReviewScanModalBody({
 
             {/* 3. Concise Top Suggestion + Tooltip for Extra Tips */}
             {assessment.suggestions.length > 0 && (
-              <div className="rounded-3xl border border-border-divider bg-surface-subtle p-4 flex items-center justify-between gap-3">
+              <div className="rounded-3xl border border-border-divider bg-card p-4 flex items-center justify-between gap-3">
                 <div className="flex items-start gap-2.5 min-w-0">
                   <Lightbulb className="h-5 w-5 text-accent-orange-dark shrink-0 mt-0.5" />
                   <p className="text-sm sm:text-base font-bold text-neutral-10 leading-snug">
@@ -613,7 +724,7 @@ function ReviewScanModalBody({
                     <strong className="text-lg sm:text-xl font-black text-text-primary font-heading tabular-nums">
                       {totals.calories} kkal
                     </strong>
-                    {initialData.servingsPerContainer
+                    {!isRealFood && initialData.servingsPerContainer
                       ? ` • ${initialData.servingsPerContainer} sajian/kemasan`
                       : ""}
                   </span>
@@ -656,68 +767,96 @@ function ReviewScanModalBody({
 
               {/* Quick portion chips (>= 48px height) */}
               <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setServingsConsumed(1.0)}
-                  className={cn(
-                    "min-h-12 px-4 py-2 rounded-pill border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
-                    servingsConsumed === 1.0
-                      ? "border-accent-green bg-accent-green-light text-text-primary"
-                      : "border-border-default bg-surface text-neutral-10 hover:bg-accent-green-light/35",
-                  )}
-                >
-                  1 porsi
-                </button>
-                {initialData.servingsPerContainer &&
-                  initialData.servingsPerContainer !== 1 && (
+                {isRealFood ? (
+                  [
+                    { label: "1/2 porsi", value: 0.5 },
+                    { label: "1 porsi", value: 1.0 },
+                    { label: "1.5 porsi", value: 1.5 },
+                    { label: "2 porsi", value: 2.0 },
+                  ].map((chip) => (
                     <button
+                      key={chip.value}
                       type="button"
-                      onClick={() =>
-                        setServingsConsumed(initialData.servingsPerContainer!)
-                      }
+                      onClick={() => setServingsConsumed(chip.value)}
                       className={cn(
                         "min-h-12 px-4 py-2 rounded-pill border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
-                        servingsConsumed === initialData.servingsPerContainer
+                        servingsConsumed === chip.value
                           ? "border-accent-green bg-accent-green-light text-text-primary"
                           : "border-border-default bg-surface text-neutral-10 hover:bg-accent-green-light/35",
                       )}
                     >
-                      1 kemasan ({initialData.servingsPerContainer}x)
+                      {chip.label}
                     </button>
-                  )}
-                {initialData.servingsPerContainer &&
-                  initialData.servingsPerContainer > 1 && (
+                  ))
+                ) : (
+                  <>
                     <button
                       type="button"
-                      onClick={() =>
-                        setServingsConsumed(
-                          Math.max(
-                            0.25,
-                            Math.round(
-                              (initialData.servingsPerContainer! / 2) * 100,
-                            ) / 100,
-                          ),
-                        )
-                      }
+                      onClick={() => setServingsConsumed(1.0)}
                       className={cn(
                         "min-h-12 px-4 py-2 rounded-pill border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
-                        servingsConsumed ===
-                          Math.max(
-                            0.25,
-                            Math.round(
-                              (initialData.servingsPerContainer! / 2) * 100,
-                            ) / 100,
-                          )
+                        servingsConsumed === 1.0
                           ? "border-accent-green bg-accent-green-light text-text-primary"
                           : "border-border-default bg-surface text-neutral-10 hover:bg-accent-green-light/35",
                       )}
                     >
-                      1/2 kemasan
+                      1 porsi
                     </button>
-                  )}
+                    {initialData.servingsPerContainer &&
+                      initialData.servingsPerContainer !== 1 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setServingsConsumed(
+                              initialData.servingsPerContainer!,
+                            )
+                          }
+                          className={cn(
+                            "min-h-12 px-4 py-2 rounded-pill border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
+                            servingsConsumed ===
+                              initialData.servingsPerContainer
+                              ? "border-accent-green bg-accent-green-light text-text-primary"
+                              : "border-border-default bg-surface text-neutral-10 hover:bg-accent-green-light/35",
+                          )}
+                        >
+                          1 kemasan ({initialData.servingsPerContainer}x)
+                        </button>
+                      )}
+                    {initialData.servingsPerContainer &&
+                      initialData.servingsPerContainer > 1 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setServingsConsumed(
+                              Math.max(
+                                0.25,
+                                Math.round(
+                                  (initialData.servingsPerContainer! / 2) * 100,
+                                ) / 100,
+                              ),
+                            )
+                          }
+                          className={cn(
+                            "min-h-12 px-4 py-2 rounded-pill border text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
+                            servingsConsumed ===
+                              Math.max(
+                                0.25,
+                                Math.round(
+                                  (initialData.servingsPerContainer! / 2) * 100,
+                                ) / 100,
+                              )
+                              ? "border-accent-green bg-accent-green-light text-text-primary"
+                              : "border-border-default bg-surface text-neutral-10 hover:bg-accent-green-light/35",
+                          )}
+                        >
+                          1/2 kemasan
+                        </button>
+                      )}
+                  </>
+                )}
               </div>
 
-              {/* Macro Snapshot Grid (2x2 mobile, 4x1 desktop, bold large numbers) */}
+              {/* Macro Snapshot Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
                 <div className="rounded-2xl border border-border-divider bg-surface px-3 py-3">
                   <span className="text-sm font-bold text-neutral-10 block">
@@ -754,15 +893,19 @@ function ReviewScanModalBody({
               </div>
             </div>
 
-            {/* 5. Collapsible OCR Correction Form */}
-            <div className="rounded-3xl border border-border-divider bg-surface-subtle overflow-hidden">
+            {/* 5. Collapsible Correction Form */}
+            <div className="rounded-3xl border border-border-divider bg-card overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsEditExpanded((prev) => !prev)}
                 aria-expanded={isEditExpanded}
-                className="w-full min-h-12 px-5 py-3.5 flex items-center justify-between text-base font-extrabold text-neutral-10 hover:bg-accent-green-light/25 hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-green focus-visible:outline-none"
+                className="w-full min-h-12 px-5 py-3.5 flex items-center justify-between text-base font-extrabold text-text-primary hover:bg-accent-green-light/20 transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-green focus-visible:outline-none"
               >
-                <span>Koreksi Angka Label</span>
+                <span>
+                  {isRealFood
+                    ? "Sesuaikan Nama & Estimasi Gizi"
+                    : "Koreksi Angka Label"}
+                </span>
                 {isEditExpanded ? (
                   <ChevronUp className="h-5 w-5" />
                 ) : (
@@ -771,30 +914,30 @@ function ReviewScanModalBody({
               </button>
 
               {isEditExpanded && (
-                <div className="px-5 pb-5 space-y-3.5 border-t border-border-divider pt-4">
+                <div className="px-5 pb-5 space-y-3.5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-bold text-text-muted mb-1.5">
-                        Nama Produk
+                      <label className="block text-sm font-bold text-neutral-10 mb-1.5">
+                        {isRealFood ? "Nama Makanan" : "Nama Produk"}
                       </label>
                       <input
                         type="text"
                         value={foodName}
                         onChange={(e) => setFoodName(e.target.value)}
                         required
-                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-neutral-10"
+                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-foreground"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-text-muted mb-1.5">
-                        Kategori Produk
+                      <label className="block text-sm font-bold text-neutral-10 mb-1.5">
+                        {isRealFood ? "Kategori Makanan" : "Kategori Produk"}
                       </label>
                       <select
                         value={productCategory}
                         onChange={(e) =>
                           setProductCategory(e.target.value as ProductCategory)
                         }
-                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-neutral-10"
+                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-foreground"
                       >
                         {PRODUCT_CATEGORIES.map((cat) => (
                           <option key={cat} value={cat}>
@@ -807,8 +950,8 @@ function ReviewScanModalBody({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-bold text-text-muted mb-1.5">
-                        Takaran Saji
+                      <label className="block text-sm font-bold text-neutral-10 mb-1.5">
+                        {isRealFood ? "Estimasi Berat (g/ml)" : "Takaran Saji"}
                       </label>
                       <input
                         type="number"
@@ -816,25 +959,25 @@ function ReviewScanModalBody({
                         min="0"
                         value={servingSize}
                         onChange={(e) => setServingSize(e.target.value)}
-                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-neutral-10"
+                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-foreground"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-text-muted mb-1.5">
+                      <label className="block text-sm font-bold text-neutral-10 mb-1.5">
                         Satuan Unit
                       </label>
                       <input
                         type="text"
                         value={servingUnit}
                         onChange={(e) => setServingUnit(e.target.value)}
-                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-neutral-10"
+                        className="input-field w-full min-h-11 px-3.5 py-2.5 text-base font-bold text-foreground"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="rounded-input border border-border-default bg-surface p-3 focus-within:ring-2 focus-within:ring-accent-green">
-                      <label className="flex items-center gap-1 text-sm font-bold text-macro-calories mb-1">
+                      <label className="flex items-center gap-1 text-sm font-bold text-text-primary mb-1">
                         <Flame className="h-4 w-4" /> Kalori
                       </label>
                       <input
@@ -860,7 +1003,7 @@ function ReviewScanModalBody({
                       />
                     </div>
                     <div className="rounded-input border border-border-default bg-surface p-3 focus-within:ring-2 focus-within:ring-accent-green">
-                      <label className="flex items-center gap-1 text-sm font-bold text-macro-carbs mb-1">
+                      <label className="flex items-center gap-1 text-sm font-bold text-accent-orange-dark mb-1">
                         <Wheat className="h-4 w-4" /> Karbo (g)
                       </label>
                       <input
@@ -945,21 +1088,26 @@ function ReviewScanModalBody({
             </div>
 
             {/* 6. Mandatory AI Escalation: "Tanyakan Ahli Gizi" */}
-            <NutritionistAskBox summaryText={nutritionistSummary} />
+            <NutritionistAskBox
+              summaryText={nutritionistSummary}
+              scanMode={isRealFood ? "food" : "label"}
+            />
 
-            {/* Save to Catalog Checkbox */}
-            <label className="min-h-12 flex items-center gap-3 p-4 rounded-button border border-border-divider bg-surface-subtle cursor-pointer hover:bg-accent-green-light/25 transition-colors">
-              <input
-                type="checkbox"
-                checked={saveToCatalog}
-                onChange={(e) => setSaveToCatalog(e.target.checked)}
-                className="h-5 w-5 rounded accent-accent-green cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-accent-green"
-              />
-              <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-foreground">
-                <BookmarkPlus className="h-5 w-5 text-text-primary shrink-0" />
-                <span>Simpan ke katalog makanan</span>
-              </div>
-            </label>
+            {/* Save to Catalog Checkbox (packaged labels only) */}
+            {!isRealFood && (
+              <label className="min-h-12 flex items-center gap-3 p-4 rounded-button border border-border-divider bg-card cursor-pointer hover:bg-accent-green-light/25 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={saveToCatalog}
+                  onChange={(e) => setSaveToCatalog(e.target.checked)}
+                  className="h-5 w-5 rounded accent-accent-green cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-accent-green"
+                />
+                <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-foreground">
+                  <BookmarkPlus className="h-5 w-5 text-text-primary shrink-0" />
+                  <span>Simpan ke katalog makanan</span>
+                </div>
+              </label>
+            )}
 
             {submitError && (
               <div className="p-4 rounded-input bg-destructive/10 border border-destructive/30 text-sm sm:text-base font-bold text-destructive">
@@ -975,7 +1123,7 @@ function ReviewScanModalBody({
                 type="button"
                 onClick={onRescan}
                 disabled={isSubmitting}
-                className="min-h-12 px-4 sm:px-5 py-3 rounded-button border border-border-default bg-surface hover:bg-surface-subtle text-sm sm:text-base font-extrabold text-neutral-10 flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none"
+                className="min-h-12 px-4 sm:px-5 py-3 rounded-button border border-border-default bg-surface hover:bg-card text-sm sm:text-base font-extrabold text-neutral-10 flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none"
               >
                 <Camera className="h-5 w-5 shrink-0" />
                 <span>Scan Ulang</span>
@@ -986,11 +1134,14 @@ function ReviewScanModalBody({
               <button
                 type="button"
                 onClick={() => {
-                  const numericServingSize = parseFloat(servingSize) || 100;
+                  const numericServingSize =
+                    parseFloat(servingSize) || (isRealFood ? 250 : 100);
                   onAddToStaging({
                     id: `scan-${Date.now()}`,
                     name: foodName.trim() || "Scanned Food",
-                    category: CATEGORY_LABELS[productCategory],
+                    category: isRealFood
+                      ? "Makanan Real (Estimasi AI)"
+                      : CATEGORY_LABELS[productCategory],
                     baseCalories: parsedPerServing.caloriesKcal,
                     baseProteinG: parsedPerServing.proteinG,
                     baseCarbsG: parsedPerServing.carbsG,
@@ -998,7 +1149,9 @@ function ReviewScanModalBody({
                     baseFiberG: parsedPerServing.fiberG,
                     baseSugarG: parsedPerServing.sugarG,
                     servingMultiplier: servingsConsumed,
-                    servingUnit: `${servingSize || "100"}${servingUnit || "g"}`,
+                    servingUnit: isRealFood
+                      ? `${servingUnit || "porsi"} (~${numericServingSize}g)`
+                      : `${servingSize || "100"}${servingUnit || "g"}`,
                     gramsPerUnit: numericServingSize,
                   });
                   onClose();
@@ -1014,7 +1167,7 @@ function ReviewScanModalBody({
               type="submit"
               disabled={isSubmitting}
               className={cn(
-                "button-primary col-span-2 sm:col-span-1 min-h-12 px-6 py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
+                "col-span-2 sm:col-span-1 min-h-12 px-6 py-3 rounded-button bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none",
                 isSubmitting && "opacity-75 cursor-not-allowed",
               )}
             >

@@ -52,4 +52,18 @@ assert.deepEqual(
   console.log("  ✓ analyzing stage marks step 3 active near completion");
 }
 
+// 4. Real food mode adapts copy cleanly for plated meals
+{
+  const comp = getScanWaitState("compressing", 100, "food");
+  const scan = getScanWaitState("scanning", 3200, "food");
+  const analyze = getScanWaitState("analyzing", 7000, "food");
+
+  assert.match(comp.headline, /Makanan/i);
+  assert.match(scan.headline, /Makanan/i);
+  assert.match(scan.detail, /komponen|porsi|kalori/i);
+  assert.match(analyze.headline, /Estimasi|Gizi/i);
+  assert.notEqual(scan.steps[1].label, getScanWaitState("scanning", 3200, "label").steps[1].label);
+  console.log("  ✓ food mode uses meal-specific waiting copy and step labels");
+}
+
 console.log("\nAll scan progress tests passed! ✅");

@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { PRODUCT_CATEGORIES } from "@/lib/nutrition/product-assessment";
 
+export const SCAN_MODES = ["label", "food"] as const;
+export type ScanMode = (typeof SCAN_MODES)[number];
+
 export const NutritionLabelSchema = z.object({
+  scanMode: z.enum(SCAN_MODES).default("label"),
   foodName: z.string().default("Scanned Food"),
   servingSize: z.number().nullable(),
   servingUnit: z.string().default("g"),
@@ -19,6 +23,10 @@ export const NutritionLabelSchema = z.object({
   isReadableNutritionLabel: z.boolean().default(true),
   unreadableReason: z.string().nullable().optional(),
   rawLabelExcerpt: z.string().nullable().optional(),
+  detectedItems: z.array(z.string()).default([]),
+  hiddenCalorieNotes: z.array(z.string()).default([]),
+  portionNote: z.string().nullable().optional(),
+  suggestedMode: z.enum(SCAN_MODES).nullable().optional(),
 });
 
 export type NutritionLabelData = z.infer<typeof NutritionLabelSchema>;

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   assessProduct,
+  assessRealFood,
   formatNutritionistSummary,
   NUTRITION_THRESHOLDS,
   servingToBaseUnits,
@@ -188,6 +189,83 @@ console.log("  ✓ servingToBaseUnits handles g/ml/non-mass units");
   assert.ok(text.includes("Gula"));
   assert.ok(/ahli gizi|estimasi AI/i.test(text));
   console.log("  ✓ formatNutritionistSummary produces clean copy-ready consultation text");
+}
+
+// 8. Real food assessment: heavy fried dish on diet budget -> moderate/poor, meal-appropriate tips (no packaged tips)
+{
+  const res = assessRealFood(
+    {
+      servingSize: 320,
+      servingUnit: "porsi",
+      caloriesKcal: 680,
+      proteinG: 16,
+      carbsG: 72,
+      fatG: 30,
+      fiberG: 2,
+      sugarG: 8,
+    },
+    { goalType: "diet", remainingCalories: 500, servingsConsumed: 1 }
+  );
+
+  assert.notEqual(res.verdict, "good");
+  assert.ok(res.warnings.some((w) => w.nutrient === "fat"));
+  assert.ok(res.warnings.some((w) => w.nutrient === "calories"));
+  assert.ok(res.personalNote?.includes("680 kkal"));
+  assert.ok(
+    res.suggestions.every((s) => !/bumbu mie|kemasan/i.test(s)),
+    "Real food tips must never mention packaged instant noodles"
+  );
+  assert.ok(res.actionFeedback.length > 0 && res.actionFeedback.length <= 80);
+  console.log("  ✓ assessRealFood flags heavy fried dish with meal-specific guidance");
+}
+
+// 9. Real food assessment: balanced whole-food plate -> good verdict with protein & fiber positives
+{
+  const res = assessRealFood(
+    {
+      servingSize: 350,
+      servingUnit: "piring",
+      caloriesKcal: 460,
+      proteinG: 38,
+      carbsG: 48,
+      fatG: 9,
+      fiberG: 7,
+      sugarG: 3,
+    },
+    { goalType: "bulking", remainingCalories: 900, servingsConsumed: 1 }
+  );
+
+  assert.equal(res.verdict, "good");
+  assert.equal(res.warnings.length, 0);
+  assert.ok(res.positives.some((p) => /protein/i.test(p)));
+  assert.ok(res.positives.some((p) => /serat/i.test(p)));
+  assert.equal(res.calpalReaction.expression, "happy");
+  console.log("  ✓ assessRealFood rewards balanced protein+fiber plate");
+}
+
+// 10. formatNutritionistSummary for real food mentions visual AI estimate, components, and photo reminder
+{
+  const input = {
+    servingSize: 300,
+    servingUnit: "porsi",
+    caloriesKcal: 550,
+    proteinG: 22,
+    carbsG: 62,
+    fatG: 21,
+    fiberG: 3,
+    sugarG: 5,
+  };
+  const assessment = assessRealFood(input);
+  const text = formatNutritionistSummary("Nasi Goreng Ayam", input, assessment, {
+    scanMode: "food",
+    detectedItems: ["Nasi goreng (~1.5 centong)", "Ayam suwir"],
+    hiddenCalorieNotes: ["Minyak goreng dapat menambah kalori."],
+  });
+  assert.ok(text.includes("Nasi Goreng Ayam"));
+  assert.ok(text.includes("Ayam suwir"));
+  assert.ok(/estimasi visual AI/i.test(text));
+  assert.ok(/foto makanan/i.test(text));
+  console.log("  ✓ formatNutritionistSummary formats real-food context & photo reminder");
 }
 
 console.log("\nAll product assessment tests passed! ✅");
