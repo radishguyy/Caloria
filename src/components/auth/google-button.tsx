@@ -52,7 +52,7 @@ export function GoogleButton({
       setError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan tak terduga saat masuk dengan Google."
+          : "Terjadi kesalahan tak terduga saat masuk dengan Google.",
       );
     } finally {
       // Keep loading until navigation actually happens.
@@ -61,21 +61,22 @@ export function GoogleButton({
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2.5", className)}>
       <button
         type="button"
         onClick={handleClick}
         disabled={loading}
         aria-busy={loading}
         className={cn(
-          "button-primary w-full inline-flex items-center justify-center gap-2.5 py-3 text-sm font-semibold",
-          "disabled:cursor-not-allowed disabled:opacity-70"
+          "w-full min-h-[52px] inline-flex items-center justify-center gap-3 rounded-xl border border-border-default bg-surface px-5 py-3 text-base sm:text-lg font-bold text-neutral-10 transition-colors hover:bg-surface-subtle cursor-pointer",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-green",
+          "disabled:cursor-not-allowed disabled:opacity-60",
         )}
       >
         {loading ? (
-          <span className="inline-flex h-4 w-4 items-center justify-center">
+          <span className="inline-flex h-5 w-5 items-center justify-center">
             <svg
-              className="h-4 w-4 animate-spin text-text-primary"
+              className="h-5 w-5 animate-spin text-neutral-10"
               viewBox="0 0 24 24"
               fill="none"
               aria-hidden="true"
@@ -100,10 +101,11 @@ export function GoogleButton({
             src="/icons/google-logo.svg"
             alt=""
             role="presentation"
-            width={18}
-            height={18}
-            priority={false}
-            className="h-4 w-4"
+            width={20}
+            height={20}
+            priority
+            unoptimized
+            className="h-5 w-5 shrink-0"
             draggable={false}
           />
         )}
@@ -118,7 +120,7 @@ export function GoogleButton({
       {error && (
         <p
           role="alert"
-          className="text-[11px] font-medium text-destructive text-center"
+          className="text-sm sm:text-base font-medium text-destructive text-center"
         >
           {error}
         </p>
