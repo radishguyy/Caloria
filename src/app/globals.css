@@ -342,11 +342,10 @@
   color: var(--color-text-primary);
   border: 0;
   border-radius: var(--radius-button);
-  box-shadow: var(--shadow-button);
+  box-shadow: none;
   font-family: var(--font-body);
   font-weight: 700;
   transition: transform var(--duration-fast) var(--ease-smooth),
-              box-shadow var(--duration-fast) var(--ease-smooth),
               background-color var(--duration-fast) var(--ease-smooth);
 }
 
@@ -355,8 +354,8 @@
 }
 
 .button-primary:active:not(:disabled) {
-  transform: translateY(4px);
-  box-shadow: 0 5px 0 var(--color-text-primary);
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .button-primary:disabled {
@@ -597,5 +596,25 @@
   [data-glow-tour-root] [data-glow-tour-advance-trigger] {
     font-size: 0.75rem;
     padding: 0 10px;
+  }
+}
+
+@keyframes caloriaScanBeam {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(340%);
+  }
+}
+
+.caloria-scan-beam {
+  animation: caloriaScanBeam 1.9s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caloria-scan-beam {
+    animation: none;
+    transform: translateY(170%);
   }
 }

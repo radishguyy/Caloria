@@ -186,24 +186,20 @@ export function FriendRequestList({ className, onAcceptSuccess }: FriendRequestL
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleDecline(req.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-navigation text-xs font-semibold text-[#F43F5E] hover:text-[#E11D48] hover:bg-[#F43F5E]/10 border border-[#F43F5E]/30 transition-all active:scale-95 disabled:opacity-50 font-sans cursor-pointer"
+                        className="min-h-11 inline-flex items-center gap-1.5 px-4 py-2 rounded-button text-sm font-bold text-[#F43F5E] hover:text-[#E11D48] hover:bg-[#F43F5E]/10 border border-[#F43F5E]/30 transition-colors disabled:opacity-50 font-sans cursor-pointer"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                         <span>Tolak</span>
                       </button>
 
-                      {/* Terima Action (styled with fresh green / button-primary) */}
+                      {/* Terima Action (consistent flat green button) */}
                       <button
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleAccept(req.id, req.sender.username)}
-                        className="button-primary inline-flex items-center gap-1 px-4 py-1.5 text-xs font-bold font-sans cursor-pointer"
-                        style={{
-                          backgroundColor: "#5B8E55",
-                          color: "#FFFFFF",
-                        }}
+                        className="min-h-11 inline-flex items-center gap-1.5 px-5 py-2 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm font-extrabold font-sans cursor-pointer transition-colors"
                       >
-                        <Check className="h-3.5 w-3.5 stroke-[3]" />
+                        <Check className="h-4 w-4 stroke-[3]" />
                         <span>Terima</span>
                       </button>
                     </div>

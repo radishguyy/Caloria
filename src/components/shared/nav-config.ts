@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   PawPrint,
+  Target,
   UtensilsCrossed,
   Users,
   Stethoscope,
@@ -33,6 +34,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Food Diary",
     icon: UtensilsCrossed,
     matchPrefixes: ["/diary"],
+  },
+  {
+    href: "/quests",
+    label: "Misi",
+    icon: Target,
+    matchPrefixes: ["/quests"],
   },
   {
     href: "/pet-customization/wardrobe",
