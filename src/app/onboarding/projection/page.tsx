@@ -156,6 +156,10 @@ function OnboardingProjectionContent() {
               {estimatedDateString}
             </strong>
           </p>
+          <p className="text-[11px] text-text-muted pt-0.5">
+            Setelah target tercapai, kamu bisa lanjut ke fase Jaga Berat Badan
+            atau atur target baru.
+          </p>
         </div>
 
         {plan.isCalorieFloorApplied && (

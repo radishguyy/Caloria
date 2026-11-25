@@ -24,6 +24,10 @@ import {
   type GoalPath,
 } from "@/lib/gamification/quest-engine";
 import { claimLevelUpPromotionAction } from "@/server/actions/pet-actions";
+import {
+  GoalCompletedBanner,
+  GoalCompletedModal,
+} from "@/components/shared/goal-completed-modal";
 import { toastReward } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -82,6 +86,7 @@ export default function QuestsPage() {
 
   const [isClaimingLevelUp, setIsClaimingLevelUp] = useState(false);
   const [levelUpClaimed, setLevelUpClaimed] = useState(false);
+  const [goalCompletedModalOpen, setGoalCompletedModalOpen] = useState(false);
 
   if (!isHydrated) {
     return (
@@ -201,6 +206,11 @@ export default function QuestsPage() {
           </span>
         </div>
       </header>
+
+      {/* Goal Completed Banner */}
+      <GoalCompletedBanner
+        onOpenModal={() => setGoalCompletedModalOpen(true)}
+      />
 
       {/* 2. Highlighted Level Hero + Interactive Level Stepper Card */}
       <section
@@ -728,6 +738,11 @@ export default function QuestsPage() {
           </div>
         </div>
       </section>
+
+      <GoalCompletedModal
+        open={goalCompletedModalOpen}
+        onClose={() => setGoalCompletedModalOpen(false)}
+      />
     </div>
   );
 }

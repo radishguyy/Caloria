@@ -270,11 +270,45 @@
     }
     html {
         @apply font-sans;
+        cursor: url("/cursors/watermelon-default.svg") 4 2, auto;
     }
     body {
         @apply bg-canvas text-foreground;
         font-family: var(--font-body);
         line-height: var(--leading-body);
+        cursor: url("/cursors/watermelon-default.svg") 4 2, auto;
+    }
+    a[href],
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    select,
+    label[for],
+    input[type="checkbox"],
+    input[type="radio"] {
+        cursor: url("/cursors/watermelon-pointer.svg") 6 4, pointer;
+    }
+    a[href]:active,
+    button:not(:disabled):active,
+    [role="button"]:not([aria-disabled="true"]):active,
+    .cursor-pointer:active {
+        cursor: url("/cursors/watermelon-active.svg") 6 4, pointer;
+    }
+    button:disabled,
+    [aria-disabled="true"],
+    input:disabled,
+    select:disabled,
+    textarea:disabled {
+        cursor: url("/cursors/watermelon-disabled.svg") 16 16, not-allowed;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="search"],
+    input[type="url"],
+    input[type="tel"],
+    textarea {
+        cursor: url("/cursors/watermelon-text.svg") 16 16, text;
     }
     h1,
     h2 {
@@ -288,6 +322,38 @@
         font-family: var(--font-body);
         line-height: var(--leading-heading);
     }
+}
+
+.cursor-pointer {
+    cursor: url("/cursors/watermelon-pointer.svg") 6 4, pointer;
+}
+
+.cursor-pointer:active {
+    cursor: url("/cursors/watermelon-active.svg") 6 4, pointer;
+}
+
+.cursor-not-allowed {
+    cursor: url("/cursors/watermelon-disabled.svg") 16 16, not-allowed;
+}
+
+@keyframes cursor-burst {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--burst-dx, 0px)), calc(-50% + var(--burst-dy, 0px))) scale(1.1) rotate(var(--burst-rot, 45deg));
+    }
+}
+
+.cursor-burst-dot {
+    position: fixed;
+    width: 6px;
+    height: 9px;
+    border-radius: 9999px;
+    animation: cursor-burst 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
 }
 
 /* ── Caloria Typography Scale Utilities (from design-tokens.json) ── */

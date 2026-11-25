@@ -7,9 +7,16 @@ import { useWeightStore } from "@/store/use-weight-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useAutoTour } from "@/components/tour/useAutoTour";
-import { calculateBmi } from "@/lib/nutrition-calculator";
+import {
+  calculateBmi,
+  evaluateGoalCompletion,
+} from "@/lib/nutrition-calculator";
 import { WeightChart } from "@/components/profile/weight-chart";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import {
+  GoalCompletedBanner,
+  GoalCompletedModal,
+} from "@/components/shared/goal-completed-modal";
 import { saveWeightLogAction } from "@/app/actions/profile";
 import {
   BmiCategory,
@@ -36,13 +43,13 @@ export default function ProfileOverviewPage() {
   const { user } = useAuthStore();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [goalCompletedModalOpen, setGoalCompletedModalOpen] = useState(false);
   const [newWeight, setNewWeight] = useState<number>(getLatestWeight());
   const [newNotes, setNewNotes] = useState("");
 
   const overview = isHydrated ? getProfileOverview() : null;
 
   const latestWeight = getLatestWeight();
-  const currentBmi = calculateBmi(goalPlan.heightCm, latestWeight);
 
   const displayName = isHydrated
     ? user?.username?.trim() ||
@@ -71,17 +78,29 @@ export default function ProfileOverviewPage() {
 
     const savedWeight = newWeight;
     const savedNotes = newNotes;
+    const updatedBmi = calculateBmi(goalPlan.heightCm, savedWeight);
 
     addWeightLog(savedWeight, savedNotes);
 
     setGoalPlan({
       currentWeightKg: savedWeight,
-      bmiScore: currentBmi.score,
-      bmiCategory: currentBmi.category,
+      bmiScore: updatedBmi.score,
+      bmiCategory: updatedBmi.category,
     });
 
     setModalOpen(false);
     setNewNotes("");
+
+    const completion = evaluateGoalCompletion({
+      goalType: goalPlan.goalType,
+      currentWeightKg: savedWeight,
+      targetWeightKg: goalPlan.targetWeightKg,
+      currentDayNumber: goalPlan.currentDayNumber,
+      totalProjectedDays: goalPlan.totalProjectedDays,
+    });
+    if (completion.isReached) {
+      setGoalCompletedModalOpen(true);
+    }
 
     try {
       await saveWeightLogAction(savedWeight, savedNotes);
@@ -118,6 +137,13 @@ export default function ProfileOverviewPage() {
           {displayName}
         </p>
       </div>
+
+      {/* Goal completed banner */}
+      {isHydrated && (
+        <GoalCompletedBanner
+          onOpenModal={() => setGoalCompletedModalOpen(true)}
+        />
+      )}
 
       {/* Progress summary */}
       {overview ? (
@@ -320,6 +346,11 @@ export default function ProfileOverviewPage() {
           </div>
         </div>
       )}
+
+      <GoalCompletedModal
+        open={goalCompletedModalOpen}
+        onClose={() => setGoalCompletedModalOpen(false)}
+      />
     </div>
   );
 }

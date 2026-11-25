@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <clipPath id="arrow-clip">
+      <path d="M5 3L25 18.5L15.6 19.6L19.4 27.6L15.2 29.5L11.4 21.5L5 25.8V3Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#arrow-clip)">
+    <!-- Red watermelon flesh -->
+    <rect x="0" y="0" width="32" height="32" fill="#F6241E"/>
+    <!-- Green rind on bottom/stem (higher curve so bottom-left, right wing, and stem are all green) -->
+    <path d="M2 20.2C9.5 18.5 17.5 16 26.5 12.2L26.5 32L2 32Z" fill="#69C91E"/>
+    <!-- Dark green rind stripes -->
+    <path d="M6.2 19.2C7.1 21.5 7.8 23.5 8.5 25.5L10.7 24.4C10 22.3 9.3 20.4 8.5 18.5Z" fill="#459611"/>
+    <path d="M12.2 17.6C13.6 21.2 14.9 24.8 16.4 29.2L19.1 28.1C17.6 23.9 16.3 20.3 14.9 16.8Z" fill="#459611"/>
+    <path d="M18.6 15.6C19.8 17.4 21 18.9 22.3 20.2L25 19.2C23.6 17.8 22.4 16.3 21.2 14.5Z" fill="#459611"/>
+    <!-- Subtle dark-red inner rind border -->
+    <path d="M2 20.2C9.5 18.5 17.5 16 26.5 12.2" stroke="#C9201B" stroke-width="1.6" stroke-linecap="round"/>
+    <!-- Black seeds -->
+    <ellipse cx="9" cy="10.2" rx="1.15" ry="2.0" transform="rotate(-14 9 10.2)" fill="#1F1F1F"/>
+    <ellipse cx="14.2" cy="12.6" rx="1.15" ry="2.0" transform="rotate(-8 14.2 12.6)" fill="#1F1F1F"/>
+    <ellipse cx="8.4" cy="15.8" rx="1.05" ry="1.8" transform="rotate(6 8.4 15.8)" fill="#1F1F1F"/>
+    <ellipse cx="13.2" cy="15.8" rx="1.05" ry="1.75" transform="rotate(-12 13.2 15.8)" fill="#1F1F1F"/>
+    <ellipse cx="18.2" cy="14.2" rx="1.05" ry="1.65" transform="rotate(14 18.2 14.2)" fill="#1F1F1F"/>
+  </g>
+  <!-- Crisp dark outline -->
+  <path d="M5 3L25 18.5L15.6 19.6L19.4 27.6L15.2 29.5L11.4 21.5L5 25.8V3Z" stroke="#262626" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

@@ -8,6 +8,7 @@ import { NotificationDrawer } from "@/components/shared/notification-drawer";
 import { Web3Provider } from "@/components/shared/web3-provider";
 import { AppToaster } from "@/components/shared/app-toaster";
 import { TourProvider } from "@/components/tour/TourProvider";
+import { CursorEffects } from "@/components/shared/cursor-effects";
 
 const openRunde = localFont({
   src: [
@@ -58,6 +59,7 @@ export default function RootLayout({
               <BottomNav />
               <NotificationDrawer />
               <AppToaster />
+              <CursorEffects />
             </TourProvider>
           </SessionProvider>
         </Web3Provider>

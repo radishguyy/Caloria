@@ -22,6 +22,13 @@ import { evaluatePetCondition } from "@/lib/pet/decay-evaluator";
 import { stageSlugToNumber } from "@/lib/pet/evolution";
 import { STREAK_RULES } from "@/lib/constants";
 import { evaluateEffectiveStreak } from "@/lib/server/streak-service";
+import {
+  generateNutritionPlan,
+  type ActivityLevel,
+  type Gender,
+  type NutritionTargetPlan,
+} from "@/lib/nutrition-calculator";
+import type { GoalProgramType } from "@/types";
 
 /**
  * Returns the authenticated user's profile data for client-side rendering.
@@ -805,5 +812,178 @@ export async function fetchAppInitialDataAction() {
       }
     } catch {}
     return { authenticated: false };
+  }
+}
+
+export interface UpdateGoalProgramInput {
+  goalType: GoalProgramType;
+  currentWeightKg: number;
+  targetWeightKg: number;
+  customMarginKcal?: number;
+  gender: Gender;
+  age: number;
+  heightCm: number;
+  activityLevel: ActivityLevel;
+}
+
+export interface UpdateGoalProgramResult {
+  success: boolean;
+  unauthenticated?: boolean;
+  error?: string;
+  goalPath?: "lose_weight" | "gain_muscle" | "maintain_weight";
+  plan?: NutritionTargetPlan;
+}
+
+/**
+ * Recalibrates the user's nutrition plan and persists a new goal phase
+ * (Option 1: Maintenance or Option 2: New Target) after reaching a previous target.
+ */
+export async function updateGoalProgramAction(
+  input: UpdateGoalProgramInput
+): Promise<UpdateGoalProgramResult> {
+  const effectiveTargetWeight =
+    input.goalType === "maintenance"
+      ? input.currentWeightKg
+      : input.targetWeightKg;
+
+  if (
+    input.goalType === "diet" &&
+    effectiveTargetWeight >= input.currentWeightKg
+  ) {
+    return {
+      success: false,
+      error: "Berat target diet harus lebih rendah dari berat saat ini.",
+    };
+  }
+
+  if (
+    input.goalType === "bulking" &&
+    effectiveTargetWeight <= input.currentWeightKg
+  ) {
+    return {
+      success: false,
+      error: "Berat target naik otot harus lebih tinggi dari berat saat ini.",
+    };
+  }
+
+  const plan = generateNutritionPlan({
+    gender: input.gender,
+    age: input.age,
+    heightCm: input.heightCm,
+    currentWeightKg: input.currentWeightKg,
+    targetWeightKg: effectiveTargetWeight,
+    activityLevel: input.activityLevel,
+    goalType: input.goalType,
+    customMarginKcal:
+      input.goalType === "maintenance" ? 0 : input.customMarginKcal,
+  });
+
+  const goalPath: "lose_weight" | "gain_muscle" | "maintain_weight" =
+    input.goalType === "bulking"
+      ? "gain_muscle"
+      : input.goalType === "maintenance"
+        ? "maintain_weight"
+        : "lose_weight";
+
+  const activityMap: Record<
+    ActivityLevel,
+    | "sedentary"
+    | "lightly_active"
+    | "moderately_active"
+    | "very_active"
+    | "extra_active"
+  > = {
+    sedentary: "sedentary",
+    light: "lightly_active",
+    moderate: "moderately_active",
+    active: "very_active",
+    very_active: "extra_active",
+  };
+  const dbActivity = activityMap[input.activityLevel] || "moderately_active";
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        success: false,
+        unauthenticated: true,
+        goalPath,
+        plan,
+        error: "Sesi login tidak ditemukan.",
+      };
+    }
+
+    try {
+      await db
+        .update(profiles)
+        .set({
+          goal: input.goalType,
+          goalPath,
+          currentLevel: 1,
+          currentWeek: 1,
+          initialWeightKg: String(input.currentWeightKg),
+          currentWeightKg: String(input.currentWeightKg),
+          targetWeightKg: String(effectiveTargetWeight),
+          activityLevel: dbActivity,
+          bmiScore: String(plan.bmi.score),
+          tdeeKcal: plan.tdee,
+          targetCaloriesKcal: plan.dailyCalories,
+          targetProteinG: String(plan.proteinG),
+          targetCarbsG: String(plan.carbsG),
+          targetFatG: String(plan.fatG),
+          projectedDays: plan.projectedDays,
+          updatedAt: new Date(),
+        })
+        .where(eq(profiles.id, user.id));
+    } catch (dbErr) {
+      console.warn(
+        "[updateGoalProgramAction] fallback to Supabase REST:",
+        dbErr
+      );
+      const { error: restErr } = await supabase
+        .from("profiles")
+        .update({
+          goal: input.goalType,
+          goal_path: goalPath,
+          current_level: 1,
+          current_week: 1,
+          initial_weight_kg: String(input.currentWeightKg),
+          current_weight_kg: String(input.currentWeightKg),
+          target_weight_kg: String(effectiveTargetWeight),
+          activity_level: dbActivity,
+          bmi_score: String(plan.bmi.score),
+          tdee_kcal: plan.tdee,
+          target_calories_kcal: plan.dailyCalories,
+          target_protein_g: String(plan.proteinG),
+          target_carbs_g: String(plan.carbsG),
+          target_fat_g: String(plan.fatG),
+          projected_days: plan.projectedDays,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (restErr) {
+        return {
+          success: false,
+          error: restErr.message || "Gagal memperbarui target program.",
+        };
+      }
+    }
+
+    revalidatePath("/", "layout");
+    return { success: true, goalPath, plan };
+  } catch (error) {
+    console.error("[updateGoalProgramAction Error]:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui target program.",
+    };
   }
 }

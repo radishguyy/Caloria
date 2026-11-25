@@ -20,6 +20,10 @@ import { PetShowcase } from "@/components/dashboard/PetShowcase";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
 import { QuestWidget } from "@/components/shared/QuestWidget";
+import {
+  GoalCompletedBanner,
+  GoalCompletedModal,
+} from "@/components/shared/goal-completed-modal";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
 import { useSocialStore } from "@/stores/social-store";
@@ -94,6 +98,7 @@ export default function DashboardPage() {
   } = usePushNotifications();
 
   const [quickLogModalOpen, setQuickLogModalOpen] = useState(false);
+  const [goalCompletedModalOpen, setGoalCompletedModalOpen] = useState(false);
   const [selectedQuickMeal, setSelectedQuickMeal] =
     useState<MealTypeId>("breakfast");
 
@@ -510,6 +515,13 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Goal Completed Banner */}
+      {isHydrated && (
+        <GoalCompletedBanner
+          onOpenModal={() => setGoalCompletedModalOpen(true)}
+        />
+      )}
+
       {/* Streak Repair Banner */}
       {isHydrated && isRepairEligible(brokenStreakCount, brokenStreakAt) && (
         <section className="rounded-3xl border-2 border-accent-orange/40 bg-gradient-to-r from-[#FCF8E3] via-surface to-accent-orange/10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
@@ -847,6 +859,11 @@ export default function DashboardPage() {
       <div data-tour="dashboard-quests">
         <QuestWidget />
       </div>
+
+      <GoalCompletedModal
+        open={goalCompletedModalOpen}
+        onClose={() => setGoalCompletedModalOpen(false)}
+      />
     </div>
   );
 }

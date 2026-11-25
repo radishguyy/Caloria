@@ -147,6 +147,64 @@ export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, { label: string; multip
   very_active: { label: "Sangat Aktif (Latihan berat 2x sehari / Pekerja fisik)", multiplier: 1.9 },
 };
 
+export interface GoalCompletionStatus {
+  isReached: boolean;
+  reason: "weight_reached" | "duration_completed" | null;
+  summaryText: string;
+}
+
+/**
+ * Evaluates whether the user's active goal target (weight or projected cycle) has been reached.
+ */
+export function evaluateGoalCompletion(params: {
+  goalType: GoalProgramType;
+  currentWeightKg: number;
+  targetWeightKg: number;
+  currentDayNumber?: number;
+  totalProjectedDays?: number;
+}): GoalCompletionStatus {
+  const {
+    goalType,
+    currentWeightKg,
+    targetWeightKg,
+    currentDayNumber = 1,
+    totalProjectedDays = 30,
+  } = params;
+
+  if (currentWeightKg <= 0 || targetWeightKg <= 0) {
+    return { isReached: false, reason: null, summaryText: "" };
+  }
+
+  if (goalType === "diet" && currentWeightKg <= targetWeightKg) {
+    return {
+      isReached: true,
+      reason: "weight_reached",
+      summaryText: `Berat badanmu (${currentWeightKg} kg) sudah mencapai target ${targetWeightKg} kg!`,
+    };
+  }
+
+  if (goalType === "bulking" && currentWeightKg >= targetWeightKg) {
+    return {
+      isReached: true,
+      reason: "weight_reached",
+      summaryText: `Berat badanmu (${currentWeightKg} kg) sudah mencapai target ${targetWeightKg} kg!`,
+    };
+  }
+
+  if (totalProjectedDays > 0 && currentDayNumber >= totalProjectedDays) {
+    return {
+      isReached: true,
+      reason: "duration_completed",
+      summaryText:
+        goalType === "maintenance"
+          ? `Siklus jaga berat badan ${totalProjectedDays} hari telah selesai!`
+          : `Durasi program ${totalProjectedDays} hari telah selesai!`,
+    };
+  }
+
+  return { isReached: false, reason: null, summaryText: "" };
+}
+
 /**
  * Calculates Body Mass Index and categorized status
  */
