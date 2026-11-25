@@ -14,6 +14,12 @@ importers:
       '@ducanh2912/next-pwa':
         specifier: ^10.2.9
         version: 10.2.9(next@16.4.6(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(webpack@5.112.2)
+      '@glowhop/react-tour':
+        specifier: ^1.5.1
+        version: 1.5.1(react@19.3.0)
+      '@glowhop/styles-tour':
+        specifier: ^1.5.1
+        version: 1.5.1
       '@google/genai':
         specifier: ^2.31.0
         version: 2.31.0
@@ -1238,6 +1244,20 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@glowhop/core-tour@1.5.1':
+    resolution: {integrity: sha512-NdKpqZRLU9o8+MqOU24Y3Xbdyroqu0sqkeiHvRp3y2h9DAykjAuPs5z6XVaP75mbIll88eaZTHh3+jaXl26/PA==}
+    engines: {node: '>=18.19.1'}
+
+  '@glowhop/react-tour@1.5.1':
+    resolution: {integrity: sha512-UW3V/43fvUPJEGyBRXWNoN1l8f2iuxZxjsd9XoQGk0WpJ9d81rMfmaTc3GIRDTkOejnqgrVE9yYm3rZq04QSZw==}
+    engines: {node: '>=18.19.1'}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  '@glowhop/styles-tour@1.5.1':
+    resolution: {integrity: sha512-owQpfJ73RZ5uYrKUz78GSdrKjB4SgA3RBYQ9d2gneh3PH8OnZhQuPUDVT9IVs+8P2oRzC/93ONYzPa17/PzdlA==}
+    engines: {node: '>=18.19.1'}
 
   '@google/genai@2.31.0':
     resolution: {integrity: sha512-u1fw0qEiuWwNcjZixJFRfQF0awQnHb/rBBQUeiYGF+nmTXQCvcgpR2UMhKU9KNdnZdYhahY5jwS6nJ2V2tGtDA==}
@@ -5899,6 +5919,15 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
 
   '@floating-ui/utils@0.2.12': {}
+
+  '@glowhop/core-tour@1.5.1': {}
+
+  '@glowhop/react-tour@1.5.1(react@19.3.0)':
+    dependencies:
+      '@glowhop/core-tour': 1.5.1
+      react: 19.3.0
+
+  '@glowhop/styles-tour@1.5.1': {}
 
   '@google/genai@2.31.0':
     dependencies:
