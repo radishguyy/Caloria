@@ -1,9 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// TODO: Temporary bypass for testing protected routes without logging in. Set to false before shipping.
-const TEMP_SKIP_AUTH_GUARD = true;
-
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -70,7 +67,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  if (isConfigured && !TEMP_SKIP_AUTH_GUARD) {
+  if (isConfigured) {
     if (!user && isProtectedPage) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";

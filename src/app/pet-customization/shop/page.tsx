@@ -279,32 +279,8 @@ export default function PetShopPage() {
           setStreakMeta({ streakFreezes: res.streakFreezes });
         }
         toastShopPurchased(STREAK_RULES.FREEZE_PRICE_COINS);
-        setPurchaseFeedback({ success: true, message: res.message });
-      } else if (res.message.includes("login")) {
-        // Guest-mode fallback for testing without login
-        if (streakFreezes >= STREAK_RULES.MAX_FREEZE_COUNT) {
-          setPurchaseFeedback({
-            success: false,
-            message: `Slot Pembeku Streak kamu sudah penuh (${STREAK_RULES.MAX_FREEZE_COUNT}/${STREAK_RULES.MAX_FREEZE_COUNT}).`,
-          });
-        } else if (coins < STREAK_RULES.FREEZE_PRICE_COINS) {
-          setPurchaseFeedback({
-            success: false,
-            message: `Koin tidak cukup! Dibutuhkan ${STREAK_RULES.FREEZE_PRICE_COINS} Koin.`,
-          });
-        } else {
-          const nextFreezes = streakFreezes + 1;
-          setCoins(coins - STREAK_RULES.FREEZE_PRICE_COINS);
-          setStreakMeta({ streakFreezes: nextFreezes });
-          toastShopPurchased(STREAK_RULES.FREEZE_PRICE_COINS);
-          setPurchaseFeedback({
-            success: true,
-            message: `Pembeku Streak berhasil dibeli! Sekarang kamu punya ${nextFreezes} pelindung streak.`,
-          });
-        }
-      } else {
-        setPurchaseFeedback({ success: false, message: res.message });
       }
+      setPurchaseFeedback({ success: res.success, message: res.message });
     } catch {
       setPurchaseFeedback({
         success: false,
@@ -325,32 +301,8 @@ export default function PetShopPage() {
           setStreakMeta({ restPasses: res.restPasses });
         }
         toastShopPurchased(STREAK_RULES.REST_PASS_PRICE_COINS);
-        setPurchaseFeedback({ success: true, message: res.message });
-      } else if (res.message.includes("login")) {
-        // Guest-mode fallback for testing without login
-        if (restPasses >= STREAK_RULES.MAX_REST_PASS_COUNT) {
-          setPurchaseFeedback({
-            success: false,
-            message: `Slot Kupon Jeda kamu sudah penuh (${STREAK_RULES.MAX_REST_PASS_COUNT}/${STREAK_RULES.MAX_REST_PASS_COUNT}).`,
-          });
-        } else if (coins < STREAK_RULES.REST_PASS_PRICE_COINS) {
-          setPurchaseFeedback({
-            success: false,
-            message: `Koin tidak cukup! Dibutuhkan ${STREAK_RULES.REST_PASS_PRICE_COINS} Koin.`,
-          });
-        } else {
-          const nextPasses = restPasses + 1;
-          setCoins(coins - STREAK_RULES.REST_PASS_PRICE_COINS);
-          setStreakMeta({ restPasses: nextPasses });
-          toastShopPurchased(STREAK_RULES.REST_PASS_PRICE_COINS);
-          setPurchaseFeedback({
-            success: true,
-            message: `Kupon Jeda berhasil dibeli! Kamu punya ${nextPasses} kupon jeda aktif.`,
-          });
-        }
-      } else {
-        setPurchaseFeedback({ success: false, message: res.message });
       }
+      setPurchaseFeedback({ success: res.success, message: res.message });
     } catch {
       setPurchaseFeedback({
         success: false,
