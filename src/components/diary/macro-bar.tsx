@@ -91,7 +91,7 @@ export function MacroBar({ className }: MacroBarProps) {
   const r = 40;
   const circ = Math.round(2 * Math.PI * r);
 
-  // 5 Nutrients vertically stacked: percentage for macros, grams for fiber & sugar
+  // 5 Nutrients vertically stacked in monochrome green/grey with percentage display
   const nutrients = [
     {
       id: "protein",
@@ -99,10 +99,6 @@ export function MacroBar({ className }: MacroBarProps) {
       icon: Beef,
       percent: proteinPercent,
       valueDisplay: `${proteinPercent}%`,
-      labelClass: "text-macro-protein",
-      iconClass: "text-macro-protein",
-      barClass: "bg-macro-protein",
-      trackClass: "bg-macro-protein/20",
     },
     {
       id: "carbs",
@@ -110,10 +106,6 @@ export function MacroBar({ className }: MacroBarProps) {
       icon: Wheat,
       percent: carbsPercent,
       valueDisplay: `${carbsPercent}%`,
-      labelClass: "text-accent-orange-dark",
-      iconClass: "text-accent-orange",
-      barClass: "bg-accent-orange",
-      trackClass: "bg-accent-orange/20",
     },
     {
       id: "fat",
@@ -121,32 +113,20 @@ export function MacroBar({ className }: MacroBarProps) {
       icon: Droplets,
       percent: fatPercent,
       valueDisplay: `${fatPercent}%`,
-      labelClass: "text-macro-fat",
-      iconClass: "text-macro-fat",
-      barClass: "bg-macro-fat",
-      trackClass: "bg-macro-fat/20",
     },
     {
       id: "fiber",
       label: "Serat",
       icon: Leaf,
       percent: fiberPercent,
-      valueDisplay: `${consumed.fiber} / ${fiberTarget}g`,
-      labelClass: "text-macro-fiber",
-      iconClass: "text-macro-fiber",
-      barClass: "bg-macro-fiber",
-      trackClass: "bg-macro-fiber/20",
+      valueDisplay: `${fiberPercent}%`,
     },
     {
       id: "sugar",
       label: "Gula",
       icon: Cookie,
       percent: sugarPercent,
-      valueDisplay: `${consumed.sugar} / ${sugarTarget}g`,
-      labelClass: "text-macro-sugar",
-      iconClass: "text-macro-sugar",
-      barClass: "bg-macro-sugar",
-      trackClass: "bg-macro-sugar/20",
+      valueDisplay: `${sugarPercent}%`,
     },
   ];
 
@@ -239,26 +219,20 @@ export function MacroBar({ className }: MacroBarProps) {
         {nutrients.map((n) => (
           <div key={n.id} className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-bold font-sans">
-              <span className={cn("flex items-center gap-1.5", n.labelClass)}>
+              <span className="flex items-center gap-1.5 text-text-primary">
                 <n.icon
-                  className={cn("h-4 w-4 shrink-0", n.iconClass)}
+                  className="h-4 w-4 shrink-0 text-accent-green"
                   aria-hidden="true"
                 />
                 <span>{n.label}</span>
               </span>
-              <span className="text-foreground font-bold">{n.valueDisplay}</span>
+              <span className="text-foreground font-bold tabular-nums">
+                {n.valueDisplay}
+              </span>
             </div>
-            <div
-              className={cn(
-                "h-2 w-full rounded-pill overflow-hidden",
-                n.trackClass,
-              )}
-            >
+            <div className="h-2 w-full rounded-pill overflow-hidden bg-border-divider/40">
               <div
-                className={cn(
-                  "h-full rounded-pill transition-all duration-500",
-                  n.barClass,
-                )}
+                className="h-full rounded-pill transition-all duration-500 bg-accent-green"
                 style={{ width: `${n.percent}%` }}
               />
             </div>

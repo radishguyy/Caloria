@@ -151,9 +151,9 @@ export function PurchaseModal({
             disabled={!canAfford || isPurchasing}
             onClick={() => onConfirm(item)}
             className={cn(
-              "py-2.5 rounded-button font-bold text-xs transition-all flex items-center justify-center gap-1.5",
+              "min-h-11 py-2.5 rounded-button font-extrabold text-sm transition-colors flex items-center justify-center gap-1.5",
               canAfford && !isPurchasing
-                ? "button-primary"
+                ? "bg-accent-green-light hover:bg-[#a9ce46] text-[#244710]"
                 : "bg-surface-subtle border border-border-default text-text-muted cursor-not-allowed opacity-60",
             )}
           >

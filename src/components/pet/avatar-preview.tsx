@@ -348,7 +348,7 @@ export function AvatarPreview({
       )}
     >
       {/* Header: nickname + distinct level badge + XP bar + fullscreen toggle */}
-      <div className="space-y-3 border-b border-border-divider pb-3">
+      <div className="space-y-3 border-b border-border-divider pb-4">
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 items-baseline gap-2.5">
             <h2 className="min-w-0 truncate text-2xl font-extrabold text-text-primary font-heading">
@@ -356,7 +356,7 @@ export function AvatarPreview({
             </h2>
             <span
               suppressHydrationWarning
-              className="inline-flex items-center rounded-pill bg-accent-orange px-2.5 py-0.5 text-xs font-bold text-text-inverse shrink-0 font-mono tabular-nums shadow-2xs"
+              className="shrink-0 rounded-pill bg-accent-yellow px-2.5 py-0.5 text-sm font-black tracking-wide text-[#7C3A0D] font-mono tabular-nums"
             >
               Lv. {level}
             </span>
@@ -367,7 +367,7 @@ export function AvatarPreview({
             onClick={toggleFullscreen}
             aria-label={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
             title={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
-            className="shrink-0 rounded-navigation border border-border-default bg-surface p-2 text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary shadow-2xs"
+            className="min-h-11 min-w-11 shrink-0 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-neutral-10 transition-colors hover:bg-surface-subtle hover:text-text-primary"
           >
             {isFullscreenView ? (
               <X className="h-5 w-5" />
@@ -380,7 +380,7 @@ export function AvatarPreview({
         {/* XP Progress Bar */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-sm font-bold font-sans">
-            <span className="inline-flex items-center gap-1.5 text-text-primary">
+            <span className="inline-flex items-center gap-1.5 text-[#244710]">
               <Sparkles className="h-4 w-4 text-accent-green" />
               <span>XP</span>
             </span>
@@ -394,7 +394,7 @@ export function AvatarPreview({
           <div className="h-2.5 w-full overflow-hidden rounded-pill border border-border-divider bg-surface-subtle">
             <div
               className={cn(
-                "h-full rounded-full transition-all duration-500",
+                "h-full rounded-pill transition-all duration-500",
                 isComplaining ? "bg-accent-orange" : "bg-accent-green",
               )}
               style={{ width: `${expPercent}%` }}
@@ -403,7 +403,7 @@ export function AvatarPreview({
         </div>
       </div>
 
-      {/* Calpal Speech Bubble */}
+      {/* Calpal Speech Bubble (matching Dashboard) */}
       <div className="min-h-[54px] flex items-center justify-center pt-4">
         <AnimatePresence mode="wait">
           <motion.div
@@ -413,18 +413,26 @@ export function AvatarPreview({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              "relative max-w-sm rounded-button border px-4 py-2.5 text-center text-sm font-bold font-sans leading-snug shadow-2xs",
+              "relative max-w-sm rounded-2xl border px-4 py-2.5 text-center text-sm font-bold font-sans leading-snug",
               isComplaining
-                ? "border-accent-orange/35 bg-accent-orange/15 text-accent-orange-dark"
-                : "border-accent-green/25 bg-accent-yellow/60 text-text-primary",
+                ? "border-accent-orange/40 bg-[#FCF8E3] text-[#B45309]"
+                : "border-accent-green/25 bg-accent-yellow/55 text-[#244710]",
             )}
           >
             <span>{speechBubbleText}</span>
+            <div
+              className={cn(
+                "absolute -bottom-1.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-b border-r",
+                isComplaining
+                  ? "border-accent-orange/40 bg-[#FCF8E3]"
+                  : "border-accent-green/25 bg-accent-yellow/55",
+              )}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Character stage */}
+      {/* Character stage (flex-1 keeps bottom controls aligned with right panel) */}
       <div
         className={cn(
           "relative flex w-full flex-1 select-none items-center justify-center",
@@ -492,7 +500,7 @@ export function AvatarPreview({
       </div>
 
       {/* Bottom controls: pet interactions + draft save + Beri Makan Calpal button */}
-      <div className="mt-3 space-y-3 border-t border-border-divider pt-3">
+      <div className="mt-3 space-y-3 border-t border-border-divider pt-4">
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
@@ -501,7 +509,7 @@ export function AvatarPreview({
               disabled={isSleeping}
               aria-label="Elus Calpal"
               title="Elus"
-              className="flex h-10 w-10 items-center justify-center rounded-navigation border border-border-default bg-surface text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary shadow-2xs disabled:opacity-50"
+              className="flex h-11 w-11 items-center justify-center rounded-navigation border border-border-default bg-surface text-neutral-10 transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-50"
             >
               <HandHeart className="h-5 w-5" />
             </button>
@@ -513,10 +521,10 @@ export function AvatarPreview({
               aria-pressed={isSleeping}
               title={isSleeping ? "Bangunkan" : "Tidurkan"}
               className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-navigation border transition-colors shadow-2xs",
+                "flex h-11 w-11 items-center justify-center rounded-navigation border transition-colors",
                 isSleeping
                   ? "border-accent-orange bg-accent-yellow text-text-primary"
-                  : "border-border-default bg-surface text-text-muted hover:bg-surface-subtle hover:text-text-primary",
+                  : "border-border-default bg-surface text-neutral-10 hover:bg-surface-subtle hover:text-text-primary",
               )}
             >
               <Moon className="h-5 w-5" />
@@ -530,7 +538,7 @@ export function AvatarPreview({
               disabled={!isDirty}
               aria-label="Batalkan perubahan"
               title="Batalkan perubahan"
-              className="flex h-10 w-10 items-center justify-center rounded-navigation border border-border-default bg-surface text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40 shadow-2xs"
+              className="flex h-11 w-11 items-center justify-center rounded-navigation border border-border-default bg-surface text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <X className="h-5 w-5" />
             </button>
@@ -541,13 +549,13 @@ export function AvatarPreview({
               disabled={!isDirty}
               aria-label="Simpan perubahan"
               title="Simpan perubahan"
-              className="relative flex h-10 w-10 items-center justify-center rounded-navigation bg-accent-green text-text-inverse transition-colors hover:bg-accent-green/90 disabled:cursor-not-allowed disabled:opacity-40 shadow-2xs"
+              className="relative flex h-11 w-11 items-center justify-center rounded-navigation bg-accent-green-light text-[#244710] transition-colors hover:bg-[#a9ce46] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Check className="h-5 w-5 stroke-[2.5]" />
               {isDirty && changedCategoryCount > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-pill bg-accent-orange px-1 text-xs font-bold leading-none text-text-inverse ring-2 ring-surface"
+                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-[6px] bg-accent-orange px-1 text-xs font-bold leading-none text-text-inverse ring-2 ring-surface"
                 >
                   {changedCategoryCount}
                 </span>
@@ -556,16 +564,16 @@ export function AvatarPreview({
           </div>
         </div>
 
-        {/* Beri Makan Calpal Button */}
+        {/* Beri Makan Calpal Button (matching Dashboard flat green button style, no fork/knife, CircleDollarSign) */}
         <div className="space-y-1.5">
           <button
             type="button"
             onClick={() => void handleFeedPet()}
             disabled={isSleeping || isFeeding || !canAffordFeed}
             className={cn(
-              "w-full py-2.5 px-4 rounded-button font-sans font-bold text-xs inline-flex items-center justify-center gap-1.5 transition-colors",
+              "w-full min-h-12 py-3 px-4 rounded-button font-sans font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors",
               canFeedNow && !isSleeping
-                ? "button-primary"
+                ? "bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] cursor-pointer"
                 : "bg-surface-subtle text-text-muted border border-border-divider opacity-80",
               isSleeping || isFeeding || !canAffordFeed
                 ? "cursor-not-allowed"
@@ -575,13 +583,13 @@ export function AvatarPreview({
             <span>{isFeeding ? "Memberi Makan..." : "Beri Makan Calpal"}</span>
             <span className="inline-flex items-center gap-1 font-bold">
               <span>(5</span>
-              <CircleDollarSign className="h-4 w-4 shrink-0" />
+              <CircleDollarSign className="h-4 w-4 text-accent-orange-dark shrink-0" />
               <span>)</span>
             </span>
           </button>
 
           {!canAffordFeed ? (
-            <p className="text-sm text-destructive text-center font-sans font-semibold flex items-center justify-center gap-1.5">
+            <p className="text-sm text-rose-600 text-center font-sans font-semibold flex items-center justify-center gap-1.5">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Koin kurang. Catat makanan untuk mendapat koin.</span>
             </p>
