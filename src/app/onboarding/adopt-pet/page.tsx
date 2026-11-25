@@ -1,64 +1,101 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Heart,
-  Loader2,
-  Sparkles,
-  CheckCircle2,
-  X,
-} from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useFoodStore } from "@/store/use-food-store";
+import { useOnboardingDemoStore } from "@/store/use-onboarding-demo-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
+import { OnboardingDemoBanner } from "@/components/onboarding/onboarding-demo-banner";
 import { CharacterSvg } from "@/components/pet/character-svg";
 import { PET_SPECIES, PetSpeciesId } from "@/lib/constants";
 import { saveOnboardingAction } from "@/app/actions/onboarding";
 import { cn } from "@/lib/utils";
 
-export default function OnboardingAdoptPetPage() {
+function OnboardingAdoptPetContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams?.get("demo") === "1";
+  const isHydrated = useHydrated();
+
   const { setSpecies, setPetName, name, species } = usePetStore();
   const { completeOnboarding, onboardingCompleted } = useAuthStore();
   const { goalPlan, targets } = useFoodStore();
+  const demoStore = useOnboardingDemoStore();
+  const demoSyncedRef = useRef(false);
 
   useEffect(() => {
-    if (onboardingCompleted) {
+    if (!isDemo && onboardingCompleted) {
       router.replace("/dashboard");
     }
-  }, [onboardingCompleted, router]);
+  }, [isDemo, onboardingCompleted, router]);
 
   const [selectedSpecies, setSelectedSpecies] = useState<PetSpeciesId>(
-    species || "flameling"
+    isDemo ? demoStore.petSpecies : species || "flameling",
   );
-  const [petNickname, setPetNickname] = useState(name || "Pyro");
+  const [petNickname, setPetNickname] = useState(
+    isDemo ? demoStore.petNickname : name || "Pyro",
+  );
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (!isDemo || !isHydrated || demoSyncedRef.current) return;
+    demoSyncedRef.current = true;
+    setSelectedSpecies(demoStore.petSpecies);
+    setPetNickname(demoStore.petNickname);
+  }, [isDemo, isHydrated, demoStore.petSpecies, demoStore.petNickname]);
+
+  useEffect(() => {
+    if (!showConfirmModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !loading) {
+        setShowConfirmModal(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showConfirmModal, loading]);
 
   const currentPetSpec =
     PET_SPECIES.find((s) => s.id === selectedSpecies) || PET_SPECIES[0];
 
   const handleOpenConfirm = () => {
     if (!petNickname.trim()) return;
+    if (isDemo) {
+      demoStore.setDemoData({
+        petSpecies: selectedSpecies,
+        petNickname: petNickname.trim(),
+      });
+    }
     setShowConfirmModal(true);
   };
 
   const handleFinish = async () => {
     if (!petNickname.trim()) return;
 
+    if (isDemo) {
+      setShowConfirmModal(false);
+      demoStore.resetDemo();
+      router.push("/profile/settings");
+      return;
+    }
+
     setLoading(true);
     setErrorMsg("");
 
-    // Map store activity level string to schema enum
     const activityMap: Record<
       string,
-      "sedentary" | "lightly_active" | "moderately_active" | "very_active" | "extra_active"
+      | "sedentary"
+      | "lightly_active"
+      | "moderately_active"
+      | "very_active"
+      | "extra_active"
     > = {
       sedentary: "sedentary",
       light: "lightly_active",
@@ -71,7 +108,6 @@ export default function OnboardingAdoptPetPage() {
       activityMap[goalPlan.activityLevel] || "moderately_active";
 
     try {
-      // Persist onboarding & pet directly into Supabase database
       await saveOnboardingAction({
         goal: goalPlan.goalType,
         gender: goalPlan.gender,
@@ -102,123 +138,109 @@ export default function OnboardingAdoptPetPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6 sm:py-10 space-y-5">
+    <div className="container mx-auto max-w-4xl px-4 py-6 sm:py-10 space-y-6">
+      {isDemo && <OnboardingDemoBanner />}
       <OnboardingStepper currentStep={5} />
 
-      <div className="text-center space-y-1.5">
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary font-heading">
-          Langkah 5: Adopsi Virtual Pet Pertamamu
+      <div className="text-center">
+        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+          Pilih CalPal
         </h1>
-        <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
-          Pilih salah satu dari 12 karakter pet chibi awal sebagai teman seperjalanan selama masa program nutrisimu dan berikan nama terbaik!
-        </p>
       </div>
 
-      {/* Starting Pet Species Selection (All 12 Chibi Characters) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {PET_SPECIES.map((spec) => {
           const isSelected = selectedSpecies === spec.id;
           return (
-            <div
+            <button
               key={spec.id}
+              type="button"
+              aria-pressed={isSelected}
               onClick={() => setSelectedSpecies(spec.id)}
               className={cn(
-                "p-3 rounded-card border cursor-pointer transition-all flex flex-col items-center text-center space-y-1.5 shadow-2xs relative",
+                "p-3.5 sm:p-4 rounded-2xl border cursor-pointer transition-colors flex flex-col items-center text-center gap-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-primary",
                 isSelected
-                  ? "border-accent-orange bg-accent-yellow/50 ring-2 ring-accent-orange/25"
-                  : "border-border-divider bg-surface hover:bg-surface-subtle"
+                  ? "border-accent-green bg-accent-green/8 ring-2 ring-accent-green/25"
+                  : "border-border-divider bg-surface hover:bg-surface-subtle",
               )}
             >
-              {isSelected && (
-                <span className="absolute top-2 right-2 px-2 py-0.5 rounded-pill text-[9px] font-bold bg-accent-orange text-text-inverse">
-                  Dipilih
-                </span>
-              )}
-
-              {/* Modular SVG Pet Avatar Preview */}
               <div
-                className="h-20 w-20 rounded-button flex items-center justify-center p-1 transition-transform"
-                style={{ backgroundColor: `${spec.color}20` }}
+                className="h-24 w-24 sm:h-28 sm:w-28 rounded-xl flex items-center justify-center p-1.5"
+                style={{ backgroundColor: `${spec.color}1F` }}
               >
-                <CharacterSvg
-                  characterId={spec.id}
-                  showRoomBackdrop={false}
-                />
+                <CharacterSvg characterId={spec.id} showRoomBackdrop={false} />
               </div>
 
-              <div>
-                <h3 className="text-xs font-bold text-text-primary">{spec.name}</h3>
-                <span className="text-[9px] uppercase font-semibold text-text-muted tracking-wider">
-                  Elemen {spec.element}
-                </span>
-              </div>
-
-              <p className="text-[10px] text-text-muted leading-tight line-clamp-2">
-                {spec.description}
-              </p>
-            </div>
+              <span className="text-sm font-bold text-text-primary">
+                {spec.name}
+              </span>
+            </button>
           );
         })}
       </div>
 
-      {/* Pet Naming Form */}
-      <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-5 space-y-2.5 shadow-xs">
-        <label className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-          <Heart className="h-4 w-4 text-macro-fat" />
-          <span>Beri Nama Teman Pet Kamu:</span>
+      <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 space-y-2">
+        <label
+          htmlFor="onboarding-pet-name"
+          className="block text-xs sm:text-sm font-bold text-text-primary"
+        >
+          Nama CalPal
         </label>
         <input
+          id="onboarding-pet-name"
           type="text"
           value={petNickname}
           onChange={(e) => setPetNickname(e.target.value)}
-          placeholder="misal: Pyro, Sprout, Splash..."
+          placeholder="Nama panggilan"
           maxLength={25}
           className="input-field w-full px-3.5 py-2.5 text-sm sm:text-base font-bold"
         />
-        <p className="text-[11px] text-text-muted">
-          Pet ini akan menemani setiap waktu makan, menyemangati target nutrisi harianmu, dan bertambah kuat seiring konsistensimu!
-        </p>
       </div>
 
-      {/* Bottom Nav Buttons */}
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex items-center justify-between gap-3 pt-1">
         <Link
-          href="/onboarding/nutrition-plan"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-button border border-border-default bg-surface text-xs font-bold hover:bg-accent-green-light text-text-primary transition-colors"
+          href={
+            isDemo
+              ? "/onboarding/nutrition-plan?demo=1"
+              : "/onboarding/nutrition-plan"
+          }
+          className="inline-flex min-h-[44px] items-center justify-center px-5 py-2.5 rounded-xl border border-border-default bg-surface text-xs sm:text-sm font-bold text-neutral-10 hover:bg-surface-subtle transition-colors"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Kembali</span>
+          Kembali
         </Link>
 
         <button
+          type="button"
           onClick={handleOpenConfirm}
           disabled={!petNickname.trim()}
-          className="button-primary inline-flex items-center gap-2 px-6 py-3 text-xs sm:text-sm"
+          className="inline-flex min-h-[44px] items-center justify-center px-7 py-2.5 rounded-xl bg-accent-green text-text-inverse text-xs sm:text-sm font-bold hover:bg-accent-green/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          <span>Selesaikan Onboarding</span>
-          <ArrowRight className="h-4 w-4" />
+          Selesai
         </button>
       </div>
 
-      {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm bg-surface border border-border-default rounded-card p-5 sm:p-6 shadow-xl space-y-4 text-center">
-            {/* Close Button */}
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-adopt-pet-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div className="relative w-full max-w-sm bg-surface border border-border-divider rounded-2xl p-6 space-y-5 text-center">
             <button
               type="button"
+              aria-label="Tutup dialog"
               disabled={loading}
               onClick={() => setShowConfirmModal(false)}
-              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-subtle flex items-center justify-center transition-colors disabled:opacity-50"
+              className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-subtle flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
 
-            {/* Pet Chibi Preview In Modal */}
-            <div className="space-y-2">
+            <div className="space-y-3 pt-2">
               <div
-                className="w-24 h-24 mx-auto rounded-button flex items-center justify-center p-2 shadow-inner"
-                style={{ backgroundColor: `${currentPetSpec.color}25` }}
+                className="w-28 h-28 mx-auto rounded-2xl flex items-center justify-center p-2"
+                style={{ backgroundColor: `${currentPetSpec.color}20` }}
               >
                 <CharacterSvg
                   characterId={currentPetSpec.id}
@@ -226,55 +248,40 @@ export default function OnboardingAdoptPetPage() {
                 />
               </div>
 
-              <div>
-                <h3 className="text-lg font-black text-text-primary font-heading flex items-center justify-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-accent-orange" />
-                  <span>{petNickname.trim()}</span>
-                </h3>
-                <p className="text-xs text-text-muted">
-                  Spesies: <strong className="text-text-primary">{currentPetSpec.name}</strong> (Elemen {currentPetSpec.element})
-                </p>
-              </div>
+              <h3
+                id="confirm-adopt-pet-title"
+                className="font-heading text-xl font-extrabold text-text-primary"
+              >
+                {petNickname.trim()}
+              </h3>
             </div>
 
-            {/* Explanation box */}
-            <div className="p-3 rounded-navigation bg-surface-subtle border border-border-default text-xs text-text-muted text-left space-y-1">
-              <div className="flex items-center gap-1.5 text-text-primary font-bold">
-                <CheckCircle2 className="w-4 h-4 text-accent-green shrink-0" />
-                <span>Siap Memulai Perjalanan!</span>
-              </div>
-              <p className="text-[11px] leading-relaxed">
-                Apakah kamu sudah yakin dengan karakter pet dan nama panggilan ini? Kamu akan langsung diarahkan ke Dashboard utama Caloria.
-              </p>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex items-center gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => setShowConfirmModal(false)}
-                className="flex-1 py-2.5 rounded-button border border-border-default text-xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors disabled:opacity-50"
+                className="min-h-[44px] py-2.5 rounded-xl border border-border-default bg-surface text-xs sm:text-sm font-bold text-neutral-10 hover:bg-surface-subtle transition-colors disabled:opacity-50 cursor-pointer"
               >
-                Ubah Pet
+                Ubah
               </button>
 
               <button
                 type="button"
                 disabled={loading}
                 onClick={handleFinish}
-                className="flex-1 button-primary py-2.5 text-xs font-bold inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+                className="min-h-[44px] py-2.5 rounded-xl bg-accent-green text-text-inverse text-xs sm:text-sm font-bold hover:bg-accent-green/90 transition-colors inline-flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2
+                      className="w-4 h-4 animate-spin"
+                      aria-hidden="true"
+                    />
                     <span>Menyimpan...</span>
                   </>
                 ) : (
-                  <>
-                    <span>Adopsi & Mulai</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </>
+                  <span>Mulai</span>
                 )}
               </button>
             </div>
@@ -282,5 +289,19 @@ export default function OnboardingAdoptPetPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function OnboardingAdoptPetPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto max-w-4xl px-4 py-20 text-center">
+          <div className="h-8 w-8 rounded-full border-2 border-accent-green border-t-transparent animate-spin mx-auto" />
+        </div>
+      }
+    >
+      <OnboardingAdoptPetContent />
+    </Suspense>
   );
 }
