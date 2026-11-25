@@ -90,6 +90,13 @@ async function hydrateStoresFromDatabase() {
         }
         return;
       }
+      if (
+        process.env.NODE_ENV === "development" &&
+        typeof document !== "undefined" &&
+        document.cookie.includes("caloria-dev-bypass=1")
+      ) {
+        return;
+      }
       useAuthStore.getState().clearUser();
       return;
     }

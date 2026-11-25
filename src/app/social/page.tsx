@@ -22,10 +22,12 @@ import { FriendRequestList } from "@/components/social/FriendRequestList";
 import { FriendList } from "@/components/social/FriendList";
 import { AddFriendModal } from "@/components/social/AddFriendModal";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { cn } from "@/lib/utils";
 
 export default function SocialHubPage() {
   const isHydrated = useHydrated();
+  useAutoTour("social", { enabled: isHydrated });
   const {
     partyName,
     partyCode,
@@ -90,6 +92,7 @@ export default function SocialHubPage() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
+            data-tour="social-add-friend"
             onClick={() => setAddFriendModalOpen(true)}
             className="button-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold font-sans cursor-pointer"
             style={{ backgroundColor: "#FF9233", color: "#FFFFFF" }}
@@ -123,6 +126,7 @@ export default function SocialHubPage() {
 
         <button
           type="button"
+          data-tour="social-requests-tab"
           onClick={() => setActiveTab("requests")}
           className={cn(
             "nav-item flex items-center gap-2 px-4 py-2 text-xs font-bold font-sans transition-all cursor-pointer relative",
@@ -165,7 +169,10 @@ export default function SocialHubPage() {
       {activeTab === "coop" && (
         <div className="space-y-6">
           {/* Shared Co-op Streak Hero Card */}
-          <section className="hero-card border border-accent-green/25 p-6 sm:p-8 relative overflow-hidden bg-[#FAF8F5] rounded-card shadow-xs">
+          <section
+            data-tour="social-coop-card"
+            className="hero-card border border-accent-green/25 p-6 sm:p-8 relative overflow-hidden bg-[#FAF8F5] rounded-card shadow-xs"
+          >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-button bg-accent-orange text-text-inverse shadow-xs">
@@ -204,7 +211,7 @@ export default function SocialHubPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div data-tour="social-party-code" className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleCopyCode}
@@ -231,7 +238,9 @@ export default function SocialHubPage() {
           <FriendRecommendations />
 
           {/* Friends List Component */}
-          <FriendList onOpenAddModal={() => setAddFriendModalOpen(true)} />
+          <div data-tour="social-poke">
+            <FriendList onOpenAddModal={() => setAddFriendModalOpen(true)} />
+          </div>
 
           {/* Activity Log / Senggolan History */}
           <section className="rounded-card bg-surface p-5 sm:p-6 border border-border-divider shadow-xs space-y-3">

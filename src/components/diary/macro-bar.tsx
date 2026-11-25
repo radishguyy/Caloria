@@ -70,7 +70,10 @@ export function MacroBar() {
   const circ = Math.round(2 * Math.PI * r);
 
   return (
-    <div className="rounded-3xl border border-border-divider bg-surface p-6 shadow-xs text-foreground">
+    <div
+      data-tour="dashboard-macro"
+      className="rounded-3xl border border-border-divider bg-surface p-6 shadow-xs text-foreground"
+    >
       {/* Top Calorie Summary */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
         <div>

@@ -49,9 +49,13 @@ import {
 import { getAccessoryTokenId } from "@/lib/web3/accessory-tokens";
 import { TARGET_CHAIN } from "@/lib/web3/config";
 import { toastShopPurchased } from "@/lib/toast";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { cn } from "@/lib/utils";
 
 export default function PetShopPage() {
+  const isHydrated = useHydrated();
+  useAutoTour("shop", { enabled: isHydrated });
   const { coins, setCoins, addCoins } = usePetStore();
   const {
     ownedItemIds,
@@ -322,7 +326,10 @@ export default function PetShopPage() {
       )}
 
       {/* Pelindung Streak (Power-Up) Section */}
-      <section className="rounded-card border border-border-divider bg-surface p-4 sm:p-5 space-y-3 shadow-xs">
+      <section
+        data-tour="shop-powerups"
+        className="rounded-card border border-border-divider bg-surface p-4 sm:p-5 space-y-3 shadow-xs"
+      >
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-black text-text-primary font-heading flex items-center gap-1.5">
@@ -426,7 +433,10 @@ export default function PetShopPage() {
 
       {/* Category Filter Pills (Squircle) + On-Chain NFT Sync */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div
+          data-tour="shop-categories"
+          className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none"
+        >
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -461,7 +471,10 @@ export default function PetShopPage() {
       </div>
 
       {/* Shop Catalog Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div
+        data-tour="shop-catalog"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      >
         {categoryItems.map((item) => {
           const isOwned = ownedItemIds.includes(item.id);
           const canAfford = coins >= item.priceCoins;

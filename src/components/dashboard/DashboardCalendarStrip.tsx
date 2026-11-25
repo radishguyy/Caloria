@@ -122,6 +122,7 @@ export function DashboardCalendarStrip({
 
   return (
     <section
+      data-tour="dashboard-calendar"
       className={cn(
         "rounded-card border border-border-divider bg-surface p-4 sm:p-5 shadow-xs space-y-3.5",
         className
