@@ -6,6 +6,7 @@ import { useFoodStore } from "@/store/use-food-store";
 import { useWeightStore } from "@/store/use-weight-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { calculateBmi } from "@/lib/nutrition-calculator";
 import { WeightChart } from "@/components/profile/weight-chart";
 import { ProfileHeader } from "@/components/profile/profile-header";
@@ -29,6 +30,7 @@ const BMI_BADGE_CLASSES: Record<BmiCategory, string> = {
 
 export default function ProfileOverviewPage() {
   const isHydrated = useHydrated();
+  useAutoTour("profile", { enabled: isHydrated });
   const { goalPlan, setGoalPlan } = useFoodStore();
   const { addWeightLog, getLatestWeight } = useWeightStore();
   const { user } = useAuthStore();
@@ -119,7 +121,10 @@ export default function ProfileOverviewPage() {
 
       {/* Progress summary */}
       {overview ? (
-        <section className="space-y-4 rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
+        <section
+          data-tour="profile-progress"
+          className="space-y-4 rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6"
+        >
           <div className="space-y-2">
             <p className="text-sm font-semibold text-text-primary">
               {overview.currentDay} / {overview.totalProgramDays} hari menuju target misi
@@ -179,6 +184,7 @@ export default function ProfileOverviewPage() {
             <div className="col-span-2 flex justify-center border-t border-border-divider pt-3 lg:col-span-1 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
               <button
                 type="button"
+                data-tour="profile-log-weight"
                 onClick={() => {
                   setNewWeight(latestWeight);
                   setModalOpen(true);
@@ -200,7 +206,10 @@ export default function ProfileOverviewPage() {
 
       {/* Chart + history */}
       {overview ? (
-        <section className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6">
+        <section
+          data-tour="profile-weight-chart"
+          className="rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6"
+        >
           <div className="grid gap-5 lg:grid-cols-3 lg:gap-0">
             <div className="lg:col-span-2 lg:pr-6">
               <h2 className="text-sm font-bold text-text-primary">Grafik Berat Badan</h2>

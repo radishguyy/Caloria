@@ -41,9 +41,13 @@ import {
   toastMealsCommitted,
   toastOcrSuccess,
 } from "@/lib/toast";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { cn } from "@/lib/utils";
 
 function DiaryAddFoodContent() {
+  const isHydrated = useHydrated();
+  useAutoTour("diary-add", { enabled: isHydrated });
   const router = useRouter();
   const searchParams = useSearchParams();
   const mealParam = searchParams.get("meal") as MealTypeId | null;
@@ -529,7 +533,7 @@ function DiaryAddFoodContent() {
       <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 space-y-4 shadow-xs">
         {/* Search Bar & AI Label Scan */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <div className="relative flex-1">
+          <div data-tour="diary-add-search" className="relative flex-1">
             <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
             <input
               type="text"
@@ -542,6 +546,7 @@ function DiaryAddFoodContent() {
 
           <button
             type="button"
+            data-tour="diary-add-scan"
             onClick={() => setIsArScannerOpen(true)}
             className="px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 shrink-0 transition-colors"
           >
@@ -551,7 +556,10 @@ function DiaryAddFoodContent() {
         </div>
 
         {/* Quick Filter Source Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-border-divider text-xs">
+        <div
+          data-tour="diary-add-tabs"
+          className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-border-divider text-xs"
+        >
           <button
             onClick={() => setSourceTab("all")}
             className={cn(
@@ -637,7 +645,10 @@ function DiaryAddFoodContent() {
         </div>
 
         {/* Multi-Select Item Rows */}
-        <div className="divide-y divide-border-divider/70 max-h-[500px] overflow-y-auto pr-1 space-y-1">
+        <div
+          data-tour="diary-add-staging"
+          className="divide-y divide-border-divider/70 max-h-[500px] overflow-y-auto pr-1 space-y-1"
+        >
           {filteredItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-text-muted space-y-2">
               <p className="font-semibold text-text-primary">

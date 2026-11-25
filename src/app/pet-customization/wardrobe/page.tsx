@@ -9,6 +9,7 @@ import { MintCalPalCard } from "@/components/web3/mint-calpal-card";
 import { usePetStore } from "@/store/use-pet-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { getCharacterDefinition } from "@/lib/character-assets/catalog";
 import {
   AvatarCustomizationState,
@@ -21,6 +22,7 @@ import { toastLoadoutEquipped, toastPaletteSaved } from "@/lib/toast";
 
 export default function PetWardrobePage() {
   const isHydrated = useHydrated();
+  useAutoTour("wardrobe", { enabled: isHydrated });
 
   // Persisted stores
   const {
@@ -269,7 +271,10 @@ export default function PetWardrobePage() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
         {/* Left Column: CalPal stage + draft actions + NFT card */}
-        <div className="flex flex-col gap-6 lg:col-span-5">
+        <div
+          data-tour="wardrobe-preview"
+          className="flex flex-col gap-6 lg:col-span-5"
+        >
           <AvatarPreview
             nickname={name?.trim() || "CalPal"}
             characterId={draftState.characterId}
@@ -288,7 +293,10 @@ export default function PetWardrobePage() {
         </div>
 
         {/* Right Column: Dandani Calpal Wardrobe */}
-        <div className="flex flex-col lg:col-span-7">
+        <div
+          data-tour="wardrobe-accessories"
+          className="flex flex-col lg:col-span-7"
+        >
           <AccessorySelector
             characterId={draftState.characterId}
             ownedItemIds={ownedItemIds}

@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/shared/bottom-nav";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
 import { Web3Provider } from "@/components/shared/web3-provider";
 import { AppToaster } from "@/components/shared/app-toaster";
+import { TourProvider } from "@/components/tour/TourProvider";
 
 const openRunde = localFont({
   src: [
@@ -51,11 +52,13 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-canvas text-ink font-sans">
         <Web3Provider>
           <SessionProvider>
-            <Navbar />
-            <main className="flex-1 pb-24 lg:pb-12">{children}</main>
-            <BottomNav />
-            <NotificationDrawer />
-            <AppToaster />
+            <TourProvider>
+              <Navbar />
+              <main className="flex-1 pb-24 lg:pb-12">{children}</main>
+              <BottomNav />
+              <NotificationDrawer />
+              <AppToaster />
+            </TourProvider>
           </SessionProvider>
         </Web3Provider>
       </body>

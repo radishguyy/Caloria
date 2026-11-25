@@ -152,6 +152,7 @@ export function MacroBar({ className }: MacroBarProps) {
 
   return (
     <div
+      data-tour="dashboard-macro"
       className={cn(
         "rounded-3xl border border-border-divider bg-surface p-5 sm:p-6 shadow-xs text-foreground",
         className,

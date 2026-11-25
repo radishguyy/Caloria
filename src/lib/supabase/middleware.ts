@@ -61,7 +61,12 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("dummy-project");
 
-  if (isCallbackRoute) {
+  // Development-only testing bypass (activated explicitly via /dev-tour)
+  const isDevBypass =
+    process.env.NODE_ENV === "development" &&
+    request.cookies.get("caloria-dev-bypass")?.value === "1";
+
+  if (isCallbackRoute || isDevBypass) {
     return supabaseResponse;
   }
 

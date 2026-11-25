@@ -32,6 +32,7 @@ import { getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReminderStackStore } from "@/store/use-reminder-stack-store";
+import { useAutoTour } from "@/components/tour/useAutoTour";
 import { batchLogFoodsAction } from "@/app/actions/diary";
 import { repairStreakAction } from "@/app/actions/streak";
 import { cn } from "@/lib/utils";
@@ -152,6 +153,10 @@ export default function DashboardPage() {
     coopStreakDays > 0 &&
     pendingFriends.length > 0 &&
     !dismissedCoopReminder;
+
+  useAutoTour("dashboard", {
+    enabled: !(showInAppNotification || showPushReminder || showCoopReminder),
+  });
 
   const closePushReminder = () => {
     setDismissedPushReminder(true);
@@ -568,6 +573,7 @@ export default function DashboardPage() {
           {/* Catat Makanan primary CTA */}
           <button
             type="button"
+            data-tour="dashboard-quick-log"
             onClick={() => setQuickLogModalOpen(true)}
             className="w-full flex items-center justify-center gap-2 rounded-2xl border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-text-primary active:scale-[0.98] cursor-pointer"
           >
@@ -838,7 +844,9 @@ export default function DashboardPage() {
       )}
 
       {/* 4. RPG Quest & Mission Board Summary Widget */}
-      <QuestWidget />
+      <div data-tour="dashboard-quests">
+        <QuestWidget />
+      </div>
     </div>
   );
 }
