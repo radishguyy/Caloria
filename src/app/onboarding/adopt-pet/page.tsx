@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Loader2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { usePetStore } from "@/store/use-pet-store";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useFoodStore } from "@/store/use-food-store";
@@ -11,22 +10,30 @@ import { useOnboardingDemoStore } from "@/store/use-onboarding-demo-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { OnboardingDemoBanner } from "@/components/onboarding/onboarding-demo-banner";
+import { OnboardingActionBar } from "@/components/onboarding/onboarding-action-bar";
 import { CharacterSvg } from "@/components/pet/character-svg";
 import { PET_SPECIES, PetSpeciesId } from "@/lib/constants";
+import { generateNutritionPlan } from "@/lib/nutrition-calculator";
 import { saveOnboardingAction } from "@/app/actions/onboarding";
 import { cn } from "@/lib/utils";
+
+const MACRO_LABELS: Record<string, string> = {
+  protein: "Protein",
+  carbs: "Karbohidrat",
+  fat: "Lemak Sehat",
+};
 
 function OnboardingAdoptPetContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDemo = searchParams?.get("demo") === "1";
   const isHydrated = useHydrated();
+  const stripRef = useRef<HTMLDivElement | null>(null);
 
   const { setSpecies, setPetName, name, species } = usePetStore();
-  const { completeOnboarding, onboardingCompleted } = useAuthStore();
+  const { user, completeOnboarding, onboardingCompleted } = useAuthStore();
   const { goalPlan, targets } = useFoodStore();
   const demoStore = useOnboardingDemoStore();
-  const demoSyncedRef = useRef(false);
 
   useEffect(() => {
     if (!isDemo && onboardingCompleted) {
@@ -34,22 +41,23 @@ function OnboardingAdoptPetContent() {
     }
   }, [isDemo, onboardingCompleted, router]);
 
-  const [selectedSpecies, setSelectedSpecies] = useState<PetSpeciesId>(
-    isDemo ? demoStore.petSpecies : species || "flameling",
-  );
-  const [petNickname, setPetNickname] = useState(
-    isDemo ? demoStore.petNickname : name || "Pyro",
-  );
+  const [manualSpecies, setManualSpecies] = useState<PetSpeciesId | null>(null);
+  const [manualNickname, setManualNickname] = useState<string | null>(null);
+
+  const selectedSpecies: PetSpeciesId =
+    manualSpecies ??
+    (isHydrated
+      ? isDemo
+        ? demoStore.petSpecies
+        : species || "flameling"
+      : "flameling");
+  const petNickname: string =
+    manualNickname ??
+    (isHydrated ? (isDemo ? demoStore.petNickname : name || "Pyro") : "Pyro");
+
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [, setErrorMsg] = useState("");
-
-  useEffect(() => {
-    if (!isDemo || !isHydrated || demoSyncedRef.current) return;
-    demoSyncedRef.current = true;
-    setSelectedSpecies(demoStore.petSpecies);
-    setPetNickname(demoStore.petNickname);
-  }, [isDemo, isHydrated, demoStore.petSpecies, demoStore.petNickname]);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (!showConfirmModal) return;
@@ -65,8 +73,30 @@ function OnboardingAdoptPetContent() {
   const currentPetSpec =
     PET_SPECIES.find((s) => s.id === selectedSpecies) || PET_SPECIES[0];
 
+  const computedPlan = useMemo(
+    () =>
+      generateNutritionPlan({
+        gender: goalPlan.gender || "male",
+        age: goalPlan.age || 24,
+        heightCm: goalPlan.heightCm || 172,
+        currentWeightKg: goalPlan.currentWeightKg || 75,
+        targetWeightKg: goalPlan.targetWeightKg || 68,
+        activityLevel: goalPlan.activityLevel || "moderate",
+        goalType: goalPlan.goalType || "diet",
+        customMarginKcal: goalPlan.dailyMarginKcal,
+      }),
+    [goalPlan],
+  );
+
+  const scrollStrip = (direction: "left" | "right") => {
+    if (!stripRef.current) return;
+    const delta = direction === "left" ? -220 : 220;
+    stripRef.current.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
   const handleOpenConfirm = () => {
     if (!petNickname.trim()) return;
+    setErrorMsg("");
     if (isDemo) {
       demoStore.setDemoData({
         petSpecies: selectedSpecies,
@@ -108,116 +138,182 @@ function OnboardingAdoptPetContent() {
       activityMap[goalPlan.activityLevel] || "moderately_active";
 
     try {
-      await saveOnboardingAction({
+      const result = await saveOnboardingAction({
         goal: goalPlan.goalType,
+        username: user?.username || undefined,
+        fullName: user?.fullName || undefined,
         gender: goalPlan.gender,
         heightCm: goalPlan.heightCm,
         initialWeightKg: goalPlan.currentWeightKg,
         currentWeightKg: goalPlan.currentWeightKg,
         targetWeightKg: goalPlan.targetWeightKg,
         activityLevel: targetActivity,
-        bmiScore: goalPlan.bmiScore,
-        tdeeKcal: targets.calories,
-        targetCaloriesKcal: targets.calories,
-        targetProteinG: targets.protein,
-        targetCarbsG: targets.carbs,
-        targetFatG: targets.fat,
-        projectedDays: goalPlan.totalProjectedDays,
+        bmiScore: goalPlan.bmiScore || computedPlan.bmi.score,
+        tdeeKcal: computedPlan.tdee,
+        targetCaloriesKcal: targets.calories || computedPlan.dailyCalories,
+        targetProteinG: targets.protein || computedPlan.proteinG,
+        targetCarbsG: targets.carbs || computedPlan.carbsG,
+        targetFatG: targets.fat || computedPlan.fatG,
+        projectedDays: goalPlan.totalProjectedDays || computedPlan.projectedDays,
         petSpecies: selectedSpecies,
         petName: petNickname.trim(),
       });
-    } catch (err) {
-      console.warn("DB saveOnboarding error:", err);
-    }
 
-    setSpecies(selectedSpecies);
-    setPetName(petNickname.trim());
-    completeOnboarding();
-    setShowConfirmModal(false);
-    router.push("/dashboard");
+      if (!result.success) {
+        setErrorMsg(
+          result.error ||
+            "Gagal menyimpan data onboarding. Silakan coba lagi.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      setSpecies(selectedSpecies);
+      setPetName(petNickname.trim());
+      completeOnboarding();
+      setShowConfirmModal(false);
+      router.push("/dashboard");
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat menyimpan onboarding.",
+      );
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6 sm:py-10 space-y-6">
+    <div className="container mx-auto max-w-2xl px-4 py-4 sm:py-8 pb-24 space-y-4">
       {isDemo && <OnboardingDemoBanner />}
       <OnboardingStepper currentStep={5} />
 
       <div className="text-center">
-        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+        <h1 className="font-heading text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary">
           Pilih CalPal
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {PET_SPECIES.map((spec) => {
-          const isSelected = selectedSpecies === spec.id;
-          return (
-            <button
-              key={spec.id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => setSelectedSpecies(spec.id)}
-              className={cn(
-                "p-3.5 sm:p-4 rounded-2xl border cursor-pointer transition-colors flex flex-col items-center text-center gap-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-primary",
-                isSelected
-                  ? "border-accent-green bg-accent-green/8 ring-2 ring-accent-green/25"
-                  : "border-border-divider bg-surface hover:bg-surface-subtle",
-              )}
-            >
-              <div
-                className="h-24 w-24 sm:h-28 sm:w-28 rounded-xl flex items-center justify-center p-1.5"
-                style={{ backgroundColor: `${spec.color}1F` }}
-              >
-                <CharacterSvg characterId={spec.id} showRoomBackdrop={false} />
-              </div>
-
-              <span className="text-sm font-bold text-text-primary">
-                {spec.name}
+      <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 space-y-4">
+        {/* Preview CalPal Terpilih */}
+        <div className="flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left">
+          <div
+            className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl shrink-0 flex items-center justify-center p-2"
+            style={{ backgroundColor: `${currentPetSpec.color}24` }}
+          >
+            <CharacterSvg
+              characterId={currentPetSpec.id}
+              showRoomBackdrop={false}
+            />
+          </div>
+          <div className="space-y-1 min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h2 className="font-heading text-lg font-extrabold text-text-primary">
+                {currentPetSpec.name}
+              </h2>
+              <span className="rounded-full bg-accent-green/12 px-2.5 py-0.5 text-[11px] font-bold text-accent-green">
+                Fokus {MACRO_LABELS[currentPetSpec.primaryMacro] || "Nutrisi"}
               </span>
-            </button>
-          );
-        })}
+            </div>
+            <p className="text-xs text-text-muted leading-relaxed">
+              {currentPetSpec.description}
+            </p>
+          </div>
+        </div>
+
+        {/* Strip Horizontal 12 Spesies */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-text-muted">
+              Pilih karakter ({PET_SPECIES.length})
+            </span>
+            <div className="hidden sm:flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="Geser kiri"
+                onClick={() => scrollStrip("left")}
+                className="w-7 h-7 rounded-lg border border-border-default bg-surface hover:bg-surface-subtle text-text-primary flex items-center justify-center cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Geser kanan"
+                onClick={() => scrollStrip("right")}
+                className="w-7 h-7 rounded-lg border border-border-default bg-surface hover:bg-surface-subtle text-text-primary flex items-center justify-center cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            ref={stripRef}
+            className="flex gap-2 overflow-x-auto pb-1.5 snap-x"
+          >
+            {PET_SPECIES.map((spec) => {
+              const isSelected = selectedSpecies === spec.id;
+              return (
+                <button
+                  key={spec.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setManualSpecies(spec.id)}
+                  className={cn(
+                    "snap-start shrink-0 w-20 p-2 rounded-xl border cursor-pointer transition-colors flex flex-col items-center text-center gap-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-primary",
+                    isSelected
+                      ? "border-accent-green bg-accent-green/10 ring-2 ring-accent-green/25"
+                      : "border-border-divider bg-surface hover:bg-surface-subtle",
+                  )}
+                >
+                  <div
+                    className="h-12 w-12 rounded-lg flex items-center justify-center p-1"
+                    style={{ backgroundColor: `${spec.color}1F` }}
+                  >
+                    <CharacterSvg
+                      characterId={spec.id}
+                      showRoomBackdrop={false}
+                    />
+                  </div>
+                  <span className="text-[11px] font-bold text-text-primary truncate w-full">
+                    {spec.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Nama CalPal */}
+        <div className="space-y-1.5 pt-1 border-t border-border-divider">
+          <label
+            htmlFor="onboarding-pet-name"
+            className="block text-xs sm:text-sm font-bold text-text-primary"
+          >
+            Nama CalPal
+          </label>
+          <input
+            id="onboarding-pet-name"
+            type="text"
+            value={petNickname}
+            onChange={(e) => setManualNickname(e.target.value)}
+            placeholder="Nama panggilan"
+            maxLength={25}
+            className="input-field w-full px-3.5 py-2 text-sm sm:text-base font-bold"
+          />
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 space-y-2">
-        <label
-          htmlFor="onboarding-pet-name"
-          className="block text-xs sm:text-sm font-bold text-text-primary"
-        >
-          Nama CalPal
-        </label>
-        <input
-          id="onboarding-pet-name"
-          type="text"
-          value={petNickname}
-          onChange={(e) => setPetNickname(e.target.value)}
-          placeholder="Nama panggilan"
-          maxLength={25}
-          className="input-field w-full px-3.5 py-2.5 text-sm sm:text-base font-bold"
-        />
-      </div>
-
-      <div className="flex items-center justify-between gap-3 pt-1">
-        <Link
-          href={
-            isDemo
-              ? "/onboarding/nutrition-plan?demo=1"
-              : "/onboarding/nutrition-plan"
-          }
-          className="inline-flex min-h-[44px] items-center justify-center px-5 py-2.5 rounded-xl border border-border-default bg-surface text-xs sm:text-sm font-bold text-neutral-10 hover:bg-surface-subtle transition-colors"
-        >
-          Kembali
-        </Link>
-
-        <button
-          type="button"
-          onClick={handleOpenConfirm}
-          disabled={!petNickname.trim()}
-          className="inline-flex min-h-[44px] items-center justify-center px-7 py-2.5 rounded-xl bg-accent-green text-text-inverse text-xs sm:text-sm font-bold hover:bg-accent-green/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        >
-          Selesai
-        </button>
-      </div>
+      <OnboardingActionBar
+        backHref={
+          isDemo
+            ? "/onboarding/nutrition-plan?demo=1"
+            : "/onboarding/nutrition-plan"
+        }
+        onNext={handleOpenConfirm}
+        nextLabel="Selesai"
+        nextDisabled={!petNickname.trim()}
+      />
 
       {showConfirmModal && (
         <div
@@ -248,13 +344,27 @@ function OnboardingAdoptPetContent() {
                 />
               </div>
 
-              <h3
-                id="confirm-adopt-pet-title"
-                className="font-heading text-xl font-extrabold text-text-primary"
-              >
-                {petNickname.trim()}
-              </h3>
+              <div className="space-y-1">
+                <h3
+                  id="confirm-adopt-pet-title"
+                  className="font-heading text-xl font-extrabold text-text-primary"
+                >
+                  {petNickname.trim()}
+                </h3>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  {currentPetSpec.description}
+                </p>
+              </div>
             </div>
+
+            {errorMsg && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 border border-destructive/25 px-3.5 py-2.5 text-xs font-semibold text-destructive"
+              >
+                {errorMsg}
+              </p>
+            )}
 
             <div className="grid grid-cols-2 gap-2.5">
               <button
@@ -296,7 +406,7 @@ export default function OnboardingAdoptPetPage() {
   return (
     <Suspense
       fallback={
-        <div className="container mx-auto max-w-4xl px-4 py-20 text-center">
+        <div className="container mx-auto max-w-2xl px-4 py-20 text-center">
           <div className="h-8 w-8 rounded-full border-2 border-accent-green border-t-transparent animate-spin mx-auto" />
         </div>
       }

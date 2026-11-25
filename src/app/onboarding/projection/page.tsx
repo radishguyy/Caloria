@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useMemo, useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Calendar,
@@ -10,7 +9,7 @@ import {
   TrendingDown,
   TrendingUp,
   Minus,
-  Lock,
+  Info,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -18,6 +17,7 @@ import { useOnboardingDemoStore } from "@/store/use-onboarding-demo-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { OnboardingDemoBanner } from "@/components/onboarding/onboarding-demo-banner";
+import { OnboardingActionBar } from "@/components/onboarding/onboarding-action-bar";
 import { generateNutritionPlan } from "@/lib/nutrition-calculator";
 
 function AnimatedCounterInternal({ targetValue }: { targetValue: number }) {
@@ -71,6 +71,7 @@ function OnboardingProjectionContent() {
       targetWeightKg: activeSource.targetWeightKg || 68,
       activityLevel: activeSource.activityLevel || "moderate",
       goalType: activeSource.goalType || "diet",
+      customMarginKcal: activeSource.dailyMarginKcal,
     });
   }, [activeSource]);
 
@@ -120,31 +121,31 @@ function OnboardingProjectionContent() {
 
   const goalLabel =
     activeSource.goalType === "diet"
-      ? "Turun Berat Badan"
+      ? "Turun Berat"
       : activeSource.goalType === "bulking"
-        ? "Naik Massa Otot"
-        : "Jaga Berat Badan";
+        ? "Naik Otot"
+        : "Jaga Berat";
 
   const estimatedWeeks = Math.max(1, Math.round(plan.projectedDays / 7));
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-6 sm:py-10 space-y-6">
+    <div className="container mx-auto max-w-2xl px-4 py-4 sm:py-8 pb-24 space-y-4">
       {isDemo && <OnboardingDemoBanner />}
       <OnboardingStepper currentStep={3} />
 
       <div className="text-center">
-        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+        <h1 className="font-heading text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary">
           Proyeksi Target
         </h1>
       </div>
 
-      <div className="rounded-2xl border border-border-divider bg-surface p-5 sm:p-6 space-y-4">
-        <div className="rounded-2xl border border-border-divider bg-surface p-6 text-center space-y-2">
+      <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 space-y-3.5">
+        <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 text-center space-y-1">
           <div className="font-heading text-4xl sm:text-5xl font-extrabold text-text-primary tracking-tight flex items-baseline justify-center gap-2">
             <span className="tabular-nums">
               <AnimatedCounterInternal targetValue={plan.projectedDays} />
             </span>
-            <span className="text-xl sm:text-2xl font-bold text-text-muted">
+            <span className="text-lg sm:text-xl font-bold text-text-muted">
               Hari
             </span>
           </div>
@@ -157,62 +158,77 @@ function OnboardingProjectionContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="w-9 h-9 rounded-xl bg-accent-green/12 text-accent-green flex items-center justify-center shrink-0">
+        {plan.isCalorieFloorApplied && (
+          <div className="flex items-start gap-2 rounded-xl bg-accent-orange/10 border border-accent-orange/25 p-3 text-xs text-text-primary">
+            <Info
+              className="h-4 w-4 text-accent-orange-dark shrink-0 mt-0.5"
+              aria-hidden="true"
+            />
+            <p>
+              Kalori dijaga di batas aman minimal (
+              <strong>{plan.dailyCalories} kkal</strong>), sehingga proyeksi
+              memakai defisit aktual{" "}
+              <strong>{plan.dailyMarginKcal} kkal/hari</strong>.
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-surface-subtle border border-border-divider">
+            <div className="w-8 h-8 rounded-lg bg-accent-green/12 text-accent-green flex items-center justify-center shrink-0">
               <Scale className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <span className="text-[11px] font-medium text-text-muted block">
                 Berat
               </span>
-              <span className="text-sm font-extrabold text-text-primary">
-                {activeSource.currentWeightKg || 75} kg &rarr;{" "}
+              <span className="text-xs sm:text-sm font-extrabold text-text-primary truncate block">
+                {activeSource.currentWeightKg || 75} &rarr;{" "}
                 {activeSource.targetWeightKg || 68} kg
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="w-9 h-9 rounded-xl bg-accent-orange/12 text-accent-orange-dark flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-surface-subtle border border-border-divider">
+            <div className="w-8 h-8 rounded-lg bg-accent-orange/12 text-accent-orange-dark flex items-center justify-center shrink-0">
               <GoalIcon className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <span className="text-[11px] font-medium text-text-muted block">
                 Program
               </span>
-              <span className="text-sm font-extrabold text-text-primary">
+              <span className="text-xs sm:text-sm font-extrabold text-text-primary truncate block">
                 {goalLabel}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="w-9 h-9 rounded-xl bg-accent-orange/12 text-accent-orange-dark flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-surface-subtle border border-border-divider">
+            <div className="w-8 h-8 rounded-lg bg-accent-orange/12 text-accent-orange-dark flex items-center justify-center shrink-0">
               <Flame className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <span className="text-[11px] font-medium text-text-muted block">
-                Margin Kalori
+                Margin
               </span>
-              <span className="text-sm font-extrabold text-text-primary">
+              <span className="text-xs sm:text-sm font-extrabold text-text-primary tabular-nums truncate block">
                 {plan.dailyMarginKcal > 0
                   ? `+${plan.dailyMarginKcal}`
                   : plan.dailyMarginKcal}{" "}
-                kkal/hari
+                kkal
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="w-9 h-9 rounded-xl bg-macro-protein/12 text-macro-protein flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-surface-subtle border border-border-divider">
+            <div className="w-8 h-8 rounded-lg bg-macro-protein/12 text-macro-protein flex items-center justify-center shrink-0">
               <Calendar className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <span className="text-[11px] font-medium text-text-muted block">
                 Estimasi
               </span>
-              <span className="text-sm font-extrabold text-text-primary">
+              <span className="text-xs sm:text-sm font-extrabold text-text-primary truncate block">
                 {estimatedWeeks} minggu
               </span>
             </div>
@@ -220,32 +236,10 @@ function OnboardingProjectionContent() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 pt-1">
-        {isDemo ? (
-          <Link
-            href="/onboarding/profile-calculator?demo=1"
-            className="inline-flex min-h-[44px] items-center justify-center px-5 py-2.5 rounded-xl border border-border-default bg-surface text-xs sm:text-sm font-bold text-neutral-10 hover:bg-surface-subtle transition-colors"
-          >
-            Kembali
-          </Link>
-        ) : (
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted select-none">
-            <Lock
-              className="w-3.5 h-3.5 text-accent-orange"
-              aria-hidden="true"
-            />
-            <span>Profil Terkunci</span>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={handleNext}
-          className="inline-flex min-h-[44px] items-center justify-center px-7 py-2.5 rounded-xl bg-accent-green text-text-inverse text-xs sm:text-sm font-bold hover:bg-accent-green/90 transition-colors cursor-pointer"
-        >
-          Lanjut
-        </button>
-      </div>
+      <OnboardingActionBar
+        backHref={isDemo ? "/onboarding/goal?demo=1" : "/onboarding/goal"}
+        onNext={handleNext}
+      />
     </div>
   );
 }

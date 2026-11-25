@@ -132,7 +132,7 @@ export default function ProfileSettingsPage() {
 
   const handleStartOnboardingDemo = () => {
     useOnboardingDemoStore.getState().resetDemo();
-    router.push("/onboarding/goal?demo=1");
+    router.push("/onboarding/profile-calculator?demo=1");
   };
 
   return (

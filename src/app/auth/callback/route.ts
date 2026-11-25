@@ -9,6 +9,7 @@ import { ensureProfileForUser } from "@/lib/profile";
 const ALLOWED_REDIRECTS = new Set<string>([
   "/dashboard",
   "/onboarding",
+  "/onboarding/profile-calculator",
   "/onboarding/goal",
 ]);
 
@@ -111,7 +112,7 @@ export async function GET(request: NextRequest) {
 
   const target = onboardingCompleted
     ? resolveRedirect(next)
-    : "/onboarding/goal";
+    : "/onboarding/profile-calculator";
 
   console.log("[auth/callback] success, redirecting to", target, {
     onboardingCompleted,

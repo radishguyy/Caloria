@@ -2,7 +2,6 @@
 
 import { Suspense, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
   Flame,
   Beef,
@@ -17,6 +16,7 @@ import { useAuthStore } from "@/store/use-auth-store";
 import { useOnboardingDemoStore } from "@/store/use-onboarding-demo-store";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { OnboardingDemoBanner } from "@/components/onboarding/onboarding-demo-banner";
+import { OnboardingActionBar } from "@/components/onboarding/onboarding-action-bar";
 import { generateNutritionPlan } from "@/lib/nutrition-calculator";
 
 function OnboardingNutritionPlanContent() {
@@ -45,6 +45,7 @@ function OnboardingNutritionPlanContent() {
       targetWeightKg: activeSource.targetWeightKg || 68,
       activityLevel: activeSource.activityLevel || "moderate",
       goalType: activeSource.goalType || "diet",
+      customMarginKcal: activeSource.dailyMarginKcal,
     });
   }, [activeSource]);
 
@@ -68,19 +69,26 @@ function OnboardingNutritionPlanContent() {
     router.push("/onboarding/adopt-pet");
   };
 
+  const marginSummary =
+    plan.dailyMarginKcal > 0
+      ? `+${plan.dailyMarginKcal} kkal dari TDEE`
+      : plan.dailyMarginKcal < 0
+        ? `${plan.dailyMarginKcal} kkal dari TDEE`
+        : "Seimbang dengan TDEE";
+
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-6 sm:py-10 space-y-6">
+    <div className="container mx-auto max-w-2xl px-4 py-4 sm:py-8 pb-24 space-y-4">
       {isDemo && <OnboardingDemoBanner />}
       <OnboardingStepper currentStep={4} />
 
       <div className="text-center">
-        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+        <h1 className="font-heading text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary">
           Target Gizi Harian
         </h1>
       </div>
 
-      <div className="rounded-2xl border border-border-divider bg-surface p-5 sm:p-6 space-y-4">
-        <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 flex items-center gap-3.5">
+      <div className="rounded-2xl border border-border-divider bg-surface p-4 sm:p-5 space-y-3.5">
+        <div className="rounded-2xl border border-border-divider bg-surface p-4 flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-accent-green text-text-inverse flex items-center justify-center shrink-0">
             <Flame className="w-5 h-5" aria-hidden="true" />
           </div>
@@ -91,11 +99,14 @@ function OnboardingNutritionPlanContent() {
             <p className="font-heading text-2xl sm:text-3xl font-extrabold text-text-primary tabular-nums">
               {plan.dailyCalories} kkal
             </p>
+            <span className="text-[11px] font-medium text-text-muted block tabular-nums">
+              TDEE {plan.tdee} kkal · {marginSummary}
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5">
-          <div className="p-3.5 rounded-xl bg-macro-protein/8 border border-macro-protein/25 text-center space-y-1">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-3 rounded-xl bg-macro-protein/8 border border-macro-protein/25 text-center space-y-0.5">
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-macro-protein">
               <Beef className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Protein</span>
@@ -105,7 +116,7 @@ function OnboardingNutritionPlanContent() {
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-accent-orange/8 border border-accent-orange/25 text-center space-y-1">
+          <div className="p-3 rounded-xl bg-accent-orange/8 border border-accent-orange/25 text-center space-y-0.5">
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-orange-dark">
               <Wheat className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Karbo</span>
@@ -115,7 +126,7 @@ function OnboardingNutritionPlanContent() {
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-macro-fat/8 border border-macro-fat/25 text-center space-y-1">
+          <div className="p-3 rounded-xl bg-macro-fat/8 border border-macro-fat/25 text-center space-y-0.5">
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-macro-fat">
               <Droplets className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Lemak</span>
@@ -126,60 +137,60 @@ function OnboardingNutritionPlanContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="flex items-center gap-2">
-              <Apple className="w-4 h-4 text-accent-green" aria-hidden="true" />
-              <span className="text-xs font-medium text-text-muted">Serat</span>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-1 p-2.5 sm:p-3 rounded-xl bg-surface-subtle border border-border-divider text-center sm:text-left">
+            <div className="flex items-center gap-1.5">
+              <Apple
+                className="w-3.5 h-3.5 text-accent-green shrink-0"
+                aria-hidden="true"
+              />
+              <span className="text-[11px] sm:text-xs font-medium text-text-muted">
+                Serat
+              </span>
             </div>
-            <span className="text-xs font-bold text-text-primary">
+            <span className="text-xs font-bold text-text-primary tabular-nums">
               {plan.fiberG} g
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="flex items-center gap-2">
-              <Candy className="w-4 h-4 text-macro-sugar" aria-hidden="true" />
-              <span className="text-xs font-medium text-text-muted">Gula</span>
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-1 p-2.5 sm:p-3 rounded-xl bg-surface-subtle border border-border-divider text-center sm:text-left">
+            <div className="flex items-center gap-1.5">
+              <Candy
+                className="w-3.5 h-3.5 text-macro-sugar shrink-0"
+                aria-hidden="true"
+              />
+              <span className="text-[11px] sm:text-xs font-medium text-text-muted">
+                Gula
+              </span>
             </div>
-            <span className="text-xs font-bold text-macro-sugar">
+            <span className="text-xs font-bold text-macro-sugar tabular-nums">
               &lt; {plan.sugarG} g
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-subtle border border-border-divider">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-1 p-2.5 sm:p-3 rounded-xl bg-surface-subtle border border-border-divider text-center sm:text-left">
+            <div className="flex items-center gap-1.5">
               <GlassWater
-                className="w-4 h-4 text-blue-500"
+                className="w-3.5 h-3.5 text-blue-500 shrink-0"
                 aria-hidden="true"
               />
-              <span className="text-xs font-medium text-text-muted">Air</span>
+              <span className="text-[11px] sm:text-xs font-medium text-text-muted">
+                Air
+              </span>
             </div>
-            <span className="text-xs font-bold text-text-primary">
+            <span className="text-xs font-bold text-text-primary tabular-nums">
               {plan.waterMl} ml
             </span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 pt-1">
-        <Link
-          href={
-            isDemo ? "/onboarding/projection?demo=1" : "/onboarding/projection"
-          }
-          className="inline-flex min-h-[44px] items-center justify-center px-5 py-2.5 rounded-xl border border-border-default bg-surface text-xs sm:text-sm font-bold text-neutral-10 hover:bg-surface-subtle transition-colors"
-        >
-          Kembali
-        </Link>
-
-        <button
-          type="button"
-          onClick={handleNext}
-          className="inline-flex min-h-[44px] items-center justify-center px-7 py-2.5 rounded-xl bg-accent-green text-text-inverse text-xs sm:text-sm font-bold hover:bg-accent-green/90 transition-colors cursor-pointer"
-        >
-          Lanjut
-        </button>
-      </div>
+      <OnboardingActionBar
+        backHref={
+          isDemo ? "/onboarding/projection?demo=1" : "/onboarding/projection"
+        }
+        onNext={handleNext}
+      />
     </div>
   );
 }

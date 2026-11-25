@@ -64,7 +64,7 @@ export default function DevTourSandboxPage() {
     resetOnboarding();
     resetAll();
     dismissFloatingRemindersForTour();
-    router.push("/onboarding/goal");
+    router.push("/onboarding/profile-calculator");
   };
 
   const handleStartDashboardTour = () => {

@@ -16,8 +16,8 @@ interface OnboardingStepperProps {
 
 export function OnboardingStepper({ currentStep }: OnboardingStepperProps) {
   const steps = [
-    { number: 1, label: "Tujuan", icon: Target },
-    { number: 2, label: "Profil", icon: UserRound },
+    { number: 1, label: "Profil", icon: UserRound },
+    { number: 2, label: "Tujuan", icon: Target },
     { number: 3, label: "Proyeksi", icon: CalendarDays },
     { number: 4, label: "Gizi", icon: Flame },
     { number: 5, label: "CalPal", icon: PawPrint },

@@ -20,6 +20,7 @@ export interface OnboardingDemoState {
   totalProjectedDays: number;
   petSpecies: PetSpeciesId;
   petNickname: string;
+  hasSelectedGoal: boolean;
 
   setDemoData: (partial: Partial<OnboardingDemoState>) => void;
   resetDemo: () => void;
@@ -41,6 +42,7 @@ const INITIAL_DEMO_DATA = {
   totalProjectedDays: 108,
   petSpecies: "flameling" as PetSpeciesId,
   petNickname: "Pyro",
+  hasSelectedGoal: false,
 };
 
 const noopStorage = {

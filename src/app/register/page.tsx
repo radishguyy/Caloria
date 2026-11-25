@@ -63,7 +63,7 @@ export default function RegisterPage() {
         onboardingCompleted: false,
       });
 
-      router.push("/onboarding/goal");
+      router.push("/onboarding/profile-calculator");
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan.");
       setLoading(false);

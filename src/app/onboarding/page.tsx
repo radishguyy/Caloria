@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -15,13 +15,14 @@ export default function OnboardingRootPage() {
     }
 
     const stepRoutes = [
-      "/onboarding/goal",
       "/onboarding/profile-calculator",
+      "/onboarding/goal",
       "/onboarding/projection",
       "/onboarding/nutrition-plan",
       "/onboarding/adopt-pet",
     ];
-    const targetRoute = stepRoutes[activeOnboardingStep - 1] || "/onboarding/goal";
+    const targetRoute =
+      stepRoutes[activeOnboardingStep - 1] || "/onboarding/profile-calculator";
     router.replace(targetRoute);
   }, [activeOnboardingStep, onboardingCompleted, router]);
 

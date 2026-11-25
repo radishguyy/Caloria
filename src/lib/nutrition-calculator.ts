@@ -29,6 +29,92 @@ export interface PhysicalProfileInput {
   targetWeightKg: number;
   activityLevel: ActivityLevel;
   goalType: GoalProgramType;
+  customMarginKcal?: number;
+}
+
+export interface BmiGoalRecommendation {
+  recommendedGoal: GoalProgramType;
+  label: string;
+  reason: string;
+}
+
+export interface PaceOption {
+  id: string;
+  label: string;
+  description: string;
+  marginKcal: number;
+}
+
+export const GOAL_PACE_OPTIONS: Record<"diet" | "bulking", PaceOption[]> = {
+  diet: [
+    {
+      id: "diet_relaxed",
+      label: "Santai",
+      description: "~0,25 kg/minggu · lebih fleksibel",
+      marginKcal: -250,
+    },
+    {
+      id: "diet_standard",
+      label: "Standar",
+      description: "~0,5 kg/minggu · seimbang & efektif",
+      marginKcal: -500,
+    },
+  ],
+  bulking: [
+    {
+      id: "bulking_lean",
+      label: "Lean Bulk",
+      description: "~0,25 kg/minggu · minim lemak",
+      marginKcal: 250,
+    },
+    {
+      id: "bulking_standard",
+      label: "Standar",
+      description: "~0,35 kg/minggu · progres lebih cepat",
+      marginKcal: 400,
+    },
+  ],
+};
+
+/**
+ * Recommends a goal program based on BMI category (soft guidance, not a hard lock)
+ */
+export function recommendGoalFromBmi(
+  bmiCategory: BmiAnalysis["category"] | string
+): BmiGoalRecommendation {
+  switch (bmiCategory) {
+    case "Underweight":
+      return {
+        recommendedGoal: "bulking",
+        label: "Naik Massa Otot",
+        reason:
+          "BMI kamu di bawah rentang normal. Surplus kalori sehat membantu mencapai berat ideal dan menambah massa otot.",
+      };
+    case "Overweight":
+      return {
+        recommendedGoal: "diet",
+        label: "Turun Berat Badan",
+        reason:
+          "BMI kamu sedikit di atas rentang normal. Defisit kalori terukur membantu kembali ke berat badan sehat.",
+      };
+    case "Obese":
+    case "Obese I":
+    case "Obese II":
+      return {
+        recommendedGoal: "diet",
+        label: "Turun Berat Badan",
+        reason:
+          "BMI kamu berada di kategori obesitas. Defisit kalori bertahap dan konsisten sangat disarankan untuk kesehatan.",
+      };
+    case "Normal":
+    default:
+      return {
+        recommendedGoal: "maintenance",
+        label: "Jaga Berat Badan",
+        reason:
+          "BMI kamu sudah di rentang normal. Fokus menjaga keseimbangan kalori dan pola makan sehat.",
+      };
+  }
 }
 
 export interface BmiAnalysis {
@@ -43,6 +129,7 @@ export interface NutritionTargetPlan {
   tdee: number;
   dailyCalories: number;
   dailyMarginKcal: number;
+  isCalorieFloorApplied?: boolean;
   proteinG: number;
   carbsG: number;
   fatG: number;
@@ -124,7 +211,7 @@ export function calculateMissionProjection(
     return 30; // standard 30-day maintenance habit cycle
   }
 
-  const safeDailyMargin = Math.max(200, Math.abs(dailyMarginKcal));
+  const safeDailyMargin = Math.max(100, Math.abs(dailyMarginKcal));
   // 1 kg of body mass ~ 7700 kcal
   const totalKcalRequired = weightDiff * 7700;
   const estimatedDays = Math.ceil(totalKcalRequired / safeDailyMargin);
@@ -143,15 +230,30 @@ export function generateNutritionPlan(profile: PhysicalProfileInput): NutritionT
 
   let dailyMarginKcal = 0;
   let dailyCalories = tdee;
+  let isCalorieFloorApplied = false;
 
   if (profile.goalType === "diet") {
-    dailyMarginKcal = -500;
+    const requestedMargin =
+      typeof profile.customMarginKcal === "number" && profile.customMarginKcal < 0
+        ? Math.max(-750, Math.min(-150, Math.round(profile.customMarginKcal)))
+        : -500;
     // Safe floor: minimum 1200 kcal for females, 1500 kcal for males
     const minCalories = profile.gender === "female" ? 1200 : 1500;
-    dailyCalories = Math.max(minCalories, tdee - 500);
+    const rawTarget = tdee + requestedMargin;
+    if (rawTarget < minCalories) {
+      dailyCalories = minCalories;
+      isCalorieFloorApplied = true;
+    } else {
+      dailyCalories = rawTarget;
+    }
+    dailyMarginKcal = Math.min(0, dailyCalories - tdee);
   } else if (profile.goalType === "bulking") {
-    dailyMarginKcal = 400;
-    dailyCalories = tdee + 400;
+    const requestedMargin =
+      typeof profile.customMarginKcal === "number" && profile.customMarginKcal > 0
+        ? Math.min(750, Math.max(150, Math.round(profile.customMarginKcal)))
+        : 400;
+    dailyMarginKcal = requestedMargin;
+    dailyCalories = tdee + dailyMarginKcal;
   } else {
     dailyMarginKcal = 0;
     dailyCalories = tdee;
@@ -200,6 +302,7 @@ export function generateNutritionPlan(profile: PhysicalProfileInput): NutritionT
     tdee,
     dailyCalories,
     dailyMarginKcal,
+    isCalorieFloorApplied,
     proteinG,
     carbsG,
     fatG,
