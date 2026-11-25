@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, Suspense, useEffect } from "react";
 import Link from "next/link";
@@ -9,7 +9,6 @@ import {
   Plus,
   Minus,
   CheckCircle2,
-  Coins,
   Camera,
   Loader2,
   Copy,
@@ -105,8 +104,11 @@ function DiaryAddFoodContent() {
 
   // AR Nutrition Label Scanner states
   const [isArScannerOpen, setIsArScannerOpen] = useState(false);
-  const [scannedData, setScannedData] = useState<NutritionLabelData | null>(null);
-  const [scannedImagePreviewUrl, setScannedImagePreviewUrl] = useState<string>("");
+  const [scannedData, setScannedData] = useState<NutritionLabelData | null>(
+    null,
+  );
+  const [scannedImagePreviewUrl, setScannedImagePreviewUrl] =
+    useState<string>("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   useEffect(() => {
@@ -449,6 +451,7 @@ function DiaryAddFoodContent() {
           <Link
             href="/diary"
             className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors shrink-0"
+            aria-label="Kembali ke Food Diary"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -540,9 +543,9 @@ function DiaryAddFoodContent() {
           <button
             type="button"
             onClick={() => setIsArScannerOpen(true)}
-            className="px-5 py-3 min-h-12 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-[#244710] focus-visible:outline-none"
+            className="px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 shrink-0 transition-colors"
           >
-            <Camera className="h-5 w-5 text-[#244710]" />
+            <Camera className="h-4 w-4 text-accent-green" />
             <span>Scan Label Gizi</span>
           </button>
         </div>
@@ -695,7 +698,7 @@ function DiaryAddFoodContent() {
                           </span>
                         </div>
                         <p className="text-[11px] text-text-muted mt-0.5">
-                          Basis: 1 {food.servingUnit} ΓÇó P:{" "}
+                          Basis: 1 {food.servingUnit} • P:{" "}
                           <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
                           <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
                           <span className="text-macro-fat font-semibold">{food.fatG}g</span>
@@ -869,6 +872,7 @@ function DiaryAddFoodContent() {
                   type="button"
                   onClick={() => setIsTrayDrawerOpen(!isTrayDrawerOpen)}
                   className="h-9 w-9 rounded-navigation bg-accent-green text-text-inverse flex items-center justify-center font-black shrink-0 shadow-xs hover:opacity-90"
+                  aria-label="Buka atau tutup piring"
                 >
                   {isTrayDrawerOpen ? (
                     <ChevronDown className="h-5 w-5" />
@@ -880,14 +884,14 @@ function DiaryAddFoodContent() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-text-primary font-heading">
-                      ≡ƒì╜∩╕Å Piring {MEAL_TYPES.find((m) => m.id === activeMeal)?.label}:
+                      🍽️ Piring {MEAL_TYPES.find((m) => m.id === activeMeal)?.label}:
                     </span>
                     <span className="px-2 py-0.5 rounded-pill bg-accent-green/20 text-text-primary text-[10px] font-black">
                       {stagedItems.length} Menu
                     </span>
                     {trayTotals.isComboBalanced && (
                       <span className="px-2 py-0.5 rounded-pill bg-accent-yellow border border-accent-orange text-text-primary text-[10px] font-black hidden sm:inline-flex items-center gap-1">
-                        Γ£¿ Combo Seimbang (+40% XP)
+                        ✨ Combo Seimbang (+40% XP)
                       </span>
                     )}
                   </div>
@@ -896,7 +900,7 @@ function DiaryAddFoodContent() {
                       {trayTotals.calories} kcal
                     </span>
                     <span className="text-text-muted text-[11px]">
-                      ΓÇó P: {Math.round(trayTotals.proteinG)}g | K: {Math.round(trayTotals.carbsG)}g | L: {Math.round(trayTotals.fatG)}g
+                      • P: {Math.round(trayTotals.proteinG)}g | K: {Math.round(trayTotals.carbsG)}g | L: {Math.round(trayTotals.fatG)}g
                     </span>
                   </div>
                 </div>
@@ -953,7 +957,7 @@ function DiaryAddFoodContent() {
                       <div>
                         <p className="font-bold text-text-primary">{item.name}</p>
                         <p className="text-[10px] text-text-muted">
-                          {displayMult}x {cleanUnit} ({totalGrams}g) ΓÇó{" "}
+                          {displayMult}x {cleanUnit} ({totalGrams}g) •{" "}
                           {Math.round(item.baseCalories * item.servingMultiplier)} kcal (P:{" "}
                           {Math.round(item.baseProteinG * item.servingMultiplier)}g)
                         </p>
@@ -1103,10 +1107,10 @@ function DiaryAddFoodContent() {
           <div className="w-full max-w-md rounded-card border border-border-divider bg-surface p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
             <div className="h-16 w-16 rounded-pill bg-accent-yellow border-2 border-accent-green text-text-primary flex items-center justify-center mx-auto shadow-xs text-3xl">
               {rewardResult.isDailyJackpot
-                ? "≡ƒÄ░"
+                ? "🎰"
                 : rewardResult.isComboBalanced
-                ? "Γ£¿"
-                : "Γ¡É"}
+                ? "✨"
+                : "⭐"}
             </div>
 
             <div className="space-y-1">
@@ -1160,7 +1164,7 @@ function DiaryAddFoodContent() {
       {showLevelUpOverlay && rewardResult?.leveledUp && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
           <div className="w-full max-w-sm rounded-card bg-surface border-2 border-accent-green p-6 text-center space-y-4 shadow-2xl animate-in zoom-in-90 duration-300">
-            <div className="text-4xl animate-bounce">≡ƒÄë</div>
+            <div className="text-4xl animate-bounce">🎉</div>
             <div className="space-y-1">
               <span className="px-3 py-1 rounded-pill text-xs font-black uppercase tracking-wider bg-accent-orange text-text-inverse">
                 LEVEL UP!
@@ -1170,7 +1174,7 @@ function DiaryAddFoodContent() {
               </h2>
               {rewardResult.evolvedStage && (
                 <p className="text-xs font-bold text-accent-orange-dark">
-                  Γ£¿ Evolusi Fisik: Pet kini telah bertransformasi ke Tahap {rewardResult.newStage}!
+                  ✨ Evolusi Fisik: Pet kini telah bertransformasi ke Tahap {rewardResult.newStage}!
                 </p>
               )}
             </div>

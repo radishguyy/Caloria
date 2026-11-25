@@ -5,105 +5,137 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* ── Fonts (exposed via next/font/local in layout.tsx) ── */
+  --font-sans: var(--font-open-runde), "Open Runde", ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-open-runde), "Open Runde", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-secuela), "Secuela", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* ── Caloria Core & Brand Semantic Colors (from design-tokens.json) ── */
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-subtle: var(--color-surface-subtle);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-text-muted: var(--color-text-muted);
+  --color-accent-green: var(--color-accent-green);
+  --color-accent-green-light: var(--color-accent-green-light);
+  --color-accent-yellow: var(--color-accent-yellow);
+  --color-accent-orange: var(--color-accent-orange);
+  --color-accent-orange-dark: var(--color-accent-orange-dark);
+  --color-border-default: var(--color-border-default);
+  --color-border-divider: var(--color-border-divider);
+  --color-neutral-10: var(--color-neutral-10);
+  --color-neutral-7: var(--color-neutral-7);
+
+  /* ── Nutrition Macro Semantic Colors ── */
+  --color-macro-calories: var(--color-macro-calories);
+  --color-macro-protein: var(--color-macro-protein);
+  --color-macro-carbs: var(--color-macro-carbs);
+  --color-macro-fat: var(--color-macro-fat);
+  --color-macro-fiber: var(--color-macro-fiber);
+  --color-macro-sugar: var(--color-macro-sugar);
+
+  /* ── Gamification & Pet Semantic Palettes ── */
+  --color-gamification-xp: var(--color-gamification-xp);
+  --color-gamification-streak: var(--color-gamification-streak);
+  --color-gamification-coin: var(--color-gamification-coin);
+  --color-tier-common: var(--color-tier-common);
+  --color-tier-rare: var(--color-tier-rare);
+  --color-tier-epic: var(--color-tier-epic);
+  --color-tier-legendary: var(--color-tier-legendary);
+
+  /* ── shadcn / UI Semantic Aliases ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-open-runde), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  --font-heading: var(--font-secuela), ui-sans-serif, system-ui, sans-serif;
-
-  --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-surface-sunken: var(--surface-sunken);
-  --color-highlight: var(--highlight);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-brown: var(--brown);
-  --color-brand-green: var(--brand-green);
-  --color-brand-green-light: var(--brand-green-light);
-  --color-brand-green-dark: var(--brand-green-dark);
-  --color-brand-green-ink: var(--brand-green-ink);
-  --color-brand-orange: var(--brand-orange);
-  --color-warm-border: var(--warm-border);
-  --color-warm-border-strong: var(--warm-border-strong);
-
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-2xl: 28px;
-  --radius-3xl: 33px;
-  --radius-4xl: 40px;
+  /* ── Caloria Border Radii (from design-tokens.json) ── */
+  --radius-navigation: var(--radius-navigation);
+  --radius-button: var(--radius-button);
+  --radius-card: var(--radius-card);
+  --radius-input: var(--radius-input);
+  --radius-pill: var(--radius-pill);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: var(--radius-button);
+  --radius-3xl: var(--radius-card);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ── Caloria Shadows (from design-tokens.json) ── */
+  --shadow-input: var(--shadow-input);
+  --shadow-button: var(--shadow-button);
+  --shadow-button-sm: var(--shadow-button-sm);
 }
 
+/* ── Caloria design tokens (from caloria-design-system-agent-files/design-tokens.css) ── */
 :root {
-  /* Caloria surface hierarchy */
-  --canvas: #fffcf2;
-  --surface: #fff6db;
-  --surface-raised: #fffdf8;
-  --surface-sunken: #fff1ce;
-  --highlight: #f6e58d;
-  --ink: #4e3b2a;
-  --ink-muted: #7a6448;
-  --brown: #b07b4b;
-  --brand-green: #6ab04c;
-  --brand-green-light: #badc58;
-  --brand-green-dark: #4f7a2a;
-  --brand-green-ink: #3f6420;
-  --brand-orange: #f0932b;
-  --warm-border: #f0dfb0;
-  --warm-border-strong: #d9b879;
+  --color-canvas: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F8FAFC;
+  --color-text-primary: #529028;
+  --color-text-inverse: #FFFFFF;
+  --color-accent-green: #6AB04C;
+  --color-accent-green-light: #BADC58;
+  --color-accent-yellow: #F6E58D;
+  --color-accent-orange: #F0932B;
+  --color-accent-orange-dark: #CD6731;
+  --color-border-default: #D9D9D9;
+  --color-border-divider: #D1D9E2;
+  --color-text-muted: #8CA2C0;
+  --color-neutral-10: #486284;
+  --color-neutral-7: #8CA2C0;
 
-  /* Caloria design tokens */
-  --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-surface-subtle: var(--surface-sunken);
-  --color-text-primary: var(--ink);
-  --color-text-inverse: var(--surface-raised);
-  --color-accent-green: var(--brand-green);
-  --color-accent-green-light: var(--brand-green-light);
-  --color-accent-yellow: var(--highlight);
-  --color-accent-orange: var(--brand-orange);
-  --color-accent-orange-dark: #c97a1e;
-  --color-border-default: var(--warm-border);
-  --color-border-divider: var(--warm-border);
-  --color-text-muted: var(--ink-muted);
-  --color-neutral-10: var(--ink);
-  --color-neutral-7: var(--ink-muted);
+  /* Nutrition Macro Colors aligned with Caloria palette */
+  --color-macro-calories: #6AB04C;
+  --color-macro-protein: #3B82F6;
+  --color-macro-carbs: #F0932B;
+  --color-macro-fat: #E11D48;
+  --color-macro-fiber: #529028;
+  --color-macro-sugar: #9333EA;
+
+  /* Gamification & Pet Rarity Palettes */
+  --color-gamification-xp: #6AB04C;
+  --color-gamification-streak: #F0932B;
+  --color-gamification-coin: #F0932B;
+  --color-tier-common: #8CA2C0;
+  --color-tier-rare: #6AB04C;
+  --color-tier-epic: #F0932B;
+  --color-tier-legendary: #CD6731;
 
   /* Typography */
-  --font-heading: var(--font-secuela), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-open-runde), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-secuela), "Secuela", sans-serif;
+  --font-body: var(--font-open-runde), "Open Runde", sans-serif;
   --text-h1: 60px;
   --text-h2: 48px;
   --text-h3: 40px;
@@ -112,7 +144,7 @@
   --leading-heading: 1.2;
   --leading-body: 1.4;
 
-  /* Spacing */
+  /* Spacing (4px/8px scale from design-tokens.json) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -125,17 +157,17 @@
   --space-24: 96px;
   --space-32: 128px;
 
-  /* Shape */
-  --radius-navigation: 999px;
+  /* Shape & Radii */
+  --radius-navigation: 14.022px;
   --radius-button: 20px;
   --radius-card: 33px;
-  --radius-input: 16px;
+  --radius-input: 12px;
   --radius-pill: 999px;
 
-  /* Effects */
-  --btn-depth: 9px;
-  --btn-depth-sm: 5px;
-  --btn-depth-xs: 3px;
+  /* Shadows */
+  --shadow-input: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-button: 0 9px 0 var(--color-text-primary);
+  --shadow-button-sm: 0 5px 0 var(--color-text-primary);
 
   /* Layout */
   --page-gutter: 64px;
@@ -143,433 +175,221 @@
   --card-padding: 32px;
   --card-gap: 24px;
 
-  /* shadcn semantic vars */
-  --background: var(--canvas);
-  --foreground: var(--ink);
-  --card: var(--surface);
-  --card-foreground: var(--ink);
-  --popover: var(--surface-raised);
-  --popover-foreground: var(--ink);
-  --primary: var(--brand-green);
-  --primary-foreground: var(--surface-raised);
-  --secondary: var(--highlight);
-  --secondary-foreground: var(--ink);
-  --muted: var(--surface-sunken);
-  --muted-foreground: var(--ink-muted);
-  --accent: var(--brand-green-light);
-  --accent-foreground: var(--brand-green-ink);
-  --destructive: #c24a3a;
-  --border: var(--warm-border);
-  --input: var(--warm-border);
-  --ring: var(--brand-green);
-  --chart-1: var(--brand-green);
-  --chart-2: var(--brand-green-light);
-  --chart-3: var(--highlight);
-  --chart-4: var(--brand-orange);
-  --chart-5: var(--brown);
-  --radius: 20px;
-  --sidebar: var(--surface);
-  --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--brand-green);
-  --sidebar-primary-foreground: var(--surface-raised);
-  --sidebar-accent: var(--brand-green-light);
-  --sidebar-accent-foreground: var(--brand-green-ink);
-  --sidebar-border: var(--warm-border);
-  --sidebar-ring: var(--brand-green);
+  /* Animation & Transitions */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── shadcn semantic vars mapped to Caloria palette ── */
+  --background: var(--color-canvas);
+  --foreground: var(--color-neutral-10);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-neutral-10);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-neutral-10);
+  /* primary = Caloria green brand */
+  --primary: var(--color-text-primary);
+  --primary-foreground: var(--color-text-inverse);
+  /* secondary = pale yellow surface */
+  --secondary: var(--color-accent-yellow);
+  --secondary-foreground: var(--color-text-primary);
+  /* muted = near-white subtle surface */
+  --muted: var(--color-surface-subtle);
+  --muted-foreground: var(--color-text-muted);
+  /* accent = light green hover */
+  --accent: var(--color-accent-green-light);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--color-border-default);
+  --input: var(--color-border-default);
+  --ring: var(--color-accent-green);
+  --chart-1: var(--color-accent-green);
+  --chart-2: var(--color-accent-green-light);
+  --chart-3: var(--color-accent-yellow);
+  --chart-4: var(--color-accent-orange);
+  --chart-5: var(--color-accent-orange-dark);
+  --radius: 0.875rem;
+  --sidebar: var(--color-surface-subtle);
+  --sidebar-foreground: var(--color-neutral-10);
+  --sidebar-primary: var(--color-text-primary);
+  --sidebar-primary-foreground: var(--color-text-inverse);
+  --sidebar-accent: var(--color-accent-green-light);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border-divider);
+  --sidebar-ring: var(--color-accent-green);
 }
 
 .dark {
-  --canvas: #2a2118;
-  --surface: #352a1e;
-  --surface-raised: #3b2f22;
-  --surface-sunken: #2f251a;
-  --highlight: #6b5a2e;
-  --ink: #fff4da;
-  --ink-muted: #d8c6a4;
-  --brown: #d2a26f;
-  --warm-border: #5c4a32;
-  --warm-border-strong: #7a6244;
+  --color-canvas: #0F172A;
+  --color-surface: #1E293B;
+  --color-surface-subtle: #162032;
+  --color-text-primary: #BADC58;
+  --color-text-inverse: #FFFFFF;
+  --color-accent-green: #6AB04C;
+  --color-accent-green-light: #529028;
+  --color-accent-yellow: #3B3519;
+  --color-accent-orange: #F0932B;
+  --color-accent-orange-dark: #F6AD55;
+  --color-border-default: #334155;
+  --color-border-divider: #1E293B;
+  --color-text-muted: #94A3B8;
+  --color-neutral-10: #F1F5F9;
+  --color-neutral-7: #94A3B8;
 
-  --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-surface-subtle: var(--surface-sunken);
-  --color-text-primary: var(--ink);
-  --color-text-inverse: #2a2118;
-  --color-border-default: var(--warm-border);
-  --color-border-divider: var(--warm-border);
-  --color-text-muted: var(--ink-muted);
-  --color-neutral-10: var(--ink);
-  --color-neutral-7: var(--ink-muted);
-
-  --background: var(--canvas);
-  --foreground: var(--ink);
-  --card: var(--surface);
-  --card-foreground: var(--ink);
-  --popover: var(--surface-raised);
-  --popover-foreground: var(--ink);
-  --primary: var(--brand-green-light);
-  --primary-foreground: #2a2118;
-  --secondary: var(--highlight);
-  --secondary-foreground: var(--ink);
-  --muted: var(--surface-sunken);
-  --muted-foreground: var(--ink-muted);
-  --accent: var(--brand-green);
-  --accent-foreground: #f7ffe8;
-  --destructive: #e5735e;
-  --border: var(--warm-border);
-  --input: var(--warm-border);
-  --ring: var(--brand-green-light);
-  --sidebar: var(--surface);
-  --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--brand-green-light);
-  --sidebar-primary-foreground: #2a2118;
-  --sidebar-accent: var(--brand-green);
-  --sidebar-accent-foreground: #f7ffe8;
-  --sidebar-border: var(--warm-border);
-  --sidebar-ring: var(--brand-green-light);
+  --background: var(--color-canvas);
+  --foreground: var(--color-neutral-10);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-neutral-10);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-neutral-10);
+  --primary: var(--color-accent-green);
+  --primary-foreground: var(--color-text-inverse);
+  --secondary: var(--color-accent-yellow);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-surface-subtle);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-accent-green-light);
+  --accent-foreground: var(--color-text-inverse);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: var(--color-border-default);
+  --input: var(--color-border-default);
+  --ring: var(--color-accent-green);
 }
 
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
   html {
     @apply font-sans;
-    scroll-behavior: smooth;
   }
-
-  main :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-    outline: none;
-    filter: brightness(0.94);
-  }
-
   body {
-    @apply bg-background text-foreground;
+    @apply bg-canvas text-foreground;
     font-family: var(--font-body);
     line-height: var(--leading-body);
   }
-
-  h1,
-  h2 {
+  h1, h2 {
     font-family: var(--font-heading);
     line-height: var(--leading-heading);
-    letter-spacing: -0.015em;
   }
-
-  h3,
-  h4,
-  h5,
-  h6 {
+  h3, h4, h5, h6 {
     font-family: var(--font-body);
     line-height: var(--leading-heading);
   }
-
-  ::selection {
-    background: var(--highlight);
-    color: var(--ink);
-  }
 }
 
-@layer components {
-  .surface-card {
-    background: var(--surface);
-    border-radius: var(--radius-card);
-  }
-
-  .surface-sunken {
-    background: var(--surface);
-    border-radius: var(--radius-2xl);
-  }
-
-  .surface-raised {
-    background: var(--surface);
-    border-radius: var(--radius-2xl);
-  }
-
-  .btn-cta {
-    display: inline-flex;
-    min-height: var(--btn-min-height, 50px);
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border: 0;
-    border-radius: var(--radius-button);
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-    box-shadow: 0 var(--btn-depth, 9px) 0 var(--brand-green-dark);
-    padding: 0.8rem 1.5rem;
-    font-family: var(--font-body);
-    font-weight: 700;
-    line-height: 1.1;
-    transition:
-      background 180ms ease,
-      color 180ms ease,
-      box-shadow 120ms ease,
-      transform 120ms ease;
-    cursor: pointer;
-  }
-
-  .btn-cta:hover {
-    background: linear-gradient(180deg, #fffdf4 0%, var(--brand-green-light) 100%);
-    color: var(--brand-green-ink);
-  }
-
-  .btn-cta:active {
-    background: var(--brand-green-light);
-    box-shadow: none;
-    transform: translateY(var(--btn-depth, 9px));
-  }
-
-  .btn-cta:focus-visible {
-    background: var(--highlight);
-    color: var(--brand-green-ink);
-    outline: none;
-    filter: none;
-  }
-
-  .btn-cta:disabled,
-  .btn-cta[aria-disabled="true"] {
-    background: var(--warm-border);
-    box-shadow: none;
-    color: var(--ink-muted);
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
-
-  .btn-secondary {
-    display: inline-flex;
-    min-height: var(--btn-min-height, 50px);
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border: 0;
-    border-radius: var(--radius-button);
-    background: var(--highlight);
-    color: var(--ink);
-    padding: 0.65rem 1.25rem;
-    font-family: var(--font-body);
-    font-weight: 700;
-    line-height: 1.1;
-    transition:
-      background 180ms ease,
-      color 180ms ease;
-    cursor: pointer;
-  }
-
-  .btn-secondary:hover {
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-  }
-
-  .btn-secondary:active {
-    background: var(--brand-orange);
-  }
-
-  .btn-secondary:focus-visible {
-    background: var(--brand-orange);
-    outline: none;
-    filter: none;
-  }
-
-  .btn-ghost {
-    display: inline-flex;
-    min-height: var(--btn-min-height, 50px);
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border: 0;
-    border-radius: var(--radius-button);
-    background: var(--surface);
-    color: var(--ink);
-    padding: 0.6rem 1.1rem;
-    font-family: var(--font-body);
-    font-weight: 600;
-    line-height: 1.1;
-    transition:
-      background 160ms ease,
-      color 160ms ease;
-    cursor: pointer;
-  }
-
-  .btn-ghost:hover {
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-  }
-
-  .btn-ghost:active {
-    background: var(--brand-green);
-    color: #f7ffe8;
-  }
-
-  .btn-ghost:focus-visible {
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-    outline: none;
-    filter: none;
-  }
-
-  .btn-cta.text-xs,
-  .btn-secondary.text-xs,
-  .btn-ghost.text-xs {
-    --btn-depth: var(--btn-depth-xs);
-    --btn-min-height: 36px;
-    padding: 0.45rem 0.85rem;
-  }
-
-  .btn-cta.text-sm,
-  .btn-secondary.text-sm,
-  .btn-ghost.text-sm {
-    --btn-depth: var(--btn-depth-sm);
-    --btn-min-height: 42px;
-    padding: 0.6rem 1.15rem;
-  }
-
-  .btn-icon {
-    display: inline-flex;
-    height: 42px;
-    width: 42px;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: var(--radius-button);
-    background: var(--surface);
-    color: var(--ink);
-    transition:
-      background 160ms ease,
-      color 160ms ease;
-    cursor: pointer;
-  }
-
-  .btn-icon:hover {
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-  }
-
-  .btn-icon:focus-visible {
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-    outline: none;
-    filter: none;
-  }
-
-  .btn-icon[aria-pressed="true"],
-  .btn-icon.is-selected {
-    background: var(--brand-orange);
-    color: var(--ink);
-  }
-
-  header .btn-icon {
-    border: 1.5px solid var(--warm-border);
-    border-radius: 999px;
-  }
-
-  header .btn-icon:hover {
-    border-color: var(--brand-green-light);
-  }
-
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    border: 0;
-    border-radius: 999px;
-    background: var(--highlight);
-    color: var(--ink);
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  .chip-green {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    border: 0;
-    border-radius: 999px;
-    background: var(--brand-green-light);
-    color: var(--brand-green-ink);
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  .field {
-    border: 0;
-    border-radius: var(--radius-input);
-    background: var(--canvas);
-    color: var(--ink);
-    transition: background 160ms ease;
-  }
-
-  .field:focus,
-  .field:focus-within {
-    background: color-mix(in srgb, var(--brand-green-light) 18%, var(--canvas));
-    outline: none;
-  }
-
-  .field-inline {
-    border: 0;
-    border-radius: var(--radius-input);
-    background: transparent;
-    color: var(--ink);
-    box-shadow: none;
-    font-family: var(--font-body);
-    transition: background 160ms ease;
-  }
-
-  .field-inline:focus,
-  .field-inline:focus-within {
-    background: color-mix(in srgb, var(--brand-green-light) 18%, var(--surface));
-    outline: none;
-  }
-
-  .nav-item[aria-current="page"],
-  .nav-item.is-selected {
-    background: var(--color-accent-orange);
-    color: var(--ink);
-    border-radius: var(--radius-navigation);
-  }
-
-  .nav-item:hover:not([aria-current="page"]):not(.is-selected) {
-    background: var(--color-accent-green-light);
-    color: var(--brand-green-ink);
-    border-radius: var(--radius-navigation);
-  }
-
-  .card,
-  .hero-card,
-  .review-card {
-    background: var(--surface);
-    border-radius: var(--radius-card);
-  }
-
-  .input-field {
-    border: 0;
-    border-radius: var(--radius-input);
-    background: var(--canvas);
-    font-family: var(--font-body);
-  }
+/* ── Caloria Typography Scale Utilities (from design-tokens.json) ── */
+.typo-h1 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(2.25rem, 4vw + 1rem, var(--text-h1));
+  line-height: var(--leading-heading);
 }
 
-@supports (corner-shape: squircle) {
-  .rounded-lg,
-  .rounded-xl,
-  .rounded-2xl,
-  .rounded-3xl,
-  .rounded-4xl,
-  .surface-card,
-  .surface-sunken,
-  .surface-raised,
-  .btn-cta,
-  .btn-secondary,
-  .btn-ghost,
-  .btn-icon,
-  .field,
-  .field-inline,
-  .card,
-  .hero-card,
-  .review-card {
-    corner-shape: squircle;
-  }
+.typo-h2 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(1.75rem, 3vw + 0.75rem, var(--text-h2));
+  line-height: var(--leading-heading);
+}
+
+.typo-h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 2.2vw + 0.5rem, var(--text-h3));
+  line-height: var(--leading-heading);
+}
+
+.typo-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.typo-caption {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-caption);
+  line-height: var(--leading-body);
+}
+
+/* ── Caloria Component Rules (from design-tokens.css & AGENTS.md) ── */
+.nav-item {
+  border-radius: var(--radius-navigation);
+  transition: background-color var(--duration-Fast, 150ms) var(--ease-smooth),
+              color var(--duration-Fast, 150ms) var(--ease-smooth),
+              transform var(--duration-Fast, 150ms) var(--ease-smooth);
+}
+
+.nav-item[aria-current="page"],
+.nav-item.is-selected {
+  background: var(--color-accent-orange);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-navigation);
+}
+
+.nav-item:hover:not([aria-current="page"]):not(.is-selected) {
+  background: var(--color-accent-green-light);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-navigation);
+}
+
+.button-primary {
+  background: var(--color-accent-green-light);
+  color: var(--color-text-primary);
+  border: 0;
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  font-family: var(--font-body);
+  font-weight: 700;
+  transition: transform var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth),
+              background-color var(--duration-fast) var(--ease-smooth);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent-green-light) 88%, var(--color-accent-green));
+}
+
+.button-primary:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 5px 0 var(--color-text-primary);
+}
+
+.button-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.card, .hero-card, .review-card {
+  background: var(--color-accent-yellow);
+  border-radius: var(--radius-card);
+}
+
+.surface-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-divider);
+}
+
+.input-field {
+  border: 4px solid var(--color-border-default);
+  border-radius: var(--radius-input);
+  background: var(--color-surface-subtle);
+  box-shadow: var(--shadow-input);
+  font-family: var(--font-body);
+  color: var(--color-neutral-10);
+  transition: border-color var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-accent-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-green) 20%, transparent);
 }
 
 @media (max-width: 768px) {
@@ -589,6 +409,22 @@
   }
 }
 
+/* New navbar aliases (appended; existing tokens left untouched) */
+@theme inline {
+  --color-ink: var(--color-neutral-10);
+  --color-ink-muted: var(--color-text-muted);
+  --color-brand-green: var(--color-accent-green);
+  --color-brand-green-light: var(--color-accent-green-light);
+  --color-brand-green-ink: var(--color-text-primary);
+  --color-brand-orange: var(--color-accent-orange);
+  --color-warm-border: var(--color-border-divider);
+}
+
+:root {
+  --brand-green-dark: #4f7a2a;
+}
+
+/* ── Feature: AR scanner waiting-card scan beam (not part of the design tokens) ── */
 @keyframes caloriaScanBeam {
   0% {
     transform: translateY(0%);

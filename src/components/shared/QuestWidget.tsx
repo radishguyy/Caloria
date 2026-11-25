@@ -4,10 +4,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
-import {
-  GOAL_PATH_LABELS,
-  goalTypeToGoalPath,
-} from "@/lib/gamification/quest-engine";
 import { cn } from "@/lib/utils";
 
 interface QuestWidgetProps {
@@ -18,9 +14,8 @@ interface QuestWidgetProps {
 export function QuestWidget({ className }: QuestWidgetProps) {
   const isHydrated = useHydrated();
   const {
-    goalPlan,
+    completedMissions,
     getQuestPlan,
-    getConsumed,
     getWeeklyProgression,
     getEvaluatedMissions,
   } = useFoodStore();
@@ -30,95 +25,55 @@ export function QuestWidget({ className }: QuestWidgetProps) {
       <div
         aria-hidden="true"
         className={cn(
-          "h-36 animate-pulse rounded-2xl border border-border-divider bg-surface-subtle",
-          className
+          "h-28 animate-pulse rounded-2xl border border-border-divider bg-surface-subtle",
+          className,
         )}
       />
     );
   }
 
   const questPlan = getQuestPlan();
-  const consumed = getConsumed();
   const weeklyProgression = getWeeklyProgression();
   const evaluatedMissions = getEvaluatedMissions();
 
-  const activePath =
-    goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
-  const activeLevel = goalPlan.currentLevel || 1;
-  const pathLabel =
-    GOAL_PATH_LABELS[activePath]?.badge ||
-    GOAL_PATH_LABELS[activePath]?.title ||
-    "Quest Gizi";
+  // Misi hari ini
+  const dailyMissions = evaluatedMissions.filter((m) => m.isMain);
+  const totalDaily =
+    dailyMissions.length > 0 ? dailyMissions.length : evaluatedMissions.length;
+  const completedDaily =
+    dailyMissions.length > 0
+      ? dailyMissions.filter((m) => m.status.isCompleted).length
+      : evaluatedMissions.filter((m) => m.status.isCompleted).length;
 
-  const targetCalories = Math.max(1, Math.round(questPlan.calorieTarget));
-  const consumedCalories = consumed.calories;
-  const caloriePct = Math.min(
-    100,
-    Math.round((consumedCalories / targetCalories) * 100)
-  );
-
-  const completedCount = evaluatedMissions.filter(
-    (m) => m.status.isCompleted
-  ).length;
-  const totalMissions = evaluatedMissions.length;
-
-  const remainingDays = Math.max(0, 7 - weeklyProgression.dayInCurrentWeek);
+  // Misi mingguan
+  const totalWeekly =
+    questPlan.sideMissions.length > 0 ? questPlan.sideMissions.length : 7;
+  const completedWeekly =
+    questPlan.sideMissions.length > 0
+      ? questPlan.sideMissions.filter((m) => completedMissions.includes(m.id))
+          .length
+      : weeklyProgression.currentWeekMetDays;
 
   return (
     <section
       className={cn(
-        "space-y-4 rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6",
-        className
+        "rounded-2xl border border-border-divider bg-surface p-5 shadow-xs sm:p-6",
+        className,
       )}
+      aria-label="Progres Misi Nutrisi"
     >
-      {/* Top Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm font-semibold text-text-primary">
-          <span>
-            {consumedCalories.toLocaleString("id-ID")} /{" "}
-            {targetCalories.toLocaleString("id-ID")} kkal asupan hari ini
-          </span>
-          <span>{caloriePct}%</span>
-        </div>
-        <div
-          role="progressbar"
-          aria-label="Progres kalori harian"
-          aria-valuemin={0}
-          aria-valuemax={targetCalories}
-          aria-valuenow={consumedCalories}
-          className="h-3 w-full overflow-hidden rounded-md bg-border-divider"
-        >
-          <div
-            className="h-full rounded-md bg-accent-green transition-all duration-300"
-            style={{ width: `${caloriePct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Bottom Metrics & CTA */}
-      <div className="grid grid-cols-2 items-center gap-4 border-t border-border-divider pt-4 lg:grid-cols-[1fr_1fr_auto]">
+      <div className="grid grid-cols-2 items-center gap-4 lg:grid-cols-[1fr_1fr_auto]">
         <div className="min-w-0 lg:pr-6">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Level {activeLevel} • {pathLabel}
-          </p>
+          <p className="text-xs font-semibold text-text-muted">Misi hari ini</p>
           <p className="mt-1 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
-            {completedCount} / {totalMissions}
-            <span className="ml-1.5 align-baseline text-xs font-bold text-text-muted">
-              misi hari ini
-            </span>
+            {completedDaily} / {totalDaily}
           </p>
         </div>
 
         <div className="min-w-0 border-border-divider pl-0 lg:border-l lg:pl-6">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Pekan {weeklyProgression.currentCalendarWeek} •{" "}
-            {remainingDays === 0 ? "Hari evaluasi" : `Sisa ${remainingDays} hari`}
-          </p>
+          <p className="text-xs font-semibold text-text-muted">Misi mingguan</p>
           <p className="mt-1 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
-            {weeklyProgression.currentWeekMetDays} / 7
-            <span className="ml-1.5 align-baseline text-xs font-bold text-text-muted">
-              hari patuh ({weeklyProgression.currentWeekComplianceRate}%)
-            </span>
+            {completedWeekly} / {totalWeekly}
           </p>
         </div>
 

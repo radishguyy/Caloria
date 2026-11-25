@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Award, Lock, CheckCircle2, Coins } from "lucide-react";

@@ -5,7 +5,6 @@ import {
   Activity,
   Scale,
   Flame,
-  Zap,
   SlidersHorizontal,
   Check,
   Sparkles,

@@ -1,9 +1,9 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Coins,
+  CircleDollarSign,
   Flame,
   Check,
   Dumbbell,
@@ -23,7 +23,6 @@ import { CoopStreakIllustration } from "@/components/landing/CoopStreakIllustrat
 import { GoalPathIllustration } from "@/components/landing/GoalPathIllustration";
 import { AiFeaturesIllustration } from "@/components/landing/AiFeaturesIllustration";
 import { DuolingoJourneyMap } from "@/components/landing/DuolingoJourneyMap";
-import { GreenHeroStatement } from "@/components/landing/GreenHeroStatement";
 import { HERO_CLUSTER, type CalpalVariant } from "@/lib/landing/calpal-variants";
 import {
   calculateClinicalBenchmarks,
@@ -31,7 +30,7 @@ import {
 } from "@/lib/nutrition/calculations";
 
 export const metadata: Metadata = {
-  title: "Caloria ΓÇö Catat Nutrisi Jadi Seru Bareng Pet RPG",
+  title: "Caloria — Catat Nutrisi Jadi Seru Bareng Pet RPG",
   description:
     "Cara paling seru dan klinis untuk jaga pola makan, scan label makanan pakai AI, dan jaga streak bareng sahabat.",
 };
@@ -104,7 +103,7 @@ const MACROS = [
 const QUESTS = [
   { label: "Catat sarapan pagi", done: true },
   { label: "Capai 80% target protein", done: true },
-  { label: "Asupan kalori seimbang (80ΓÇô120%)", done: false },
+  { label: "Asupan kalori seimbang (80–120%)", done: false },
 ];
 
 export default function LandingPage() {
@@ -112,9 +111,9 @@ export default function LandingPage() {
 
   return (
     <div className="bg-white font-sans text-[#1E293B] overflow-x-hidden space-y-10">
-      {/* ΓöÇΓöÇ 1. Hero ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 1. Hero ───────────────────────────────────────────────────────
           POLA ZIGZAG: [Kiri: Ilustrasi Calpal] | [Kanan: Konten Teks]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <header className="flex h-16 items-center justify-between">
@@ -198,7 +197,7 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center md:justify-start">
                 <Link href="/register" className={BTN_PRIMARY}>
-                  Mulai Sekarang ΓÇö Gratis
+                  Mulai Sekarang — Gratis
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link href="/login" className={BTN_SECONDARY}>
@@ -210,9 +209,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 2. Core loop (Makan, Level Up, Ulangi) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 2. Core loop (Makan, Level Up, Ulangi) ─────────────────────────
           POLA ZIGZAG: [Kiri: Konten Teks & Fitur] | [Kanan: Stepper Path Duolingo]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-12">
@@ -238,9 +237,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 3. Bulking, Diet & Maintenance ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 3. Bulking, Diet & Maintenance ────────────────────────────────
           POLA ZIGZAG: [Kiri: Ilustrasi Calpal] | [Kanan: 3 Kartu Target Nutrisi]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8 space-y-12">
           <AnimateSection className="mx-auto max-w-2xl text-center space-y-3">
@@ -287,9 +286,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 4. AI Vision Scan & AI Recap (Fitur AI Cerdas) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 4. AI Vision Scan & AI Recap (Fitur AI Cerdas) ─────────────────
           POLA ZIGZAG: [Kiri: Konten Teks AI] | [Kanan: Ilustrasi Scanner AI]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-12">
@@ -343,9 +342,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 5. Co-op Streak Bersama Teman ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 5. Co-op Streak Bersama Teman ─────────────────────────────────
           POLA ZIGZAG: [Kiri: Ilustrasi 2 Calpal HP] | [Kanan: Konten Teks Squad]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-24 bg-white overflow-hidden">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-12">
@@ -395,9 +394,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 6. Calpal & wardrobe showcase ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 6. Calpal & wardrobe showcase ─────────────────────────────────
           POLA ZIGZAG: [Kiri: Konten Teks Wardrobe] | [Kanan: 2-Tier Marquee Slider]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 bg-white overflow-hidden">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-12">
@@ -430,9 +429,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 7. Science-backed engine (Standar Medis & Depkes) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* ── 7. Science-backed engine (Standar Medis & Depkes) ───────────────
           POLA ZIGZAG: [Kiri: Target Preview Card] | [Kanan: Konten Teks Sains]
-      ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      ─────────────────────────────────────────────────────────────────── */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-10 md:grid-cols-2">
@@ -462,7 +461,7 @@ export default function LandingPage() {
                         {s.value}
                       </p>
                       <p className="text-[10px] font-semibold text-[#1E293B]/40">
-                        {s.unit ? `${s.unit} ┬╖ ` : ""}{s.desc}
+                        {s.unit ? `${s.unit} · ` : ""}{s.desc}
                       </p>
                     </div>
                   ))}
@@ -493,7 +492,7 @@ export default function LandingPage() {
                       Misi Harian Calpal
                     </p>
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-[#FF9233]">
-                      <Coins className="h-3.5 w-3.5" aria-hidden="true" /> +30 Koin
+                      <CircleDollarSign className="h-3.5 w-3.5" aria-hidden="true" /> +30 Koin
                     </span>
                   </div>
                   <ul className="space-y-1.5">
@@ -524,7 +523,7 @@ export default function LandingPage() {
                 Bukan Asal Tebak Kalori.
               </h2>
               <p className="mx-auto max-w-md text-base leading-relaxed text-[#1E293B]/70 md:mx-0 sm:text-lg">
-                Target gizi dihitung berbasis rumus <b>BBI, BMI, BMR, TEE</b>, dan standar kepatuhan <b>Depkes RI (80ΓÇô120%)</b>.
+                Target gizi dihitung berbasis rumus <b>BBI, BMI, BMR, TEE</b>, dan standar kepatuhan <b>Depkes RI (80–120%)</b>.
               </p>
               <ul className="flex flex-wrap justify-center gap-2 md:justify-start">
                 {[
@@ -537,7 +536,7 @@ export default function LandingPage() {
                     key={t}
                     className="rounded-full border-2 border-[#1E293B]/10 bg-white px-3.5 py-1 text-xs font-bold text-[#1E293B]/70"
                   >
-                    Γ£ô {t}
+                    ✓ {t}
                   </li>
                 ))}
               </ul>
@@ -546,7 +545,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ΓöÇΓöÇ 9. Final CTA & Footer ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 9. Final CTA & Footer ───────────────────────────────────────── */}
       <section className="bg-white pt-16 sm:pt-20">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <AnimateSection>
@@ -580,7 +579,7 @@ export default function LandingPage() {
                   Gratis digunakan. Gak perlu ribet, langsung atur pola makan sehat sambil bersenang-senang bareng teman.
                 </p>
                 <Link href="/register" className={BTN_PRIMARY}>
-                  Mulai Sekarang ΓÇö Gratis
+                  Mulai Sekarang — Gratis
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
@@ -597,7 +596,7 @@ export default function LandingPage() {
             unoptimized
             className="h-6 w-auto opacity-80"
           />
-          <p>┬⌐ 2026 Caloria ┬╖ Teman nutrisi harianmu</p>
+          <p>© 2026 Caloria · Teman nutrisi harianmu</p>
         </footer>
       </section>
     </div>

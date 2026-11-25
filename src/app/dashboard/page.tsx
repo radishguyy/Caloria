@@ -1,26 +1,21 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Plus,
-  Target,
   Sparkles,
-  Award,
   Bell,
-  Coins,
+  CircleDollarSign,
   X,
   Utensils,
-  Sun,
-  AlertCircle,
+  Search,
+  Check,
   Users,
-  ArrowRight,
-  Flame,
   ShieldCheck,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PetRenderer } from "@/components/pet/pet-renderer";
 import { PetShowcase } from "@/components/dashboard/PetShowcase";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { DashboardCalendarStrip } from "@/components/dashboard/DashboardCalendarStrip";
@@ -33,7 +28,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId, STREAK_RULES } from "@/lib/constants";
 import { isRepairEligible } from "@/lib/streak-utils";
-import { isToday, formatDateDisplay, getTodayKey } from "@/lib/date-utils";
+import { getTodayKey } from "@/lib/date-utils";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReminderStackStore } from "@/store/use-reminder-stack-store";
@@ -74,15 +69,7 @@ interface QuickLogSuccessInfo {
 
 export default function DashboardPage() {
   const isHydrated = useHydrated();
-  const {
-    selectedDate,
-    setSelectedDate,
-    getMealLogs,
-    addLog,
-    addBatchLogs,
-    getRecentFoods,
-    getFrequentFoods,
-  } = useFoodStore();
+  const { addBatchLogs } = useFoodStore();
   const { name, feedPet, setCoins } = usePetStore();
   const {
     coopStreakDays,
@@ -96,8 +83,7 @@ export default function DashboardPage() {
   const [repairLoading, setRepairLoading] = useState<"coins" | "quest" | null>(
     null,
   );
-  const { toggleDrawer, getUnreadCount, notifications, markAsRead } =
-    useNotificationStore();
+  const { notifications, markAsRead } = useNotificationStore();
   const {
     isSupported: isPushSupported,
     isSubscribed: isPushSubscribed,
@@ -118,16 +104,12 @@ export default function DashboardPage() {
     else setSelectedQuickMeal("breakfast");
   }, []);
 
-  const [quickFilter, setQuickFilter] = useState<
-    "popular" | "recent" | "frequent"
-  >("popular");
+  const [quickSearch, setQuickSearch] = useState("");
   const [selectedQuickItems, setSelectedQuickItems] = useState<
     (typeof FOOD_CATALOG)[0][]
   >([]);
   const [quickSuccessModal, setQuickSuccessModal] =
     useState<QuickLogSuccessInfo | null>(null);
-
-  const unreadCount = getUnreadCount();
 
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const reminderStackRef = useRef<HTMLDivElement | null>(null);
@@ -149,35 +131,6 @@ export default function DashboardPage() {
   const [dismissedInAppNotif, setDismissedInAppNotif] = useState(() =>
     isReminderDismissed(INAPP_NOTIF_DISMISS_KEY),
   );
-
-  const isSelectedToday = isHydrated ? isToday(selectedDate) : true;
-
-  const getPetDialogMessages = () => {
-    const messages = [
-      "Aku lapar!",
-      "Sepertinya aku kebanyakan lemak nih.",
-      "Yuk, kasih aku makan!",
-      "Aku belum berapa lapar...",
-      "Mmm, menarik! Aku ikut makan.",
-      "Hari ini aku mau makan sayur ya.",
-      "Kamu sudah makan enak nih, aku ikut!",
-      "Aku mulai merasa lapar, kasih camilan?",
-      "Kasihan, Aku mau makan protein, Yuhu!",
-      "Aww, kasih aku makanan dan kasih aku ciuman.",
-      "Aku terlalu kurus, kasih aku makam malam.",
-      "Ini aku lagi latihan, kasih aku protein ya!",
-      "Sepertinya aku butuh sedikit makanan, pet!",
-      "Yuk ikutan makan siang bareng kamu!",
-      "Aku belum pernah mencoba ayam panggang, kasih aku!",
-      "Wah, aku jadi lapar, kasih aku nasi!",
-      "Jadi, kamu sudah makan, bareng sama aku?",
-      "Yuk makan pempek bareng!",
-      "Beri aku ayam goreng, umph!",
-      "Jangan lupa kasih aku telur!",
-      "Ayo pergi cari salad!",
-    ];
-    return messages[Math.floor(Math.random() * messages.length)];
-  };
 
   const activeFriends = friends || [];
   const pendingFriends = activeFriends.filter((f) => !f.dailyGoalMet);
@@ -377,7 +330,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4" aria-hidden="true" />
           </div>
           <h4 className="text-sm font-bold text-text-primary">
-            Pengingat Senggolan Teman ΓÜö∩╕Å
+            Pengingat Senggolan Teman ⚔️
           </h4>
         </div>
         <button
@@ -464,13 +417,16 @@ export default function DashboardPage() {
         fiberG: l.fiberG,
         sugarG: l.sugarG,
       })),
-      todayStr
+      todayStr,
     ).catch((err) =>
-      console.error("[Dashboard] Batch quick log sync error:", err)
+      console.error("[Dashboard] Batch quick log sync error:", err),
     );
 
     const mealObj = MEAL_TYPES.find((m) => m.id === selectedQuickMeal);
-    const totalProt = selectedQuickItems.reduce((acc, i) => acc + i.proteinG, 0);
+    const totalProt = selectedQuickItems.reduce(
+      (acc, i) => acc + i.proteinG,
+      0,
+    );
     const totalCarb = selectedQuickItems.reduce((acc, i) => acc + i.carbsG, 0);
     const totalFatVal = selectedQuickItems.reduce((acc, i) => acc + i.fatG, 0);
 
@@ -483,7 +439,7 @@ export default function DashboardPage() {
       totalFat: Math.round(totalFatVal * 10) / 10,
       xpEarned: feedback.xpEarned || selectedQuickItems.length * 15,
       coinsEarned: selectedQuickItems.length * 10,
-      title: feedback.title || "Makanan Berhasil Dicatat! ≡ƒì╜∩╕Å",
+      title: feedback.title || "Makanan Berhasil Dicatat! 🍽️",
       message:
         feedback.message ||
         `${selectedQuickItems.length} menu berhasil dicatat untuk ${mealObj?.label || "makan"} hari ini. Pet kamu makin kenyang dan bertambah XP!`,
@@ -521,68 +477,13 @@ export default function DashboardPage() {
     }
   };
 
-  const handleQuickAdd = (foodItem: (typeof FOOD_CATALOG)[0]) => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    const feedback = addLog({
-      name: foodItem.name,
-      mealType: selectedQuickMeal,
-      calories: foodItem.calories,
-      proteinG: foodItem.proteinG,
-      carbsG: foodItem.carbsG,
-      fatG: foodItem.fatG,
-      fiberG: foodItem.fiberG,
-      sugarG: foodItem.sugarG,
-      servingSize: 1,
-      servingUnit: foodItem.servingUnit,
-      loggedDate: todayStr,
-    });
-
-    feedPet(foodItem.calories, feedback.xpEarned);
-
-    batchLogFoodsAction(
-      [
-        {
-          name: foodItem.name,
-          mealType: selectedQuickMeal,
-          servingSize: 1,
-          servingUnit: foodItem.servingUnit,
-          calories: foodItem.calories,
-          proteinG: foodItem.proteinG,
-          carbsG: foodItem.carbsG,
-          fatG: foodItem.fatG,
-          fiberG: foodItem.fiberG,
-          sugarG: foodItem.sugarG,
-        },
-      ],
-      todayStr
-    ).catch((err) =>
-      console.error("[Dashboard] Quick add sync error:", err)
-    );
-
-    const mealObj = MEAL_TYPES.find((m) => m.id === selectedQuickMeal);
-    setQuickSuccessModal({
-      foodNames: [foodItem.name],
-      mealLabel: mealObj?.label || "Makan",
-      totalCalories: foodItem.calories,
-      totalProtein: foodItem.proteinG,
-      totalCarbs: foodItem.carbsG,
-      totalFat: foodItem.fatG,
-      xpEarned: feedback.xpEarned || 15,
-      coinsEarned: 10,
-      title: feedback.title || "Makanan Berhasil Dicatat! ≡ƒì╜∩╕Å",
-      message:
-        feedback.message ||
-        `Menu ${foodItem.name} berhasil ditambahkan ke catatan ${mealObj?.label || "makan"} hari ini.`,
-    });
-
-    setStreakMeta({ lastLoggedDate: todayStr });
-    setSelectedQuickItems([]);
-    setQuickLogModalOpen(false);
-  };
+  const filteredQuickFoods = FOOD_CATALOG.filter((food) =>
+    food.name.toLowerCase().includes(quickSearch.toLowerCase().trim()),
+  );
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
-      {/* Floating reminders: stacked bottom-right on desktop, one at a time centered on mobile */}
+      {/* Floating reminders */}
       {(showInAppNotification || showPushReminder || showCoopReminder) && (
         <div
           ref={reminderStackRef}
@@ -604,7 +505,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Streak Repair Banner (48h recovery window when streak >= 3 days recently broke) */}
+      {/* Streak Repair Banner */}
       {isHydrated && isRepairEligible(brokenStreakCount, brokenStreakAt) && (
         <section className="rounded-3xl border-2 border-accent-orange/40 bg-gradient-to-r from-[#FCF8E3] via-surface to-accent-orange/10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
@@ -613,10 +514,12 @@ export default function DashboardPage() {
             </div>
             <div>
               <h2 className="text-sm font-black text-text-primary font-heading">
-                Selamatkan Streak {brokenStreakCount} Harimu! ≡ƒöÑ
+                Selamatkan Streak {brokenStreakCount} Harimu! 🔥
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                Streak-mu baru saja terputus. Kamu punya waktu 48 jam untuk memulihkannya gratis lewat misi 2x log hari ini atau tebus dengan {STREAK_RULES.REPAIR_PRICE_COINS} Koin.
+                Streak-mu baru saja terputus. Kamu punya waktu 48 jam untuk
+                memulihkannya gratis lewat misi 2x log hari ini atau tebus
+                dengan {STREAK_RULES.REPAIR_PRICE_COINS} Koin.
               </p>
             </div>
           </div>
@@ -644,7 +547,7 @@ export default function DashboardPage() {
               {repairLoading === "coins" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <Coins className="h-3.5 w-3.5 text-accent-orange" />
+                <CircleDollarSign className="h-3.5 w-3.5 text-accent-orange" />
               )}
               <span>Tebus {STREAK_RULES.REPAIR_PRICE_COINS} Koin</span>
             </button>
@@ -659,170 +562,153 @@ export default function DashboardPage() {
 
         {/* Right Column: Daily Nutrition Target + Catat Makanan */}
         <div className="lg:col-span-6 flex flex-col gap-3">
-            <MacroBar />
-            {/* 2. Unified Nutrition Summary & Calendar Strip */}
+          <MacroBar />
+          {/* 2. Unified Nutrition Summary & Calendar Strip */}
           <DashboardCalendarStrip />
+          {/* Catat Makanan primary CTA */}
           <button
             type="button"
             onClick={() => setQuickLogModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-accent-green-dark active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-text-primary active:scale-[0.98] cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            Catat Makanan
+            <span>Catat Makanan</span>
           </button>
         </div>
       </div>
 
-      {/* Quick Action Modal: Fast Log Food */}
+      {/* Quick Action Modal: Fast Log Food ("Catat Cepat") */}
       {quickLogModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
           <div className="relative w-full max-w-lg rounded-3xl border border-border-divider bg-surface p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            {/* Header: Title "Catat Cepat" */}
             <div className="flex items-center justify-between border-b border-border-divider pb-3">
               <div className="flex items-center gap-2">
                 <Utensils className="h-5 w-5 text-accent-orange" />
                 <h3 className="font-heading text-lg font-bold text-text-primary">
-                  Catat Makanan Cepat
+                  Catat Cepat
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setSelectedQuickItems([]);
                   setQuickLogModalOpen(false);
                 }}
                 className="rounded-full p-1 text-text-muted hover:bg-surface-subtle hover:text-text-primary"
+                aria-label="Tutup modal"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
+            {/* Meal Type Selection */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-muted">
                 Pilih Waktu Makan:
               </label>
               <div className="grid grid-cols-4 gap-1.5">
-                {MEAL_TYPES.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedQuickMeal(m.id)}
-                    className={`nav-item py-1.5 px-1 text-xs font-semibold rounded-xl border text-center transition-colors ${
-                      selectedQuickMeal === m.id
-                        ? "is-selected border-accent-orange font-bold shadow-2xs"
-                        : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
+                {MEAL_TYPES.map((m) => {
+                  const isActive = selectedQuickMeal === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setSelectedQuickMeal(m.id)}
+                      className={cn(
+                        "nav-item py-1.5 px-1 text-xs font-semibold rounded-xl border text-center transition-colors cursor-pointer",
+                        isActive
+                          ? "is-selected border-accent-orange font-bold shadow-2xs"
+                          : "bg-surface-subtle text-neutral-10 border-border-default hover:bg-surface",
+                      )}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 border-b border-border-divider pb-2 text-[11px]">
-              <button
-                type="button"
-                onClick={() => setQuickFilter("popular")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
-                  quickFilter === "popular"
-                    ? "bg-accent-green text-text-inverse border-accent-green"
-                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                }`}
-              >
-                Menu Populer
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickFilter("recent")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
-                  quickFilter === "recent"
-                    ? "bg-accent-green text-text-inverse border-accent-green"
-                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                }`}
-              >
-                Baru Dimakan
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickFilter("frequent")}
-                className={`px-2.5 py-1 rounded-pill font-bold border transition-colors ${
-                  quickFilter === "frequent"
-                    ? "bg-accent-green text-text-inverse border-accent-green"
-                    : "bg-surface text-text-muted border-border-default hover:text-text-primary"
-                }`}
-              >
-                Paling Sering
-              </button>
+            {/* Search Input (Replaces popular/recent/frequent filters) */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" />
+              <input
+                type="text"
+                value={quickSearch}
+                onChange={(e) => setQuickSearch(e.target.value)}
+                placeholder="Cari makanan..."
+                className="input-field w-full pl-9 pr-3.5 py-2 text-sm font-semibold"
+              />
             </div>
 
-            <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
-              {(quickFilter === "recent"
-                ? getRecentFoods()
-                : quickFilter === "frequent"
-                  ? getFrequentFoods()
-                  : FOOD_CATALOG
-              ).map((food) => {
-                const isChecked = selectedQuickItems.some(
-                  (i) => i.id === food.id,
-                );
-                return (
-                  <div
-                    key={food.id}
-                    onClick={() => toggleQuickItem(food)}
-                    className={`flex items-center justify-between gap-2 p-2.5 rounded-2xl border transition-colors cursor-pointer ${
-                      isChecked
-                        ? "border-accent-orange bg-accent-orange/10"
-                        : "border-border-default bg-surface-subtle hover:border-accent-green/50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-navigation bg-surface-subtle">
-                        <Utensils className="h-4 w-4 text-text-muted" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-foreground">
+            {/* Food List with larger food name, no nutrition details below, and simple '+' button */}
+            <div className="space-y-1.5 max-h-[240px] overflow-y-auto pr-1">
+              {filteredQuickFoods.length === 0 ? (
+                <p className="text-center py-6 text-xs text-text-muted">
+                  Makanan &quot;{quickSearch}&quot; tidak ditemukan.
+                </p>
+              ) : (
+                filteredQuickFoods.map((food) => {
+                  const isChecked = selectedQuickItems.some(
+                    (i) => i.id === food.id,
+                  );
+                  return (
+                    <div
+                      key={food.id}
+                      onClick={() => toggleQuickItem(food)}
+                      className={cn(
+                        "flex items-center justify-between gap-3 p-3 rounded-2xl border transition-colors cursor-pointer",
+                        isChecked
+                          ? "border-accent-orange bg-accent-orange/10"
+                          : "border-border-default bg-surface-subtle hover:border-accent-green/50",
+                      )}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-navigation bg-surface border border-border-divider">
+                          <Utensils className="h-4 w-4 text-text-muted" />
+                        </div>
+                        {/* Food name font size increased, nutrition details below removed */}
+                        <p className="text-sm sm:text-base font-bold text-foreground truncate">
                           {food.name}
                         </p>
-                        <p className="text-[10px] text-text-muted">
-                          {food.calories} kcal ΓÇó P: {food.proteinG}g ΓÇó K: {food.carbsG}g ΓÇó L: {food.fatG}g
-                        </p>
+                      </div>
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="text-xs font-black text-text-primary">
+                          {food.calories}{" "}
+                          <span className="text-[10px] text-text-muted">
+                            kcal
+                          </span>
+                        </span>
+                        {/* Simple '+' button that toggles selection */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleQuickItem(food);
+                          }}
+                          aria-label={`Pilih ${food.name}`}
+                          className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-xl border text-xs font-bold transition-colors shadow-2xs cursor-pointer",
+                            isChecked
+                              ? "border-accent-orange bg-accent-orange text-text-inverse"
+                              : "border-border-default bg-surface text-accent-green hover:bg-accent-green-light hover:text-text-primary",
+                          )}
+                        >
+                          {isChecked ? (
+                            <Check className="h-4 w-4 stroke-[3]" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-text-primary">
-                        {food.calories}{" "}
-                        <span className="text-[10px] text-text-muted">
-                          kcal
-                        </span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQuickAdd(food);
-                        }}
-                        className="rounded-xl bg-surface px-2.5 py-1 text-[11px] font-bold text-accent-green hover:bg-accent-green-light border border-border-default transition-colors shadow-2xs"
-                      >
-                        + 1-Klik
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
 
-            {selectedQuickItems.length > 0 && (
-              <button
-                type="button"
-                onClick={handleBatchQuickSave}
-                className="button-primary w-full py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 font-black shadow-md"
-              >
-                <Plus className="h-4 w-4" />
-                <span>
-                  Tambahkan Dipilih ({selectedQuickItems.length} Menu) & Kasih
-                  Makan Pet
-                </span>
-              </button>
-            )}
-
-            <div className="pt-1 flex items-center justify-between text-xs">
+            {/* Bottom Footer: Confirmation button */}
+            <div className="pt-2 flex items-center justify-between text-xs">
               <Link
                 href="/diary/add"
                 onClick={() => setQuickLogModalOpen(false)}
@@ -831,13 +717,15 @@ export default function DashboardPage() {
                 Cari di Katalog Lengkap &rarr;
               </Link>
               <button
-                onClick={() => {
-                  setSelectedQuickItems([]);
-                  setQuickLogModalOpen(false);
-                }}
-                className="px-4 py-1.5 rounded-xl border border-border-default hover:bg-accent-green-light text-text-primary font-bold transition-colors"
+                type="button"
+                onClick={handleBatchQuickSave}
+                disabled={selectedQuickItems.length === 0}
+                className="button-primary px-4 py-2 text-xs font-black cursor-pointer"
               >
-                Tutup
+                Konfirmasi
+                {selectedQuickItems.length > 0
+                  ? ` (${selectedQuickItems.length})`
+                  : ""}
               </button>
             </div>
           </div>
@@ -849,6 +737,7 @@ export default function DashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-sm sm:max-w-md rounded-3xl border border-border-divider bg-surface p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
             <button
+              type="button"
               onClick={() => setQuickSuccessModal(null)}
               className="absolute right-4 top-4 rounded-full p-1.5 text-text-muted hover:bg-surface-subtle hover:text-text-primary transition-colors"
               aria-label="Tutup notifikasi"
@@ -858,7 +747,7 @@ export default function DashboardPage() {
 
             {/* Celebratory badge */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent-green/15 text-accent-green border-2 border-accent-green/30 shadow-xs text-3xl">
-              ≡ƒÑæ
+              🎉
             </div>
 
             <div className="space-y-1">
@@ -885,20 +774,32 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-4 gap-1.5 text-center">
                 <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
-                  <span className="block text-[9px] text-text-muted">Kalori</span>
-                  <span className="text-xs font-black text-accent-green">{quickSuccessModal.totalCalories} kcal</span>
+                  <span className="block text-[9px] text-text-muted">
+                    Kalori
+                  </span>
+                  <span className="text-xs font-black text-accent-green">
+                    {quickSuccessModal.totalCalories} kcal
+                  </span>
                 </div>
                 <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
-                  <span className="block text-[9px] text-text-muted">Protein</span>
-                  <span className="text-xs font-black text-macro-protein">{quickSuccessModal.totalProtein}g</span>
+                  <span className="block text-[9px] text-text-muted">
+                    Protein
+                  </span>
+                  <span className="text-xs font-black text-macro-protein">
+                    {quickSuccessModal.totalProtein}g
+                  </span>
                 </div>
                 <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
                   <span className="block text-[9px] text-text-muted">Karbo</span>
-                  <span className="text-xs font-black text-macro-carbs">{quickSuccessModal.totalCarbs}g</span>
+                  <span className="text-xs font-black text-macro-carbs">
+                    {quickSuccessModal.totalCarbs}g
+                  </span>
                 </div>
                 <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
                   <span className="block text-[9px] text-text-muted">Lemak</span>
-                  <span className="text-xs font-black text-macro-fat">{quickSuccessModal.totalFat}g</span>
+                  <span className="text-xs font-black text-macro-fat">
+                    {quickSuccessModal.totalFat}g
+                  </span>
                 </div>
               </div>
             </div>
@@ -906,17 +807,21 @@ export default function DashboardPage() {
             {/* XP & Coin Reward Showcase */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-2xl border border-accent-green/20 bg-accent-green/10 p-3 text-center">
-                <span className="text-[10px] font-semibold text-text-muted">XP Pet Diperoleh</span>
+                <span className="text-[10px] font-semibold text-text-muted">
+                  XP Pet Diperoleh
+                </span>
                 <p className="text-base font-black text-accent-green font-heading flex items-center justify-center gap-1 mt-0.5">
-                  <Sparkles className="h-4 w-4" />
-                  +{quickSuccessModal.xpEarned} XP
+                  <Sparkles className="h-4 w-4" />+{quickSuccessModal.xpEarned}{" "}
+                  XP
                 </p>
               </div>
               <div className="rounded-2xl border border-accent-orange/20 bg-accent-orange/10 p-3 text-center">
-                <span className="text-[10px] font-semibold text-text-muted">Koin Didapat</span>
+                <span className="text-[10px] font-semibold text-text-muted">
+                  Koin Didapat
+                </span>
                 <p className="text-base font-black text-accent-orange-dark font-heading flex items-center justify-center gap-1 mt-0.5">
-                  <Coins className="h-4 w-4 text-accent-orange" />
-                  +{quickSuccessModal.coinsEarned}
+                  <CircleDollarSign className="h-4 w-4 text-accent-orange" />+
+                  {quickSuccessModal.coinsEarned}
                 </p>
               </div>
             </div>
@@ -924,9 +829,9 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setQuickSuccessModal(null)}
-              className="button-primary w-full py-3 rounded-2xl text-xs font-black shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
+              className="button-primary w-full py-3 rounded-2xl text-xs font-black shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
             >
-              Mantap, Lanjutkan! ≡ƒÄë
+              Mantap, Lanjutkan! 🎉
             </button>
           </div>
         </div>

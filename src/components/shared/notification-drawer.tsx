@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import { useNotificationStore } from "@/store/use-notification-store";
@@ -66,7 +66,7 @@ export function NotificationDrawer() {
     >
       <div className="w-full max-w-sm sm:max-w-md bg-surface border-l border-border-divider h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="p-5 border-b border-border-divider flex items-center justify-between gap-2">
+        <div className="p-4 sm:p-5 border-b border-border-divider flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
             <div className="p-2.5 rounded-navigation bg-accent-green/15 text-text-primary shrink-0">
               <Bell className="h-5 w-5" />
@@ -75,7 +75,7 @@ export function NotificationDrawer() {
               <h2 className="text-lg font-extrabold text-text-primary font-heading">
                 Notification
               </h2>
-              <p className="text-sm font-medium text-neutral-10">
+              <p className="text-sm font-medium text-text-muted">
                 {unreadCount > 0
                   ? `${unreadCount} belum dibaca`
                   : "Semua sudah dibaca"}
@@ -88,7 +88,7 @@ export function NotificationDrawer() {
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="min-h-11 px-3 rounded-navigation text-neutral-10 hover:text-text-primary text-sm font-bold flex items-center gap-1.5 hover:bg-accent-green-light/40 transition-colors"
+                className="p-1.5 rounded-navigation text-text-muted hover:text-text-primary text-xs font-medium flex items-center gap-1 hover:bg-accent-green-light/40"
                 title="Tandai semua dibaca"
               >
                 <CheckCheck className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function NotificationDrawer() {
               type="button"
               onClick={() => setDrawerOpen(false)}
               aria-label="Tutup notifikasi"
-              className="min-h-11 min-w-11 rounded-navigation text-neutral-10 hover:text-text-primary hover:bg-accent-green-light/40 flex items-center justify-center transition-colors"
+              className="p-1.5 rounded-navigation text-text-muted hover:text-text-primary hover:bg-accent-green-light/40"
             >
               <X className="h-5 w-5" />
             </button>
@@ -107,10 +107,10 @@ export function NotificationDrawer() {
         </div>
 
         {/* List of Notifications */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2.5 divide-y divide-border-divider/60">
           {notifications.length === 0 ? (
-            <div className="py-20 text-center text-neutral-10 text-sm font-semibold space-y-2.5">
-              <Bell className="h-9 w-9 text-text-muted/50 mx-auto" />
+            <div className="py-20 text-center text-text-muted text-sm font-semibold space-y-2.5">
+              <Bell className="h-9 w-9 text-text-muted/40 mx-auto" />
               <p>Belum ada notifikasi saat ini.</p>
             </div>
           ) : (
@@ -119,22 +119,22 @@ export function NotificationDrawer() {
                 key={notif.id}
                 onClick={() => markAsRead(notif.id)}
                 className={cn(
-                  "p-4 rounded-2xl transition-colors cursor-pointer space-y-2",
+                  "p-4 rounded-button transition-all cursor-pointer space-y-2",
                   notif.isRead
-                    ? "bg-surface-subtle/70 hover:bg-surface-subtle"
-                    : "bg-accent-yellow/40 hover:bg-accent-yellow/60"
+                    ? "bg-transparent hover:bg-surface-subtle opacity-80"
+                    : "bg-accent-yellow/35 hover:bg-accent-yellow/55 border border-accent-green/25",
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-2 rounded-xl bg-surface shrink-0">
+                    <div className="p-2 rounded-input bg-surface border border-border-default shadow-xs shrink-0">
                       {getIcon(notif.type)}
                     </div>
                     <h3 className="text-sm font-extrabold text-foreground truncate">
                       {notif.title}
                     </h3>
                   </div>
-                  <span className="text-sm font-medium text-neutral-10 shrink-0">
+                  <span className="text-sm font-medium text-text-muted shrink-0">
                     {notif.timestamp}
                   </span>
                 </div>

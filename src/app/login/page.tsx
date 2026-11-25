@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { loginAction } from "@/app/actions/auth";
@@ -13,7 +12,6 @@ import { useRandomLogo } from "@/lib/logos";
 
 export default function LoginPage() {
   const logo = useRandomLogo();
-  const router = useRouter();
   const { login } = useAuthStore();
 
   const [email, setEmail] = useState("");
@@ -125,7 +123,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó"
+              placeholder="••••••••"
               required
               className="input-field mt-1 w-full px-3.5 py-2 text-sm"
             />

@@ -68,14 +68,14 @@ export function GoogleButton({
         disabled={loading}
         aria-busy={loading}
         className={cn(
-          "btn-secondary w-full inline-flex items-center justify-center gap-2.5 text-sm font-semibold",
+          "button-primary w-full inline-flex items-center justify-center gap-2.5 py-3 text-sm font-semibold",
           "disabled:cursor-not-allowed disabled:opacity-70"
         )}
       >
         {loading ? (
           <span className="inline-flex h-4 w-4 items-center justify-center">
             <svg
-              className="h-4 w-4 animate-spin text-ink"
+              className="h-4 w-4 animate-spin text-text-primary"
               viewBox="0 0 24 24"
               fill="none"
               aria-hidden="true"

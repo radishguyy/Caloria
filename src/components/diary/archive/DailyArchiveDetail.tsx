@@ -12,13 +12,9 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
+  CircleDollarSign,
 } from "lucide-react";
-import {
-  formatDateDisplay,
-  isToday,
-  isFuture,
-  getTodayKey,
-} from "@/lib/date-utils";
+import { formatDateDisplay, isToday, isFuture } from "@/lib/date-utils";
 import { useFoodStore } from "@/store/use-food-store";
 import { MEAL_TYPES } from "@/lib/constants";
 import { CharacterSvg } from "@/components/pet/character-svg";
@@ -28,151 +24,134 @@ import { cn } from "@/lib/utils";
 
 interface DailyArchiveDetailProps {
   selectedDate: string;
-  onSelectDate: (dateKey: string) => void;
+  onSelectDate?: (dateKey: string) => void;
 }
 
-export function DailyArchiveDetail({
-  selectedDate,
-  onSelectDate,
-}: DailyArchiveDetailProps) {
-  const { targets, getDailySummary } = useFoodStore();
+export function DailyArchiveDetail({ selectedDate }: DailyArchiveDetailProps) {
+  const { getLogsByDate, targets, getDailySummary } = useFoodStore();
+
   const { species, getEffectiveColors } = usePetStore();
+  const [remoteSummaries, setRemoteSummaries] = useState<Record<string, any>>(
+    {},
+  );
+
+  useEffect(() => {
+    fetchUserArchiveSummariesAction(selectedDate, selectedDate).then((res) => {
+      if (res.success && res.data) {
+        setRemoteSummaries(res.data);
+      }
+    });
+  }, [selectedDate]);
+
+  const logs = getLogsByDate(selectedDate);
+  const localSummary = getDailySummary(selectedDate);
+  const remoteSummary = remoteSummaries[selectedDate];
+
+  const consumed = remoteSummary?.consumed || localSummary.consumed;
+  const status = remoteSummary?.status || localSummary.status;
+  const percentage = remoteSummary?.percentage ?? localSummary.percentage;
+  const xpEarned = remoteSummary?.xpEarned ?? localSummary.xpEarned;
+  const coinsEarned = remoteSummary?.coinsEarned ?? localSummary.coinsEarned;
+  const hasLogs =
+    logs.length > 0 || (remoteSummary && remoteSummary.logsCount > 0);
 
   const isSelectedToday = isToday(selectedDate);
   const isSelectedFuture = isFuture(selectedDate);
-  const summary = getDailySummary(selectedDate);
 
-  const [serverSummary, setServerSummary] = useState<any>(null);
-
-  useEffect(() => {
-    let isCancelled = false;
-    if (summary.hasLogs) {
-      setServerSummary(null);
-      return;
-    }
-    fetchUserArchiveSummariesAction(selectedDate, selectedDate).then((res) => {
-      if (!isCancelled && res.success && res.data && res.data[selectedDate]) {
-        setServerSummary(res.data[selectedDate]);
-      } else if (!isCancelled) {
-        setServerSummary(null);
-      }
-    });
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedDate, summary.hasLogs]);
-
-  const activeCalories = summary.hasLogs
-    ? summary.consumed.calories
-    : serverSummary?.totalCalories || 0;
-  const activeProtein = summary.hasLogs
-    ? summary.consumed.protein
-    : serverSummary?.totalProtein || 0;
-  const activeCarbs = summary.hasLogs
-    ? summary.consumed.carbs
-    : serverSummary?.totalCarbs || 0;
-  const activeFat = summary.hasLogs
-    ? summary.consumed.fat
-    : serverSummary?.totalFat || 0;
-
-  const consumed = {
-    calories: activeCalories,
-    protein: activeProtein,
-    carbs: activeCarbs,
-    fat: activeFat,
-  };
-
-  const hasLogs = summary.hasLogs || activeCalories > 0;
-  const percentage = targets.calories > 0
-    ? Math.round((activeCalories / targets.calories) * 100)
-    : 0;
-
-  const status = summary.hasLogs
-    ? summary.status
-    : serverSummary?.isCalorieTargetMet
-    ? "hit"
-    : activeCalories < (targets.calories || 2000) * 0.85
-    ? "under"
-    : "over";
-
-  const xpEarned = summary.hasLogs ? summary.xpEarned : serverSummary?.baseXpTotal || 0;
-  const coinsEarned = summary.hasLogs ? summary.coinsEarned : 10;
-  const logs = summary.logs;
-
-  const effectiveColors = getEffectiveColors();
-
-  // Macro percentages
   const proteinPercent = Math.min(
     100,
-    Math.round((activeProtein / (targets.protein || 130)) * 100)
+    Math.round((consumed.protein / targets.protein) * 100) || 0,
   );
   const carbsPercent = Math.min(
     100,
-    Math.round((activeCarbs / (targets.carbs || 230)) * 100)
+    Math.round((consumed.carbs / targets.carbs) * 100) || 0,
   );
   const fatPercent = Math.min(
     100,
-    Math.round((activeFat / (targets.fat || 55)) * 100)
+    Math.round((consumed.fat / targets.fat) * 100) || 0,
   );
+
+  const effectiveColors = getEffectiveColors();
 
   return (
     <div className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 shadow-xs space-y-5">
-      {/* Date Header & Jump to Today */}
-      <div className="flex items-start justify-between gap-3 pb-3 border-b border-border-divider">
+      {/* Date Header Title */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-divider">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-accent-orange uppercase tracking-wider font-heading">
-              Inspektur Diary Harian
-            </span>
+            <h3 className="text-lg font-black text-text-primary font-heading">
+              {formatDateDisplay(selectedDate, "full")}
+            </h3>
             {isSelectedToday && (
               <span className="px-2 py-0.5 rounded-pill text-[10px] font-black bg-accent-green text-text-inverse tracking-wide">
-                HARI INI
+                Hari Ini
+              </span>
+            )}
+            {isSelectedFuture && (
+              <span className="px-2 py-0.5 rounded-pill text-[10px] font-bold bg-surface-subtle border border-border-default text-text-muted">
+                Mendatang
               </span>
             )}
           </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-text-primary font-heading mt-0.5">
-            {formatDateDisplay(selectedDate, "full")}
-          </h3>
+          <p className="text-xs text-text-muted mt-0.5 font-sans">
+            Rincian asupan nutrisi dan kepatuhan target gizi harian.
+          </p>
         </div>
 
-        {!isSelectedToday && (
-          <button
-            onClick={() => onSelectDate(getTodayKey())}
-            className="text-xs font-bold text-text-primary hover:text-accent-orange-dark transition-colors px-2.5 py-1 rounded-navigation bg-surface-subtle border border-border-default hover:bg-accent-green-light shrink-0"
-          >
-            Kembali ke Hari Ini
-          </button>
-        )}
+        {/* Quick Achievement Status Badge */}
+        <div className="flex items-center gap-2">
+          {status === "hit" ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill text-[11px] font-bold bg-accent-green/15 border border-[#5B8E55]/40 text-text-primary">
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#5B8E55]" />
+              <span>Target Tercapai (85–110%)</span>
+            </span>
+          ) : status === "under" ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill text-[11px] font-bold bg-accent-yellow/50 border border-accent-orange/40 text-neutral-10">
+              <AlertCircle className="h-3.5 w-3.5 text-accent-orange" />
+              <span>Kurang Asupan (&lt;85%)</span>
+            </span>
+          ) : status === "over" ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill text-[11px] font-bold bg-macro-fat/10 border border-macro-fat/30 text-macro-fat">
+              <AlertCircle className="h-3.5 w-3.5" />
+              <span>Melebihi Target (&gt;110%)</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill text-[11px] font-bold bg-surface-subtle border border-border-default text-text-muted">
+              <span>Belum Ada Catatan</span>
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Compliance Status Badge / Alert Banner */}
+      {/* Gamification Milestone Banner (When Logged) */}
       {hasLogs ? (
         <div
           className={cn(
-            "p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-colors",
-            status === "hit" && "bg-accent-green/15 border-[#5B8E55]/40 text-text-primary",
-            status === "under" && "bg-accent-yellow/40 border-accent-orange/30 text-neutral-10",
-            status === "over" && "bg-macro-fat/10 border-macro-fat/30 text-neutral-10"
+            "p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-xs transition-colors",
+            status === "hit"
+              ? "bg-accent-green/15 border-[#5B8E55]/40 text-text-primary"
+              : "bg-accent-yellow/40 border-accent-orange/30 text-neutral-10",
           )}
         >
           <div className="flex items-center gap-2.5">
-            {status === "hit" ? (
-              <CheckCircle2 className="h-5 w-5 text-[#5B8E55] shrink-0" />
-            ) : status === "under" ? (
-              <AlertCircle className="h-5 w-5 text-accent-orange-dark shrink-0" />
-            ) : (
-              <TrendingUp className="h-5 w-5 text-macro-fat shrink-0" />
-            )}
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-navigation bg-surface border border-border-divider">
+              {status === "hit" ? (
+                <Award className="h-4 w-4 text-accent-green" />
+              ) : (
+                <TrendingUp className="h-4 w-4 text-accent-orange" />
+              )}
+            </div>
             <div>
-              <p className="text-xs font-bold text-foreground">
+              <p className="font-bold text-foreground">
                 {status === "hit"
-                  ? "Target Kalori Tercapai (Goal Met)!"
+                  ? "Kompensasi Penuh Tercapai! Streak Diperbarui 🎉"
                   : status === "under"
-                  ? "Asupan Kalori Belum Mencapai Target"
-                  : "Asupan Melebihi Batas Kalori Target"}
+                    ? "Asupan Kalori Belum Mencapai Target"
+                    : "Asupan Melebihi Batas Kalori Target"}
               </p>
               <p className="text-[11px] text-text-muted mt-0.5">
-                {consumed.calories} dari target {targets.calories} kcal ({percentage}%)
+                {consumed.calories} dari target {targets.calories} kcal (
+                {percentage}%)
               </p>
             </div>
           </div>
@@ -182,7 +161,13 @@ export function DailyArchiveDetail({
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-pill bg-surface border border-border-default shrink-0 text-xs font-bold text-text-primary">
               <Award className="h-3.5 w-3.5 text-accent-green" />
               <span>+{xpEarned} XP</span>
-              <span className="text-accent-orange ml-1">+{coinsEarned} 🪙</span>
+              <span className="text-accent-orange ml-1 inline-flex items-center gap-1">
+                +{coinsEarned}
+                <CircleDollarSign
+                  className="h-3.5 w-3.5 text-accent-orange"
+                  aria-hidden="true"
+                />
+              </span>
             </div>
           )}
         </div>
@@ -213,8 +198,8 @@ export function DailyArchiveDetail({
               status === "hit"
                 ? "bg-[#5B8E55]"
                 : status === "over"
-                ? "bg-macro-fat"
-                : "bg-accent-orange"
+                  ? "bg-macro-fat"
+                  : "bg-accent-orange",
             )}
             style={{ width: `${Math.min(100, percentage)}%` }}
           />
@@ -228,7 +213,9 @@ export function DailyArchiveDetail({
               <span className="font-bold text-macro-protein flex items-center gap-1">
                 <Beef className="h-3 w-3" /> Protein
               </span>
-              <span className="text-[10px] text-text-muted">{proteinPercent}%</span>
+              <span className="text-[10px] text-text-muted">
+                {proteinPercent}%
+              </span>
             </div>
             <div className="h-1.5 w-full rounded-pill bg-macro-protein/20 overflow-hidden">
               <div
@@ -248,9 +235,11 @@ export function DailyArchiveDetail({
           <div className="p-2.5 rounded-navigation bg-surface border border-accent-orange/25 space-y-1">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-bold text-accent-orange-dark flex items-center gap-1">
-                <Wheat className="h-3 w-3" /> Karbo
+                <Wheat className="h-3 w-3 text-accent-orange" /> Karbo
               </span>
-              <span className="text-[10px] text-text-muted">{carbsPercent}%</span>
+              <span className="text-[10px] text-text-muted">
+                {carbsPercent}%
+              </span>
             </div>
             <div className="h-1.5 w-full rounded-pill bg-accent-orange/20 overflow-hidden">
               <div
@@ -317,7 +306,8 @@ export function DailyArchiveDetail({
                 Tidak ada menu dicatat di tanggal ini!
               </p>
               <p className="text-xs text-text-muted mt-1 max-w-xs mx-auto">
-                Pet tampak penasaran menunggu asupan nutrisimu. Mulai catat makanan untuk melengkapi arsip jurnal gizi.
+                Pet tampak penasaran menunggu asupan nutrisimu. Mulai catat
+                makanan untuk melengkapi arsip jurnal gizi.
               </p>
             </div>
 
@@ -327,7 +317,7 @@ export function DailyArchiveDetail({
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-navigation bg-accent-green hover:bg-accent-green/90 text-text-inverse text-xs font-bold transition-all active:scale-95 shadow-xs"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>+ Catat Makanan Tanggal Ini</span>
+                <span>Catat Makanan Tanggal Ini</span>
               </Link>
             )}
           </div>
@@ -338,7 +328,10 @@ export function DailyArchiveDetail({
               const mealLogs = logs.filter((l) => l.mealType === meal.id);
               if (mealLogs.length === 0) return null;
 
-              const mealCal = mealLogs.reduce((sum, item) => sum + item.calories, 0);
+              const mealCal = mealLogs.reduce(
+                (sum, item) => sum + item.calories,
+                0,
+              );
 
               return (
                 <div
@@ -398,7 +391,7 @@ export function DailyArchiveDetail({
             className="w-full sm:flex-1 button-primary flex items-center justify-center gap-2 py-2.5 text-xs"
           >
             <Plus className="h-4 w-4" />
-            <span>+ Catat Makanan untuk Tanggal Ini</span>
+            <span>Catat Makanan untuk Tanggal Ini</span>
           </Link>
         )}
 

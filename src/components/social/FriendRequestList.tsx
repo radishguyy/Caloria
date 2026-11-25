@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X, Inbox, Send, Clock, UserCheck } from "lucide-react";
+import { Check, X, Inbox, Send, Clock } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
-import { FriendRequest } from "@/types";
 import { useSocialStore } from "@/stores/social-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {

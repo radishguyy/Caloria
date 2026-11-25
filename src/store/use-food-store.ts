@@ -72,14 +72,20 @@ export interface FoodStoreState {
   toggleMissionComplete: (
     missionId: string,
     xpReward?: number,
-    coinReward?: number
+    coinReward?: number,
   ) => boolean;
-  addLog: (log: Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">) => NutritionFeedback;
-  addBatchLogs: (
-    logs: Array<Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">>,
-    customFeedback?: NutritionFeedback
+  addLog: (
+    log: Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">,
   ) => NutritionFeedback;
-  addCustomFood: (food: Omit<CustomFoodItem, "id" | "createdAt">) => CustomFoodItem;
+  addBatchLogs: (
+    logs: Array<
+      Omit<ExtendedFoodLog, "id" | "userId" | "createdAt" | "loggedAt">
+    >,
+    customFeedback?: NutritionFeedback,
+  ) => NutritionFeedback;
+  addCustomFood: (
+    food: Omit<CustomFoodItem, "id" | "createdAt">,
+  ) => CustomFoodItem;
   removeLog: (id: string) => void;
   setLogs: (logs: ExtendedFoodLog[]) => void;
   setSearchQuery: (query: string) => void;
@@ -91,10 +97,15 @@ export interface FoodStoreState {
   getCaloriesRemaining: (date?: string) => number;
   getRecentFoods: () => FoodCatalogItem[];
   getFrequentFoods: () => FoodCatalogItem[];
-  getHistoricalMealLogs: (mealType: MealTypeId, daysAgo: number) => ExtendedFoodLog[];
+  getHistoricalMealLogs: (
+    mealType: MealTypeId,
+    daysAgo: number,
+  ) => ExtendedFoodLog[];
   getLogsByDate: (dateString: string) => ExtendedFoodLog[];
   getDailySummary: (dateString: string) => DailyNutritionSummary;
-  getDailySummariesForDates: (dateStrings: string[]) => Record<string, DailyNutritionSummary>;
+  getDailySummariesForDates: (
+    dateStrings: string[],
+  ) => Record<string, DailyNutritionSummary>;
   getQuestPlan: () => DailyQuestPlan;
   getDepkesEvaluation: (date?: string) => DepkesComplianceResult;
   getClinicalBenchmarks: () => ClinicalNutritionBenchmarks;
@@ -139,13 +150,10 @@ const autoEvaluateAndSyncMissions = (
   dayLogs: ExtendedFoodLog[],
   waterLoggedMl: number,
   questPlan: DailyQuestPlan,
-  currentCompleted: string[]
+  currentCompleted: string[],
 ): string[] => {
   let nextCompleted = [...currentCompleted];
-  const allMissions = [
-    ...questPlan.mainMissions,
-    ...questPlan.sideMissions,
-  ];
+  const allMissions = [...questPlan.mainMissions, ...questPlan.sideMissions];
 
   for (const item of allMissions) {
     const status = evaluateMissionAutoStatus(item, {
@@ -240,10 +248,13 @@ export const useFoodStore = create<FoodStoreState>()(
       setGoalPlan: (newPlan: Partial<UserGoalPlan>) =>
         set((state) => {
           const prevPath =
-            state.goalPlan.goalPath || goalTypeToGoalPath(state.goalPlan.goalType);
+            state.goalPlan.goalPath ||
+            goalTypeToGoalPath(state.goalPlan.goalType);
           const nextPath =
             newPlan.goalPath ||
-            (newPlan.goalType ? goalTypeToGoalPath(newPlan.goalType) : prevPath);
+            (newPlan.goalType
+              ? goalTypeToGoalPath(newPlan.goalType)
+              : prevPath);
           const isPathChanged = Boolean(nextPath && nextPath !== prevPath);
 
           const updatedPlan: UserGoalPlan = {
@@ -267,7 +278,10 @@ export const useFoodStore = create<FoodStoreState>()(
             nextCompletedMissions = [];
           }
 
-          const imtEval = calculateIMT(updatedPlan.currentWeightKg, updatedPlan.heightCm);
+          const imtEval = calculateIMT(
+            updatedPlan.currentWeightKg,
+            updatedPlan.heightCm,
+          );
           updatedPlan.bmiScore = imtEval.imt;
           updatedPlan.bmiCategory = imtEval.category;
 
@@ -276,7 +290,8 @@ export const useFoodStore = create<FoodStoreState>()(
             heightCm: updatedPlan.heightCm,
             age: updatedPlan.age,
             gender: updatedPlan.gender,
-            goalPath: updatedPlan.goalPath || goalTypeToGoalPath(updatedPlan.goalType),
+            goalPath:
+              updatedPlan.goalPath || goalTypeToGoalPath(updatedPlan.goalType),
             currentLevel: updatedPlan.currentLevel || 1,
             currentWeek: updatedPlan.currentWeek || 1,
           });
@@ -284,7 +299,10 @@ export const useFoodStore = create<FoodStoreState>()(
 
           const nextTargets = computeTargetsFromPlan(updatedPlan);
           const consumed = get().getConsumed();
-          const depkes = evaluateDepkesIntake(consumed.calories, nextTargets.calories);
+          const depkes = evaluateDepkesIntake(
+            consumed.calories,
+            nextTargets.calories,
+          );
 
           return {
             goalPlan: updatedPlan,
@@ -319,7 +337,7 @@ export const useFoodStore = create<FoodStoreState>()(
         const isUnlocked = weeklyProgression.unlockedStages.some(
           (s) =>
             s.level === resolvedLevel &&
-            (currentWeek === undefined || s.week === resolvedWeek)
+            (currentWeek === undefined || s.week === resolvedWeek),
         );
 
         if (!isUnlocked) {
@@ -339,7 +357,10 @@ export const useFoodStore = create<FoodStoreState>()(
       },
 
       addWater: (amountMl: number) => {
-        const nextWater = Math.max(0, Math.min(4000, get().waterLoggedMl + amountMl));
+        const nextWater = Math.max(
+          0,
+          Math.min(4000, get().waterLoggedMl + amountMl),
+        );
         get().setWaterLoggedMl(nextWater);
       },
 
@@ -355,7 +376,7 @@ export const useFoodStore = create<FoodStoreState>()(
           dayLogs,
           clamped,
           questPlan,
-          currentCompleted
+          currentCompleted,
         );
 
         set({
@@ -364,10 +385,16 @@ export const useFoodStore = create<FoodStoreState>()(
         });
       },
 
-      toggleMissionComplete: (missionId: string, xpReward = 30, coinReward = 15) => {
+      toggleMissionComplete: (
+        missionId: string,
+        xpReward = 30,
+        coinReward = 15,
+      ) => {
         // Requirement 4: Tasks can only be completed based on calories consumed, not as a to-do list.
         const questPlan = get().getQuestPlan();
-        const mainMission = questPlan.mainMissions.find((m) => m.id === missionId);
+        const mainMission = questPlan.mainMissions.find(
+          (m) => m.id === missionId,
+        );
         if (mainMission) {
           // Intake missions cannot be manually checked as to-do list!
           return get().completedMissions.includes(missionId);
@@ -413,55 +440,75 @@ export const useFoodStore = create<FoodStoreState>()(
           goalPlan.goalType === "diet"
             ? "Diet"
             : goalPlan.goalType === "bulking"
-            ? "Bulking"
-            : "Maintenance";
+              ? "Bulking"
+              : "Maintenance";
 
-        const proteinPct = Math.round((consumed.protein / targets.protein) * 100);
-        const fatPct = Math.round((consumed.fat / targets.fat) * 100);
-        const calPct = Math.round((consumed.calories / targets.calories) * 100);
+        const proteinPct = Math.round(
+          (consumed.protein / Math.max(1, targets.protein)) * 100,
+        );
+        const fatPct = Math.round(
+          (consumed.fat / Math.max(1, targets.fat)) * 100,
+        );
+        const calPct = Math.round(
+          (consumed.calories / Math.max(1, targets.calories)) * 100,
+        );
 
         let feedback: NutritionFeedback;
 
-        if (fatPct >= 85 && goalPlan.goalType === "diet") {
+        if (fatPct > 100) {
           feedback = {
             type: "warning",
-            title: "Indikator Peringatan Lemak",
+            title: "Asupan lemak sudah melewati batas",
+            message: `Asupan lemak hari ini sudah mencapai ${fatPct}% batas maksimal program ${programLabel}-mu. Pilih menu rendah minyak untuk waktu makan berikutnya ya!`,
+            xpEarned: 20,
+          };
+        } else if (fatPct >= 85 && goalPlan.goalType === "diet") {
+          feedback = {
+            type: "warning",
+            title: "Asupan lemak mendekati batas",
             message: `Asupan lemak hari ini sudah mencapai ${fatPct}% batas maksimal program ${programLabel}-mu. Pilih menu rendah minyak untuk waktu makan berikutnya ya!`,
             xpEarned: 20,
           };
         } else if (logInput.proteinG >= 20 || proteinPct >= 70) {
           feedback = {
             type: "success",
-            title: "Misi Protein Ideal!",
+            title: "Misi protein terpenuhi",
             message: `Menu ${logInput.name} menyumbang ${logInput.proteinG}g Protein! Kamu sudah memenuhi ${Math.min(100, proteinPct)}% misi protein harian untuk program ${programLabel}-mu.`,
             xpEarned: 35,
           };
         } else if (calPct >= 85 && calPct <= 105) {
           feedback = {
             type: "success",
-            title: "Target Kalori Harian Terpenuhi!",
+            title: "Target kalori harian tercapai",
             message: `Luar biasa! Total kalori harianmu (${consumed.calories} kkal) tepat berada di zona ideal program ${programLabel}. Jackpot XP ditambahkan!`,
             xpEarned: 50,
           };
         } else {
           feedback = {
             type: "info",
-            title: "Catatan Makanan Tersimpan",
+            title: "Catatan makanan tersimpan",
             message: `${logInput.name} (${logInput.calories} kkal) berhasil dicatat. Terus lengkapi nutrisi harianmu agar Pet semakin cepat naik level!`,
             xpEarned: 20,
           };
         }
 
-        const depkes = evaluateDepkesIntake(consumed.calories, targets.calories);
+        const depkes = evaluateDepkesIntake(
+          consumed.calories,
+          targets.calories,
+        );
         const dayLogs = get().getLogsByDate(get().selectedDate);
         const nextCompleted = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           get().waterLoggedMl,
           get().getQuestPlan(),
-          get().completedMissions
+          get().completedMissions,
         );
-        set({ latestFeedback: feedback, depkesStatus: depkes.code, completedMissions: nextCompleted });
+        set({
+          latestFeedback: feedback,
+          depkesStatus: depkes.code,
+          completedMissions: nextCompleted,
+        });
         return feedback;
       },
 
@@ -480,24 +527,72 @@ export const useFoodStore = create<FoodStoreState>()(
           logs: [...newLogs, ...state.logs],
         }));
 
-        const feedback: NutritionFeedback = customFeedback ?? {
-          type: "success",
-          title: `${logInputs.length} Menu Berhasil Dicatat!`,
-          message: `${logInputs.length} item berhasil ditambahkan ke diary.`,
-          xpEarned: 25 + Math.max(0, logInputs.length - 1) * 15,
-        };
-
         const consumed = get().getConsumed();
-        const depkes = evaluateDepkesIntake(consumed.calories, get().targets.calories);
+        const { targets, goalPlan } = get();
+        const fatPct = Math.round(
+          (consumed.fat / Math.max(1, targets.fat)) * 100,
+        );
+        const cleanTitle = (raw: string) =>
+          raw
+            .replace(/^[^\p{L}\p{N}]+/u, "")
+            .replace(/!+$/, "")
+            .trim();
+
+        let feedback: NutritionFeedback;
+        if (fatPct > 100) {
+          feedback = {
+            type: "warning",
+            title: "Asupan lemak sudah melewati batas",
+            message:
+              customFeedback?.message ??
+              `Asupan lemak hari ini sudah mencapai ${fatPct}% target harian.`,
+            xpEarned:
+              customFeedback?.xpEarned ??
+              25 + Math.max(0, logInputs.length - 1) * 15,
+          };
+        } else if (fatPct >= 85 && goalPlan.goalType === "diet") {
+          feedback = {
+            type: "warning",
+            title: "Asupan lemak mendekati batas",
+            message:
+              customFeedback?.message ??
+              `Asupan lemak hari ini sudah mencapai ${fatPct}% batas maksimal harian.`,
+            xpEarned:
+              customFeedback?.xpEarned ??
+              25 + Math.max(0, logInputs.length - 1) * 15,
+          };
+        } else if (customFeedback) {
+          feedback = {
+            ...customFeedback,
+            title:
+              cleanTitle(customFeedback.title) || "Catatan makanan tersimpan",
+          };
+        } else {
+          feedback = {
+            type: "success",
+            title: `${logInputs.length} menu berhasil dicatat`,
+            message: `${logInputs.length} item berhasil ditambahkan ke diary.`,
+            xpEarned: 25 + Math.max(0, logInputs.length - 1) * 15,
+          };
+        }
+
+        const depkes = evaluateDepkesIntake(
+          consumed.calories,
+          targets.calories,
+        );
         const dayLogs = get().getLogsByDate(get().selectedDate);
         const nextCompleted = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           get().waterLoggedMl,
           get().getQuestPlan(),
-          get().completedMissions
+          get().completedMissions,
         );
-        set({ latestFeedback: feedback, depkesStatus: depkes.code, completedMissions: nextCompleted });
+        set({
+          latestFeedback: feedback,
+          depkesStatus: depkes.code,
+          completedMissions: nextCompleted,
+        });
         return feedback;
       },
 
@@ -518,14 +613,17 @@ export const useFoodStore = create<FoodStoreState>()(
           logs: state.logs.filter((item) => item.id !== id),
         }));
         const consumed = get().getConsumed();
-        const depkes = evaluateDepkesIntake(consumed.calories, get().targets.calories);
+        const depkes = evaluateDepkesIntake(
+          consumed.calories,
+          get().targets.calories,
+        );
         const dayLogs = get().getLogsByDate(get().selectedDate);
         const nextCompleted = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           get().waterLoggedMl,
           get().getQuestPlan(),
-          get().completedMissions
+          get().completedMissions,
         );
         set({ depkesStatus: depkes.code, completedMissions: nextCompleted });
       },
@@ -550,7 +648,7 @@ export const useFoodStore = create<FoodStoreState>()(
             fiber: Math.round((acc.fiber + (log.fiberG ?? 0)) * 10) / 10,
             sugar: Math.round((acc.sugar + (log.sugarG ?? 0)) * 10) / 10,
           }),
-          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 }
+          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 },
         );
       },
 
@@ -558,7 +656,7 @@ export const useFoodStore = create<FoodStoreState>()(
         const { logs, selectedDate } = get();
         const dateToUse = targetDate || selectedDate;
         return logs.filter(
-          (log) => log.loggedDate === dateToUse && log.mealType === mealType
+          (log) => log.loggedDate === dateToUse && log.mealType === mealType,
         );
       },
 
@@ -586,7 +684,7 @@ export const useFoodStore = create<FoodStoreState>()(
             fiber: Math.round((acc.fiber + (log.fiberG ?? 0)) * 10) / 10,
             sugar: Math.round((acc.sugar + (log.sugarG ?? 0)) * 10) / 10,
           }),
-          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 }
+          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 },
         );
 
         const calTarget = targets.calories || 2100;
@@ -603,13 +701,22 @@ export const useFoodStore = create<FoodStoreState>()(
           }
         }
 
-        const proteinPct = Math.round((consumed.protein / (targets.protein || 130)) * 100);
-        const carbsPct = Math.round((consumed.carbs / (targets.carbs || 230)) * 100);
+        const proteinPct = Math.round(
+          (consumed.protein / (targets.protein || 130)) * 100,
+        );
+        const carbsPct = Math.round(
+          (consumed.carbs / (targets.carbs || 230)) * 100,
+        );
         const fatPct = Math.round((consumed.fat / (targets.fat || 55)) * 100);
 
         const macroStatus = {
-          protein: (proteinPct >= 80 ? "hit" : "under") as "hit" | "under" | "over",
-          carbs: (carbsPct >= 75 && carbsPct <= 115 ? "hit" : carbsPct < 75 ? "under" : "over") as "hit" | "under" | "over",
+          protein: (proteinPct >= 80 ? "hit" : "under") as
+            "hit" | "under" | "over",
+          carbs: (carbsPct >= 75 && carbsPct <= 115
+            ? "hit"
+            : carbsPct < 75
+              ? "under"
+              : "over") as "hit" | "under" | "over",
           fat: (fatPct <= 105 ? "hit" : "over") as "hit" | "under" | "over",
         };
 
@@ -645,7 +752,10 @@ export const useFoodStore = create<FoodStoreState>()(
 
       getRecentFoods: () => {
         const { logs, customFoods } = get();
-        const catalogPool: FoodCatalogItem[] = [...customFoods, ...FOOD_CATALOG];
+        const catalogPool: FoodCatalogItem[] = [
+          ...customFoods,
+          ...FOOD_CATALOG,
+        ];
         const seenNames = new Set<string>();
         const results: FoodCatalogItem[] = [];
 
@@ -656,7 +766,7 @@ export const useFoodStore = create<FoodStoreState>()(
           seenNames.add(normName);
 
           const matched = catalogPool.find(
-            (c) => c.name.toLowerCase() === normName
+            (c) => c.name.toLowerCase() === normName,
           );
           if (matched) {
             results.push(matched);
@@ -666,11 +776,17 @@ export const useFoodStore = create<FoodStoreState>()(
               name: log.name,
               category: "Baru Dimakan",
               calories: Math.round(log.calories / (log.servingSize || 1)),
-              proteinG: Math.round((log.proteinG / (log.servingSize || 1)) * 10) / 10,
-              carbsG: Math.round((log.carbsG / (log.servingSize || 1)) * 10) / 10,
+              proteinG:
+                Math.round((log.proteinG / (log.servingSize || 1)) * 10) / 10,
+              carbsG:
+                Math.round((log.carbsG / (log.servingSize || 1)) * 10) / 10,
               fatG: Math.round((log.fatG / (log.servingSize || 1)) * 10) / 10,
-              fiberG: Math.round(((log.fiberG ?? 0) / (log.servingSize || 1)) * 10) / 10,
-              sugarG: Math.round(((log.sugarG ?? 0) / (log.servingSize || 1)) * 10) / 10,
+              fiberG:
+                Math.round(((log.fiberG ?? 0) / (log.servingSize || 1)) * 10) /
+                10,
+              sugarG:
+                Math.round(((log.sugarG ?? 0) / (log.servingSize || 1)) * 10) /
+                10,
               defaultServingSize: 1,
               servingUnit: log.servingUnit || "porsi",
               gramsPerUnit: 100,
@@ -685,7 +801,10 @@ export const useFoodStore = create<FoodStoreState>()(
 
       getFrequentFoods: () => {
         const { logs, customFoods } = get();
-        const catalogPool: FoodCatalogItem[] = [...customFoods, ...FOOD_CATALOG];
+        const catalogPool: FoodCatalogItem[] = [
+          ...customFoods,
+          ...FOOD_CATALOG,
+        ];
         const counts: Record<string, number> = {};
 
         logs.forEach((log) => {
@@ -701,7 +820,7 @@ export const useFoodStore = create<FoodStoreState>()(
         const results: FoodCatalogItem[] = [];
         for (const name of sortedNames) {
           const matched = catalogPool.find(
-            (c) => c.name.toLowerCase() === name
+            (c) => c.name.toLowerCase() === name,
           );
           if (matched) {
             results.push(matched);
@@ -717,13 +836,15 @@ export const useFoodStore = create<FoodStoreState>()(
         baseDate.setDate(baseDate.getDate() - daysAgo);
         const targetDateStr = baseDate.toISOString().split("T")[0];
         return logs.filter(
-          (log) => log.loggedDate === targetDateStr && log.mealType === mealType
+          (log) =>
+            log.loggedDate === targetDateStr && log.mealType === mealType,
         );
       },
 
       getQuestPlan: (): DailyQuestPlan => {
         const { goalPlan } = get();
-        const goalPath = goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
+        const goalPath =
+          goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
         return getDynamicQuestTargets({
           weightKg: goalPlan.currentWeightKg,
           heightCm: goalPlan.heightCm,
@@ -753,7 +874,8 @@ export const useFoodStore = create<FoodStoreState>()(
 
       getWeeklyProgression: (): WeeklyProgressionResult => {
         const { goalPlan, logs, targets } = get();
-        const goalPath = goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
+        const goalPath =
+          goalPlan.goalPath || goalTypeToGoalPath(goalPlan.goalType);
         return calculateWeeklyProgression({
           startDate: goalPlan.startDate || getTodayFormatted(),
           goalPath,
@@ -817,7 +939,9 @@ export const useFoodStore = create<FoodStoreState>()(
       migrate: (persistedState: any, version: number) => {
         if (version < 3 || !persistedState) {
           const cleanLogs = Array.isArray(persistedState?.logs)
-            ? persistedState.logs.filter((l: any) => !l.id?.startsWith("sample-"))
+            ? persistedState.logs.filter(
+                (l: any) => !l.id?.startsWith("sample-"),
+              )
             : [];
           return {
             ...persistedState,
@@ -838,6 +962,6 @@ export const useFoodStore = create<FoodStoreState>()(
         }
         return persistedState;
       },
-    }
-  )
+    },
+  ),
 );

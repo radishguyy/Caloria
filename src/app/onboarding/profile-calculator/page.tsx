@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -205,7 +205,7 @@ export default function OnboardingProfileCalculatorPage() {
   const [usernameInput, setUsernameInput] = useState(user?.username || "");
   const [fullNameInput, setFullNameInput] = useState(user?.fullName || "");
   const [usernameError, setUsernameError] = useState("");
-  const [usernameChecked, setUsernameChecked] = useState(false);
+  const [, setUsernameChecked] = useState(false);
 
   useEffect(() => {
     if (user?.username && !usernameInput) {

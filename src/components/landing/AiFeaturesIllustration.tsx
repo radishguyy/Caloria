@@ -124,4 +124,3 @@ export function AiFeaturesIllustration() {
     </div>
   );
 }
-

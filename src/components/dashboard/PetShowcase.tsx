@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,8 +28,10 @@ import { useFoodStore } from "@/store/use-food-store";
 import { useCosmeticsStore } from "@/store/use-cosmetics-store";
 import { useSocialStore } from "@/store/use-social-store";
 import { CharacterSvg } from "@/components/pet/character-svg";
-import { getCharacterDefinition } from "@/lib/character-assets/catalog";
-import { evaluatePetCondition, PetConditionResult } from "@/lib/pet/decay-evaluator";
+import {
+  evaluatePetCondition,
+  PetConditionResult,
+} from "@/lib/pet/decay-evaluator";
 import {
   MAIN_MEAL_SLOTS,
   MAX_DAILY_FEEDS,
@@ -65,7 +73,6 @@ export function PetShowcase({ className }: PetShowcaseProps) {
     fedSlotsToday,
     petCountToday,
     needsResetDate,
-    customColors,
     earsVariant,
     tailVariant,
     faceVariant,
@@ -75,7 +82,6 @@ export function PetShowcase({ className }: PetShowcaseProps) {
     checkAndApplyDecay,
     petInteract,
     toggleSleep,
-    getExpNeededForNextLevel,
     getEffectiveColors,
   } = usePetStore();
 
@@ -149,12 +155,15 @@ export function PetShowcase({ className }: PetShowcaseProps) {
         dialogueMessage: "CalPal kenyang & penuh energi! ✨",
       };
     }
-    return evaluatePetCondition({
-      lastFedAt,
-      exp,
-      level,
-      moodStatus,
-    }, now);
+    return evaluatePetCondition(
+      {
+        lastFedAt,
+        exp,
+        level,
+        moodStatus,
+      },
+      now,
+    );
   }, [isHydrated, lastFedAt, exp, level, moodStatus, now]);
 
   // New CalPal Daily Needs evaluation (Makan 3x, Perhatian 3x, Misi Harian)
@@ -302,11 +311,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
     return needs.fallbackDialogue;
   }, [animationState, aiMessage, needs.fallbackDialogue]);
 
-  const expNeeded = getExpNeededForNextLevel();
-  const expPercent = Math.min(100, Math.round((exp / expNeeded) * 100));
-
   const effectiveColors = getEffectiveColors();
-  const charDef = getCharacterDefinition(species);
 
   // Feeding Action Handler (max 3x/day by meal window + 5-coin cost check)
   const handleFeedPet = async () => {
@@ -335,9 +340,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
       if (clientRes.error === "INSUFFICIENT_COINS") {
         toastInsufficientCoins();
       } else {
-        toastFeedBlocked(
-          clientRes.message || needs.feedEligibility.message,
-        );
+        toastFeedBlocked(clientRes.message || needs.feedEligibility.message);
       }
       setIsFeeding(false);
       return;
@@ -372,7 +375,6 @@ export function PetShowcase({ className }: PetShowcaseProps) {
 
     if (!needs.petEligibility.canPet) {
       toastPetBlocked(needs.petEligibility.message);
-      // Trigger a fresh nagging reminder when user tries to pet without logging meals
       if (needs.petEligibility.reason === "NEED_MAIN_MEAL_LOG") {
         setDialogueSeed((s) => s + 1);
       }
@@ -413,13 +415,9 @@ export function PetShowcase({ className }: PetShowcaseProps) {
   if (!isHydrated) {
     return (
       <div
-        className={cn(
-          "rounded-card border border-border-divider bg-surface p-6 shadow-xs animate-pulse",
-          className,
-        )}
+        className={cn("rounded-card border border-border-divider bg-surface p-6 shadow-xs animate-pulse", className)}
       >
-        <div className="flex justify-between items-center mb-4">
-          <div className="h-6 w-24 bg-surface-subtle rounded-pill" />
+        <div className="flex justify-end items-center mb-4">
           <div className="h-6 w-20 bg-surface-subtle rounded-pill" />
         </div>
         <div className="h-52 w-52 mx-auto rounded-card bg-surface-subtle" />
@@ -444,7 +442,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
   const feedButtonLabel = (() => {
     if (isFeeding) return "Memberi Makan...";
     if (needs.feedEligibility.reason === "MAX_DAILY_FEEDS_REACHED") {
-      return "Kenyang 3/3 Hari Ini ✓";
+      return "Kenyang Hari Ini ✓";
     }
     if (needs.feedEligibility.reason === "OUTSIDE_MEAL_HOURS") {
       return "Tunggu Jam Sarapan (05:00)";
@@ -457,37 +455,25 @@ export function PetShowcase({ className }: PetShowcaseProps) {
       return `Sudah ${currentSlotLabel} ✓ (Tunggu ${nextShort})`;
     }
     if (!canAffordFeed) {
-      return `Beri ${currentSlotLabel || "Makan"} (Butuh 5 🪙)`;
+      return "Beri Makan Calpal (Kurang Koin)";
     }
-    return `Beri ${currentSlotLabel || "Makan"} (5 🪙)`;
+    return "Beri Makan Calpal";
   })();
 
   return (
     <div
       className={cn(
-        "rounded-card border border-border-divider bg-surface p-6 shadow-xs flex flex-col justify-between transition-colors",
-        isEcstatic && "bg-gradient-to-b from-accent-green-light/40 to-surface border-accent-green/35",
-        isComplaining && "bg-gradient-to-b from-[#FCF8E3]/40 to-surface",
+        "rounded-card border bg-surface p-6 shadow-xs flex flex-col justify-between transition-colors",
+        isEcstatic
+          ? "border-accent-green/45 bg-accent-green-light/10"
+          : isComplaining
+            ? "border-[#FF9233]/40 bg-[#FCF8E3]/15"
+            : "border-border-divider",
         className,
       )}
     >
-      {/* Top Bar: Coin Balance & Last Fed Timestamp */}
-      <div className="flex items-center justify-between gap-2 mb-3">
-        {/* Real-time Coin Balance Badge */}
-        <div
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1 rounded-pill border text-xs font-black shadow-2xs transition-colors",
-            canAffordFeed
-              ? "bg-[#FCF8E3] border-[#FF9233]/40 text-[#FF9233]"
-              : "bg-surface-subtle border-border-divider text-rose-500",
-          )}
-          title={`Saldo Caloria Coins: ${coins} Koin`}
-        >
-          <span className="text-sm">🪙</span>
-          <span className="font-sans font-bold">{coins} Koin</span>
-        </div>
-
-        {/* NFT Badge & Last Fed Timestamp */}
+      {/* Top Bar: NFT Badge & Last Fed Timestamp */}
+      <div className="flex items-center justify-end gap-2 mb-3">
         <div className="flex items-center gap-1.5">
           {mintStatus === "minted" && nftTokenId !== null ? (
             <Link
@@ -502,10 +488,10 @@ export function PetShowcase({ className }: PetShowcaseProps) {
             <Link
               href="/pet-customization/wardrobe"
               className="inline-flex items-center gap-1 rounded-pill border border-border-divider bg-surface-subtle px-2.5 py-1 text-[11px] font-bold text-text-muted transition-colors hover:bg-accent-green-light hover:text-text-primary"
-              title="Mint CalPal kamu sebagai Soulbound NFT"
+              title="Cetak CalPal kamu sebagai Soulbound NFT"
             >
               <Sparkles className="h-3 w-3 text-accent-orange" />
-              <span>Mint NFT</span>
+              <span>Cetak NFT</span>
             </Link>
           )}
 
@@ -535,7 +521,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
             className={cn(
               "px-3.5 py-2 rounded-2xl text-xs font-bold font-sans text-center max-w-sm relative shadow-2xs border flex items-center gap-2",
               isEcstatic
-                ? "bg-accent-green-light/80 border-accent-green/40 text-accent-green-dark"
+                ? "bg-accent-green-light/80 border-accent-green/40 text-text-primary"
                 : isComplaining
                   ? "bg-[#FCF8E3] border-[#FF9233]/40 text-[#B45309]"
                   : "bg-accent-yellow/50 border-accent-green/25 text-text-primary",
@@ -585,7 +571,8 @@ export function PetShowcase({ className }: PetShowcaseProps) {
           >
             <Flame className="h-3.5 w-3.5 text-accent-orange" />
             <span>
-              Api streak {coopStreakDays} harimu butuh 1 log lagi sebelum tengah malam! 🔥
+              Api streak {coopStreakDays} harimu butuh 1 log lagi sebelum tengah
+              malam! 🔥
             </span>
           </Link>
         </div>
@@ -617,7 +604,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
           <motion.div
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="absolute top-1 right-2 z-20 flex items-center gap-1 bg-accent-green-light text-accent-green-dark border border-accent-green/40 px-2.5 py-0.5 rounded-pill text-[10px] font-bold shadow-2xs"
+            className="absolute top-1 right-2 z-20 flex items-center gap-1 bg-accent-green-light text-text-primary border border-accent-green/40 px-2.5 py-0.5 rounded-pill text-[10px] font-bold shadow-2xs"
           >
             <Trophy className="h-3 w-3 text-accent-green" />
             <span>Sangat Senang! ✨</span>
@@ -718,7 +705,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
           </sup>
         </h3>
         <p className="text-[11px] text-text-muted font-sans mt-0.5">
-          {charDef.name} ({charDef.speciesLabel}) • Tahap {stage}
+          Tahap {stage}
         </p>
       </div>
 
@@ -747,7 +734,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
                   className={cn(
                     "flex items-center justify-center gap-0.5 rounded-lg py-1 px-1 text-[10px] font-bold border transition-colors",
                     isFed
-                      ? "bg-accent-green-light border-accent-green/40 text-accent-green-dark"
+                      ? "bg-accent-green-light border-accent-green/40 text-text-primary"
                       : isActive
                         ? "bg-[#FCF8E3] border-[#FF9233]/60 text-[#B45309]"
                         : isMissed
@@ -825,7 +812,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
                 Elus sekarang
               </button>
             ) : (
-              <span className="text-[10px] font-bold text-accent-green-dark">
+              <span className="text-[10px] font-bold text-text-primary">
                 Terpenuhi ✓
               </span>
             )}
@@ -833,7 +820,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
         </div>
       </div>
 
-      {/* Squircle Status Indicators (Makan / Elus / Tidur) */}
+      {/* Squircle Status Indicators (Makan / Elus / Tidur) & Beri Makan Calpal Button */}
       <div className="w-full max-w-[14rem] mx-auto mt-3 space-y-2.5">
         <div className="grid grid-cols-3 gap-2">
           {/* Makan Status Indicator */}
@@ -841,7 +828,7 @@ export function PetShowcase({ className }: PetShowcaseProps) {
             type="button"
             onClick={handleFeedPet}
             disabled={animationState === "sleeping"}
-            aria-label="Beri makan CalPal (5 Koin)"
+            aria-label="Beri makan CalPal"
             className="flex flex-col items-center gap-1 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border-divider bg-surface-subtle shadow-2xs">
@@ -860,9 +847,6 @@ export function PetShowcase({ className }: PetShowcaseProps) {
                 />
               </div>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-wide text-text-muted font-sans">
-              Makan ({needs.fedSlotsToday.length}/3)
-            </span>
           </button>
 
           {/* Elus Status Indicator */}
@@ -899,9 +883,6 @@ export function PetShowcase({ className }: PetShowcaseProps) {
                 )}
               </div>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-wide text-text-muted font-sans">
-              Elus ({needs.petEligibility.petCountToday}/3)
-            </span>
           </button>
 
           {/* Tidur Status Indicator */}
@@ -933,78 +914,31 @@ export function PetShowcase({ className }: PetShowcaseProps) {
                 />
               </div>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-wide text-text-muted font-sans">
-              Tidur
-            </span>
           </button>
         </div>
 
-        {/* Daily Missions & EXP Progress */}
-        <div className="space-y-1 pt-1">
-          <div className="flex justify-between items-center text-[10px] text-text-muted font-bold font-sans">
-            <span className="flex items-center gap-1 text-text-primary">
-              <Sparkles className="h-3 w-3 text-accent-green" />
-              EXP
-            </span>
-            <span>
-              {exp} / {expNeeded} ({expPercent}%)
-            </span>
-          </div>
-          <div className="h-2 w-full rounded-pill bg-surface-subtle border border-border-divider overflow-hidden">
-            <div
-              className={cn(
-                "h-full transition-all duration-500",
-                isComplaining ? "bg-accent-orange" : "bg-accent-green",
-              )}
-              style={{ width: `${expPercent}%` }}
-            />
-          </div>
-          {missionStats.totalCount > 0 && (
-            <div className="flex items-center justify-between text-[10px] font-sans font-semibold pt-0.5">
-              <Link
-                href="/quests"
-                className="text-text-muted hover:text-text-primary transition-colors"
-              >
-                Misi Harian: {missionStats.completedCount}/
-                {missionStats.totalCount}
-              </Link>
-              <span
-                className={cn(
-                  "font-bold",
-                  isEcstatic ? "text-accent-green-dark" : "text-text-muted",
-                )}
-              >
-                {isEcstatic
-                  ? "CalPal Senang! 💖"
-                  : "Selesaikan misi agar senang"}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Primary Feed Button aligned with Meal Window */}
-      <div className="mt-3 pt-2">
+        {/* Primary Feed Button */}
         <button
           type="button"
           onClick={handleFeedPet}
-          disabled={animationState === "sleeping" || isFeeding}
+          disabled={animationState === "sleeping" || isFeeding || !canFeedNow}
           className={cn(
             "w-full py-2.5 px-4 rounded-button font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm",
             canFeedNow
               ? "button-primary active:scale-[0.98] cursor-pointer"
-              : "bg-surface-subtle text-text-muted border border-border-divider opacity-80 cursor-pointer hover:opacity-100",
+              : "bg-surface-subtle text-text-muted border border-border-divider opacity-80 cursor-not-allowed",
           )}
           title={needs.feedEligibility.message}
         >
-          <Utensils className="h-4 w-4 shrink-0" />
           <span>{feedButtonLabel}</span>
         </button>
 
         {needs.feedEligibility.canFeed && !canAffordFeed && (
           <p className="text-[10px] text-rose-500 text-center font-sans font-semibold mt-1.5 flex items-center justify-center gap-1">
             <AlertCircle className="h-3 w-3 shrink-0" />
-            <span>Koin kurang. Catat makanan atau login harian untuk koin.</span>
+            <span>
+              Koin kurang. Catat makanan atau login harian untuk koin.
+            </span>
           </p>
         )}
       </div>

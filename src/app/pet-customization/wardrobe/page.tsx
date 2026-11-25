@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -239,7 +239,8 @@ export default function PetWardrobePage() {
 
     // Feedback toast
     const hasColorChanged =
-      JSON.stringify(customColors || {}) !== JSON.stringify(draftState.colors || {});
+      JSON.stringify(customColors || {}) !==
+      JSON.stringify(draftState.colors || {});
     if (hasColorChanged) {
       toastPaletteSaved();
     } else {

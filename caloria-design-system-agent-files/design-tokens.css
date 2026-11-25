@@ -1,31 +1,20 @@
 /* Caloria design tokens. Color proportions are qualitative visual guidance. */
 :root {
-  --color-canvas: #FFFCF2;
-  --color-surface: #FFF6DB;
-  --color-surface-raised: #FFF6DB;
-  --color-surface-subtle: #FFF6DB;
-  --color-surface-sunken: #FFF6DB;
-  --color-highlight: #F6E58D;
-  --color-text-primary: #4E3B2A;
-  --color-ink: #4E3B2A;
-  --color-ink-muted: #7A6448;
-  --color-text-inverse: #FFFDF8;
-  --color-brown: #B07B4B;
+  --color-canvas: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F8FAFC;
+  --color-text-primary: #529028;
+  --color-text-inverse: #FFFFFF;
   --color-accent-green: #6AB04C;
   --color-accent-green-light: #BADC58;
-  --color-brand-green-dark: #4F7A2A;
-  --color-brand-green-ink: #3F6420;
   --color-accent-yellow: #F6E58D;
   --color-accent-orange: #F0932B;
-  --color-accent-orange-dark: #C97A1E;
-  --color-warm-border: #F0DFB0;
-  --color-warm-border-strong: #D9B879;
-  --color-border-default: #F0DFB0;
-  --color-border-divider: #F0DFB0;
-  --color-border-strong: #D9B879;
-  --color-text-muted: #7A6448;
-  --color-neutral-10: #4E3B2A;
-  --color-neutral-7: #7A6448;
+  --color-accent-orange-dark: #CD6731;
+  --color-border-default: #D9D9D9;
+  --color-border-divider: #D1D9E2;
+  --color-text-muted: #8CA2C0;
+  --color-neutral-10: #486284;
+  --color-neutral-7: #8CA2C0;
 
   --font-heading: var(--font-secuela), "Secuela", sans-serif;
   --font-body: var(--font-open-runde), "Open Runde", sans-serif;
@@ -49,21 +38,14 @@
   --space-24: 96px;
   --space-32: 128px;
 
-  --radius-navigation: 999px;
+  --radius-navigation: 14.022px;
   --radius-button: 20px;
   --radius-card: 33px;
-  --radius-nested-card: 28px;
-  --radius-input: 16px;
+  --radius-input: 12px;
   --radius-pill: 999px;
 
-  /* Only the primary CTA uses a hard 3D shadow. */
-  --shadow-button: 0 9px 0 var(--color-brand-green-dark);
-  --btn-depth: 9px;
-  --btn-depth-sm: 5px;
-  --btn-depth-xs: 3px;
-  --btn-min-height: 50px;
-  --btn-min-height-sm: 42px;
-  --btn-min-height-xs: 36px;
+  --shadow-input: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-button: 0 9px 0 var(--color-text-primary);
 
   --page-gutter: 64px;
   --section-gap: 96px;
@@ -74,260 +56,35 @@
 .nav-item[aria-current="page"],
 .nav-item.is-selected {
   background: var(--color-accent-orange);
-  color: var(--color-ink);
-  border-radius: var(--radius-navigation);
+  color: var(--color-text-inverse);
 }
 
 .nav-item:hover:not([aria-current="page"]):not(.is-selected) {
   background: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
-  border-radius: var(--radius-navigation);
+  color: var(--color-text-primary);
 }
 
-.btn-cta {
-  display: inline-flex;
-  min-height: var(--btn-min-height);
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.button-primary {
   background: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
+  color: var(--color-text-primary);
   border: 0;
   border-radius: var(--radius-button);
   box-shadow: var(--shadow-button);
-  padding: 12.8px 24px;
   font-family: var(--font-body);
   font-weight: 700;
-  line-height: 1.1;
-  cursor: pointer;
-  transition: background 180ms ease, color 180ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
 
-.btn-cta:hover {
-  background: linear-gradient(180deg, #FFFDF4 0%, var(--color-accent-green-light) 100%);
-  color: var(--color-brand-green-ink);
-}
-
-.btn-cta:active {
-  background: var(--color-accent-green-light);
-  box-shadow: none;
-  transform: translateY(var(--btn-depth));
-}
-
-.btn-cta:focus-visible {
-  background: var(--color-highlight);
-  color: var(--color-brand-green-ink);
-  outline: none;
-}
-
-.btn-cta:disabled,
-.btn-cta[aria-disabled="true"] {
-  background: var(--color-warm-border);
-  box-shadow: none;
-  color: var(--color-ink-muted);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.btn-secondary {
-  display: inline-flex;
-  min-height: var(--btn-min-height);
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: var(--color-highlight);
-  color: var(--color-ink);
-  border: 0;
-  border-radius: var(--radius-button);
-  box-shadow: none;
-  padding: 10.4px 20px;
-  font-family: var(--font-body);
-  font-weight: 700;
-  line-height: 1.1;
-  cursor: pointer;
-  transition: background 180ms ease, color 180ms ease;
-}
-
-.btn-secondary:hover {
-  background: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
-}
-
-.btn-secondary:active {
-  background: var(--color-accent-orange);
-}
-
-.btn-secondary:focus-visible {
-  background: var(--color-accent-orange);
-  outline: none;
-}
-
-.btn-ghost {
-  display: inline-flex;
-  min-height: var(--btn-min-height);
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 0;
-  border-radius: var(--radius-button);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  padding: 9.6px 17.6px;
-  font-family: var(--font-body);
-  font-weight: 600;
-  line-height: 1.1;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
-}
-
-.btn-ghost:hover,
-.btn-ghost:focus-visible {
-  background: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
-  outline: none;
-}
-
-.btn-ghost:active {
-  background: var(--color-accent-green);
-  color: #F7FFE8;
-}
-
-.btn-cta.text-xs,
-.btn-secondary.text-xs,
-.btn-ghost.text-xs {
-  --btn-depth: var(--btn-depth-xs);
-  --btn-min-height: var(--btn-min-height-xs);
-  padding: 7.2px 13.6px;
-}
-
-.btn-cta.text-sm,
-.btn-secondary.text-sm,
-.btn-ghost.text-sm {
-  --btn-depth: var(--btn-depth-sm);
-  --btn-min-height: var(--btn-min-height-sm);
-  padding: 9.6px 18.4px;
-}
-
-.surface-card,
-.surface-sunken,
-.surface-raised,
-.card,
-.hero-card,
-.review-card {
-  background: var(--color-surface);
-  border: 0;
+.card, .hero-card, .review-card {
+  background: var(--color-accent-yellow);
   border-radius: var(--radius-card);
-  box-shadow: none;
 }
 
-.surface-sunken,
-.surface-raised {
-  border-radius: var(--radius-nested-card);
-}
-
-.field,
 .input-field {
-  border: 0;
+  border: 4px solid var(--color-border-default);
   border-radius: var(--radius-input);
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  box-shadow: none;
+  background: var(--color-surface-subtle);
+  box-shadow: var(--shadow-input);
   font-family: var(--font-body);
-}
-
-.field:focus,
-.field:focus-within,
-.input-field:focus,
-.input-field:focus-within {
-  background: color-mix(in srgb, var(--color-accent-green-light) 18%, var(--color-canvas));
-  outline: none;
-}
-
-.btn-icon {
-  display: inline-flex;
-  height: 42px;
-  width: 42px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: var(--radius-button);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
-}
-
-.btn-icon:hover,
-.btn-icon:focus-visible {
-  background: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
-  outline: none;
-}
-
-.btn-icon[aria-pressed="true"],
-.btn-icon.is-selected {
-  background: var(--color-accent-orange);
-  color: var(--color-ink);
-}
-
-/* Navbar-only exception: the shared icon button keeps its pill outline there. */
-header .btn-icon {
-  border: 1.5px solid var(--color-warm-border);
-  border-radius: var(--radius-pill);
-}
-
-header .btn-icon:hover {
-  border-color: var(--color-accent-green-light);
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-highlight);
-  color: var(--color-ink);
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.chip-green {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-green-light);
-  color: var(--color-brand-green-ink);
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-@supports (corner-shape: squircle) {
-  .rounded-lg,
-  .rounded-xl,
-  .rounded-2xl,
-  .rounded-3xl,
-  .rounded-4xl,
-  .surface-card,
-  .surface-sunken,
-  .surface-raised,
-  .btn-cta,
-  .btn-secondary,
-  .btn-ghost,
-  .btn-icon,
-  .field,
-  .field-inline,
-  .card,
-  .hero-card,
-  .review-card {
-    corner-shape: squircle;
-  }
 }
 
 @media (max-width: 768px) {
@@ -338,7 +95,6 @@ header .btn-icon:hover {
     --card-gap: 16px;
   }
 }
-
 @media (max-width: 480px) {
   :root {
     --page-gutter: 20px;

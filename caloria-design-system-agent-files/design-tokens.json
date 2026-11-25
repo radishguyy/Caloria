@@ -1,53 +1,25 @@
 {
   "name": "Caloria Design System",
-  "description": "Flat warm calorie app: near-white page canvas, one cream container surface, green primary actions, orange selection, no container borders or drop shadows. Only the primary CTA keeps hard 3D depth. Color proportions are qualitative visual guidance, not pixel-count measurements.",
+  "description": "Tokens derived from selected Caloria Figma frames. Color proportions are qualitative visual guidance, not pixel-count measurements.",
   "color": {
     "canvas": {
-      "value": "#FFFCF2",
+      "value": "#FFFFFF",
       "type": "color"
     },
     "surface": {
-      "value": "#FFF6DB",
-      "type": "color",
-      "description": "The single fill for cards, panels, banners, modals, and nested containers."
-    },
-    "surface-raised": {
-      "value": "#FFF6DB",
-      "type": "color",
-      "description": "Alias of surface; do not use a lighter panel fill."
+      "value": "#FFFFFF",
+      "type": "color"
     },
     "surface-subtle": {
-      "value": "#FFF6DB",
-      "type": "color",
-      "description": "Alias of surface; do not use alternating surface shades."
-    },
-    "surface-sunken": {
-      "value": "#FFF6DB",
-      "type": "color",
-      "description": "Alias of surface; use canvas or warm-border for inset controls instead."
-    },
-    "highlight": {
-      "value": "#F6E58D",
+      "value": "#F8FAFC",
       "type": "color"
     },
     "text-primary": {
-      "value": "#4E3B2A",
-      "type": "color"
-    },
-    "ink": {
-      "value": "#4E3B2A",
-      "type": "color"
-    },
-    "ink-muted": {
-      "value": "#7A6448",
+      "value": "#529028",
       "type": "color"
     },
     "text-inverse": {
-      "value": "#FFFDF8",
-      "type": "color"
-    },
-    "brown": {
-      "value": "#B07B4B",
+      "value": "#FFFFFF",
       "type": "color"
     },
     "accent-green": {
@@ -57,16 +29,7 @@
     "accent-green-light": {
       "value": "#BADC58",
       "type": "color",
-      "description": "Use for primary actions, hover, and secondary navigation states."
-    },
-    "brand-green-dark": {
-      "value": "#4F7A2A",
-      "type": "color"
-    },
-    "brand-green-ink": {
-      "value": "#3F6420",
-      "type": "color",
-      "description": "Text and icon color on light green surfaces."
+      "description": "Use for hover and secondary navigation states."
     },
     "accent-yellow": {
       "value": "#F6E58D",
@@ -75,45 +38,30 @@
     "accent-orange": {
       "value": "#F0932B",
       "type": "color",
-      "description": "Reserve for selected/active navigation and limited badges. Never use orange as a hover color."
+      "description": "Reserve for selected/highlighted navigation."
     },
     "accent-orange-dark": {
-      "value": "#C97A1E",
-      "type": "color"
-    },
-    "warm-border": {
-      "value": "#F0DFB0",
-      "type": "color",
-      "description": "Navbar/bottom-nav strokes and control-track fills only. Do not use for app container borders."
-    },
-    "warm-border-strong": {
-      "value": "#D9B879",
+      "value": "#CD6731",
       "type": "color"
     },
     "border-default": {
-      "value": "#F0DFB0",
-      "type": "color",
-      "description": "Legacy alias; app containers, inputs, and rectilinear controls must not use borders."
+      "value": "#D9D9D9",
+      "type": "color"
     },
     "border-divider": {
-      "value": "#F0DFB0",
-      "type": "color",
-      "description": "Legacy alias; do not add divider strokes to app UI."
-    },
-    "border-strong": {
-      "value": "#D9B879",
+      "value": "#D1D9E2",
       "type": "color"
     },
     "text-muted": {
-      "value": "#7A6448",
+      "value": "#8CA2C0",
       "type": "color"
     },
     "neutral-10": {
-      "value": "#4E3B2A",
+      "value": "#486284",
       "type": "color"
     },
     "neutral-7": {
-      "value": "#7A6448",
+      "value": "#8CA2C0",
       "type": "color"
     }
   },
@@ -174,25 +122,19 @@
   },
   "radius": {
     "navigation": {
-      "value": "999px",
-      "type": "dimension",
-      "description": "Pills are reserved for nav items, badges, chips, toggles, and avatars."
+      "value": "14.022px",
+      "type": "dimension"
     },
     "button": {
       "value": "20px",
-      "type": "dimension",
-      "description": "Squircle radius for action buttons and icon buttons."
+      "type": "dimension"
     },
     "card": {
       "value": "33px",
       "type": "dimension"
     },
-    "nested-card": {
-      "value": "28px",
-      "type": "dimension"
-    },
     "input": {
-      "value": "16px",
+      "value": "12px",
       "type": "dimension"
     },
     "pill": {
@@ -247,83 +189,49 @@
     }
   },
   "shadow": {
+    "input": {
+      "value": "0 1px 2px rgba(16, 24, 40, 0.05)",
+      "type": "shadow"
+    },
     "button": {
-      "value": "0 9px 0 #4F7A2A",
-      "type": "shadow",
-      "description": "Primary CTA only; size variants use 5px and 3px depth."
+      "value": "0 9px 0 #529028",
+      "type": "shadow"
     }
-  },
-  "componentRules": {
-    "primaryAction": "Light green background, green-ink text, hard green 3D shadow (9px default, 5px text-sm, 3px text-xs). Hover uses the only allowed gradient. Active removes the shadow and translates down by the depth.",
-    "secondaryAction": "Pale yellow highlight background, ink text, no border and no shadow. Hover turns light green with green-ink text.",
-    "ghostAction": "Surface background, ink text, no border and no shadow. Hover turns light green. Use for tertiary actions and modals.",
-    "iconAction": "42px squircle surface button with no border or shadow. Navbar-only CSS exception restores the existing pill outline.",
-    "navigation": "Selected items use orange with ink text. Unselected hover uses light green with green-ink text. Never use orange hover. Navbar and bottom-nav remain visually unchanged.",
-    "cards": "Every card, panel, banner, modal, and nested container uses solid surface #FFF6DB with no border, divider, ring, or shadow. Outer radius 33px; nested radius 28px.",
-    "inputs": "Borderless canvas #FFFCF2 with 16px radius and no shadow. Focus uses a soft light-green background tint, never an outline or ring.",
-    "selection": "Use orange tint (about 15% opacity) for selected cards and rows. Keep orange solid for selected nav pills and compact badges.",
-    "focus": "Non-stroke focus only: brightness change on shared page controls or a background shift on component buttons/fields.",
-    "charts": "Chart/data-visualization SVG strokes are allowed and must not be flattened with the rest of the UI.",
-    "shape": "Apply squircle corner-shape only inside @supports (corner-shape: squircle). Reserve fully rounded pills for badges, chips, toggles, avatars, and nav."
   },
   "colorUsage": {
     "estimatedVisualProportions": [
       {
-        "role": "near-white canvas, warm cream surfaces, and whitespace",
-        "target": "about 68-78%",
+        "role": "neutral backgrounds and whitespace",
+        "target": "about 65-75%",
         "colors": [
-          "#FFFCF2",
-          "#FFF6DB"
+          "#FFFFFF",
+          "#F8FAFC"
         ]
       },
       {
-        "role": "highlight chips and subtle accent panels",
-        "target": "about 8-14%",
+        "role": "soft yellow surfaces",
+        "target": "about 15-22%",
         "colors": [
           "#F6E58D"
         ]
       },
       {
-        "role": "green family for primary actions, progress, and accents",
-        "target": "about 8-12%",
+        "role": "green accents and text",
+        "target": "about 7-12%",
         "colors": [
+          "#529028",
           "#6AB04C",
-          "#BADC58",
-          "#4F7A2A",
-          "#3F6420"
+          "#BADC58"
         ]
       },
       {
-        "role": "orange selection and limited emphasis",
+        "role": "orange selection highlight",
         "target": "about 2-5%",
         "colors": [
           "#F0932B",
-          "#C97A1E"
+          "#CD6731"
         ]
       }
     ]
-  },
-  "antiPatterns": [
-    "Do not use `bg-surface-raised`, `bg-surface-sunken`, or `bg-surface-subtle` in app code; they resolve to legacy tinted tokens. Use `bg-surface` or `bg-card`.",
-    "Do not add borders, outline strokes, or ring utilities to containers or controls (except chart SVGs and existing navbar/bottom-nav strokes).",
-    "Do not add drop shadows (`shadow-`, `drop-shadow-`) to containers, cards, buttons, or modals. Only `.btn-cta` has hard 3D depth.",
-    "Do not use gradients except the hover gradient on `.btn-cta` (`.btn-cta:hover`).",
-    "Do not use `.button-primary`. Use `.btn-cta` for primary 3D actions, `.btn-secondary` for flat highlight actions, and `.btn-ghost` for flat surface actions.",
-    "Do not override button heights or horizontal/vertical padding with custom utilities (`h-`, `py-`, `px-`). Use `text-xs` or `text-sm` size modifiers.",
-    "Do not use `rounded-full` on action buttons or filter tabs; squircles (`rounded-lg` / `rounded-2xl`) are reserved for actions/tabs, while full pills are for badges/chips/avatars/nav."
-  ],
-  "recipes": {
-    "container": "bg-surface rounded-3xl p-5 (or surface-card)",
-    "nestedCard": "bg-surface rounded-2xl p-4 (or surface-sunken)",
-    "primaryAction": "btn-cta (optionally text-xs or text-sm)",
-    "secondaryAction": "btn-secondary (optionally text-xs or text-sm)",
-    "ghostAction": "btn-ghost (optionally text-xs or text-sm)",
-    "iconButton": "btn-icon (42px squircle; no custom size utilities)",
-    "field": "field w-full px-3.5 py-2.5 text-sm font-semibold (borderless canvas fill, 16px radius)",
-    "fieldInline": "field-inline w-full text-sm font-black (transparent inline numeric field, focus tint, 16px radius)",
-    "filterTabActive": "px-3.5 py-2 rounded-lg text-xs font-bold bg-brand-orange text-ink",
-    "filterTabInactive": "px-3.5 py-2 rounded-lg text-xs font-semibold bg-card text-ink-muted hover:bg-brand-green-light hover:text-brand-green-ink",
-    "selectedCard": "bg-brand-orange/15 (15% orange tint; do not add border)",
-    "badge": "px-2.5 py-0.5 rounded-full text-xs font-bold bg-highlight text-ink"
   }
 }

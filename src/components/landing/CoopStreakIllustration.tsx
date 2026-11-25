@@ -152,4 +152,3 @@ export function CoopStreakIllustration() {
     </div>
   );
 }
-

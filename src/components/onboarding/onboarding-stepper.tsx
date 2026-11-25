@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Check, Target, Calculator, Sparkles, Flame, Egg } from "lucide-react";
 import { cn } from "@/lib/utils";

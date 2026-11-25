@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -19,17 +19,6 @@ import { useAuthStore } from "@/store/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { generateNutritionPlan } from "@/lib/nutrition-calculator";
-
-function AnimatedCounter({ targetValue }: { targetValue: number }) {
-  const [count, setCount] = useMemo(() => {
-    // initial state placeholder handled via react state below
-    return [0, () => {}];
-  }, []);
-
-  return <AnimatedCounterInternal targetValue={targetValue} />;
-}
-
-import { useState, useEffect } from "react";
 
 function AnimatedCounterInternal({ targetValue }: { targetValue: number }) {
   const [count, setCount] = useState(0);

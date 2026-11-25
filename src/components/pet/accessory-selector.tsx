@@ -97,7 +97,8 @@ export function AccessorySelector({
 
     return COSMETICS_CATALOG.filter((item) => {
       if (getWardrobeCategory(item.id) !== activeCategory.id) return false;
-      const isOwned = Boolean(item.isDefaultFree) || ownedItemIds.includes(item.id);
+      const isOwned =
+        Boolean(item.isDefaultFree) || ownedItemIds.includes(item.id);
       if (!isOwned) return false;
       if (!query) return true;
       return (
@@ -162,7 +163,7 @@ export function AccessorySelector({
         <div
           role="status"
           className={cn(
-            "p-3.5 rounded-navigation border flex items-center justify-between gap-3 text-sm animate-in fade-in duration-200",
+            "p-3.5 rounded-navigation border flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in duration-200",
             purchaseToast.success
               ? "bg-accent-green/15 border-accent-green/35 text-text-primary"
               : "bg-destructive/10 border-destructive/30 text-destructive",
@@ -201,10 +202,10 @@ export function AccessorySelector({
                 onClick={() => setSelectedCategory(category.id)}
                 aria-pressed={isActive}
                 className={cn(
-                  "nav-item inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap border px-4 py-2 text-sm font-bold rounded-navigation transition-colors",
+                  "nav-item inline-flex items-center gap-1.5 whitespace-nowrap border px-3.5 py-2 text-xs font-semibold rounded-navigation transition-colors",
                   isActive
-                    ? "is-selected border-accent-orange font-extrabold"
-                    : "bg-surface text-neutral-10 border-border-default hover:bg-surface-subtle",
+                    ? "is-selected border-accent-orange font-bold shadow-2xs"
+                    : "bg-surface text-neutral-10 border-border-default hover:bg-accent-green-light hover:text-text-primary",
                 )}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
@@ -222,7 +223,7 @@ export function AccessorySelector({
             placeholder="Cari aksesoris..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full min-h-11 rounded-navigation border border-border-default bg-surface py-2 pl-9 pr-8 text-sm font-semibold text-text-primary outline-none placeholder:text-text-muted focus:border-accent-green focus:ring-1 focus:ring-accent-green/30 transition-colors"
+            className="w-full rounded-navigation border border-border-default bg-surface py-2 pl-9 pr-8 text-xs font-semibold text-text-primary shadow-xs outline-none placeholder:text-text-muted focus:border-accent-green focus:ring-1 focus:ring-accent-green/30 transition-colors"
           />
           {searchQuery && (
             <button
@@ -268,9 +269,9 @@ export function AccessorySelector({
                   }
                 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-between space-y-2.5 rounded-button border-2 p-3.5 text-center transition-colors",
+                  "relative flex flex-col items-center justify-between space-y-2.5 rounded-button border-2 p-3.5 text-center transition-colors shadow-2xs",
                   !compatible
-                    ? "cursor-not-allowed border-dashed border-border-default bg-surface-subtle opacity-60"
+                    ? "cursor-not-allowed bg-surface-subtle opacity-60"
                     : "cursor-pointer",
                   isEquipped
                     ? "border-accent-orange bg-accent-yellow/35 ring-2 ring-accent-orange/20"
@@ -282,17 +283,17 @@ export function AccessorySelector({
                 {/* Equipped check badge */}
                 {isEquipped && (
                   <span
-                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-[8px] bg-accent-orange text-text-inverse"
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-pill bg-accent-orange text-text-inverse shadow-2xs"
                     title="Terpilih"
                   >
                     <Check className="h-3.5 w-3.5 stroke-[3]" />
                   </span>
                 )}
 
-                {/* Lock icon only (no text) */}
+                {/* Lock icon only */}
                 {!isOwned && (
                   <span
-                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-[8px] bg-surface border border-border-default"
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-pill bg-surface border border-border-default shadow-2xs"
                     title="Item Terkunci"
                     aria-label="Item Terkunci"
                   >
@@ -302,7 +303,7 @@ export function AccessorySelector({
 
                 {!compatible && (
                   <span
-                    className="absolute left-2 top-2 flex items-center gap-0.5 rounded-[8px] bg-destructive/10 px-1.5 py-0.5 text-xs font-bold text-destructive"
+                    className="absolute left-2 top-2 flex items-center gap-0.5 rounded-pill bg-destructive/10 border border-destructive/25 px-2 py-0.5 text-xs font-bold text-destructive"
                     title={`Aksesoris ini tidak cocok dengan siluet ${charDef.name}`}
                   >
                     <AlertTriangle className="h-3 w-3" />
@@ -328,7 +329,7 @@ export function AccessorySelector({
                   )}
                 </div>
 
-                {/* Action Button: Terpilih / Pasang / Beli (no drop shadow) */}
+                {/* Action Button: Terpilih / Pasang / Beli */}
                 <div className="mt-auto w-full pt-1">
                   {isOwned ? (
                     <button
@@ -346,12 +347,12 @@ export function AccessorySelector({
                         }
                       }}
                       className={cn(
-                        "w-full min-h-10 rounded-navigation py-2 text-sm font-extrabold transition-colors",
+                        "w-full rounded-navigation py-1.5 px-3 text-xs font-bold transition-colors shadow-2xs",
                         isEquipped
                           ? "bg-accent-orange text-text-inverse hover:bg-accent-orange-dark"
                           : compatible
                             ? "border border-border-default bg-surface text-text-primary hover:bg-accent-green-light"
-                            : "cursor-not-allowed bg-surface-subtle text-text-muted",
+                            : "cursor-not-allowed bg-surface-subtle text-text-muted opacity-50",
                       )}
                     >
                       {isEquipped
@@ -369,7 +370,7 @@ export function AccessorySelector({
                         if (!compatible) return;
                         setConfirmModalItem(item);
                       }}
-                      className="w-full min-h-10 rounded-navigation py-2 text-sm font-extrabold transition-colors bg-accent-green-light hover:bg-[#a9ce46] text-[#244710]"
+                      className="button-primary w-full py-1.5 px-3 text-xs"
                     >
                       Beli
                     </button>
@@ -379,8 +380,8 @@ export function AccessorySelector({
             );
           })}
 
-          {/* Dedicated "Kunjungi Toko" Card (strictly large Store icon + "Kunjungi Toko" button only) */}
-          <div className="flex flex-col items-center justify-between gap-4 rounded-button border-2 border-dashed border-border-divider bg-surface-subtle/50 p-4 text-center">
+          {/* Dedicated "Kunjungi Toko" Card */}
+          <div className="flex flex-col items-center justify-between gap-4 rounded-button border-2 border-dashed border-border-default bg-surface-subtle/60 p-4 text-center">
             <div className="flex flex-1 items-center justify-center py-4">
               <Store
                 className="h-14 w-14 text-text-primary stroke-[1.75]"
@@ -389,7 +390,7 @@ export function AccessorySelector({
             </div>
             <Link
               href="/pet-customization/shop"
-              className="w-full min-h-11 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] px-3 py-2.5 text-sm font-extrabold text-[#244710] flex items-center justify-center transition-colors"
+              className="button-primary w-full py-2 px-3 text-xs text-center inline-flex items-center justify-center"
             >
               Kunjungi Toko
             </Link>
