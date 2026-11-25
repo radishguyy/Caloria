@@ -12,14 +12,20 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
+  Lightbulb,
+  Moon,
+  Snowflake,
 } from "lucide-react";
 import {
   formatDateDisplay,
+  formatDateKey,
+  addDays,
   isToday,
   isFuture,
   getTodayKey,
 } from "@/lib/date-utils";
 import { useFoodStore } from "@/store/use-food-store";
+import { useSocialStore } from "@/store/use-social-store";
 import { MEAL_TYPES } from "@/lib/constants";
 import { MACRO_STYLES } from "@/lib/design-tokens";
 import { CharacterSvg } from "@/components/pet/character-svg";
@@ -38,9 +44,13 @@ export function DailyArchiveDetail({
 }: DailyArchiveDetailProps) {
   const { targets, getDailySummary } = useFoodStore();
   const { species, getEffectiveColors } = usePetStore();
+  const { lastFreezeUsedDate, lastRestDayDate } = useSocialStore();
 
   const isSelectedToday = isToday(selectedDate);
+  const isSelectedYesterday = selectedDate === formatDateKey(addDays(new Date(), -1));
   const isSelectedFuture = isFuture(selectedDate);
+  const isFreezeDay = selectedDate === lastFreezeUsedDate;
+  const isRestDay = selectedDate === lastRestDayDate;
   const summary = getDailySummary(selectedDate);
 
   const [serverSummary, setServerSummary] = useState<any>(null);
@@ -142,12 +152,89 @@ export function DailyArchiveDetail({
     Math.round((activeSugar / (sugarTarget || 45)) * 100)
   );
 
+  const dayLabel = isSelectedToday
+    ? "Hari ini"
+    : isSelectedYesterday
+      ? "Kemarin"
+      : "Di hari ini";
+
+  const dailyTip = (() => {
+    if (!hasLogs) {
+      if (isRestDay) {
+        return {
+          text: `${dayLabel} ditandai Rest Day — streak kamu tetap aman.`,
+          tone: "info" as const,
+          icon: "rest" as const,
+        };
+      }
+      if (isFreezeDay) {
+        return {
+          text: `${dayLabel} dilindungi Streak Freeze.`,
+          tone: "info" as const,
+          icon: "freeze" as const,
+        };
+      }
+      return {
+        text: isSelectedToday
+          ? "Hari ini kamu belum mengisi catatan makanan."
+          : `${dayLabel} kamu belum mengisi catatan makanan.`,
+        tone: "muted" as const,
+        icon: "tip" as const,
+      };
+    }
+
+    if (activeSugar > sugarTarget) {
+      return {
+        text: `${dayLabel} asupan gula melebihi batas — kurangi minuman atau camilan manis.`,
+        tone: "warn" as const,
+        icon: "tip" as const,
+      };
+    }
+    if (proteinPercent < 75) {
+      return {
+        text: `${dayLabel} protein masih kurang — coba tambah telur, ayam, ikan, atau tempe.`,
+        tone: "warn" as const,
+        icon: "tip" as const,
+      };
+    }
+    if (fiberPercent < 60) {
+      return {
+        text: `${dayLabel} serat masih kurang — tambah sayur atau buah di menu berikutnya.`,
+        tone: "warn" as const,
+        icon: "tip" as const,
+      };
+    }
+    if (status === "over") {
+      return {
+        text: `${dayLabel} kalori melebihi target — jaga porsi sedikit lebih ringan berikutnya.`,
+        tone: "warn" as const,
+        icon: "tip" as const,
+      };
+    }
+    if (status === "under") {
+      return {
+        text: `${dayLabel} kalori masih di bawah target — pastikan asupan energimu cukup.`,
+        tone: "warn" as const,
+        icon: "tip" as const,
+      };
+    }
+    return {
+      text: `${dayLabel} asupanmu sudah seimbang — pertahankan!`,
+      tone: "good" as const,
+      icon: "tip" as const,
+    };
+  })();
+
   return (
     <div className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 shadow-xs space-y-5">
       {/* Date Header & Jump to Today */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-border-divider">
         <h3 className="text-lg sm:text-xl font-extrabold text-text-primary font-heading">
-          Hari Ini
+          {isSelectedToday
+            ? "Hari Ini"
+            : isSelectedYesterday
+              ? "Kemarin"
+              : formatDateDisplay(selectedDate, "short")}
         </h3>
 
         {!isSelectedToday && (
@@ -159,6 +246,41 @@ export function DailyArchiveDetail({
           </button>
         )}
       </div>
+
+      {/* Simple Daily Tip */}
+      {!isSelectedFuture && (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-2xl border px-3.5 py-2.5 text-xs font-medium",
+            dailyTip.tone === "good" &&
+              "bg-accent-green/10 border-accent-green/30 text-text-primary",
+            dailyTip.tone === "warn" &&
+              "bg-accent-yellow/35 border-accent-orange/30 text-text-primary",
+            dailyTip.tone === "info" &&
+              "bg-sky-50 border-sky-200 text-sky-900",
+            dailyTip.tone === "muted" &&
+              "bg-surface-subtle border-border-divider text-text-muted"
+          )}
+        >
+          {dailyTip.icon === "rest" ? (
+            <Moon className="h-4 w-4 text-indigo-600 shrink-0" />
+          ) : dailyTip.icon === "freeze" ? (
+            <Snowflake className="h-4 w-4 text-sky-600 shrink-0" />
+          ) : (
+            <Lightbulb
+              className={cn(
+                "h-4 w-4 shrink-0",
+                dailyTip.tone === "good"
+                  ? "text-accent-green"
+                  : dailyTip.tone === "warn"
+                    ? "text-accent-orange-dark"
+                    : "text-text-muted"
+              )}
+            />
+          )}
+          <span>{dailyTip.text}</span>
+        </div>
+      )}
 
       {/* Compliance Status Badge / Alert Banner */}
       {hasLogs ? (

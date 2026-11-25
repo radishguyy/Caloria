@@ -8,6 +8,8 @@ import {
   Calendar as CalendarIcon,
   Check,
   Award,
+  Snowflake,
+  Moon,
 } from "lucide-react";
 import {
   getDaysInMonth,
@@ -20,6 +22,7 @@ import {
   subMonths,
 } from "@/lib/date-utils";
 import { useFoodStore } from "@/store/use-food-store";
+import { useSocialStore } from "@/store/use-social-store";
 import { DailyNutritionSummary, DailyComplianceStatus } from "@/types";
 import { fetchUserArchiveSummariesAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
@@ -38,9 +41,18 @@ export function CalendarGrid({
   onChangeMonth,
 }: CalendarGridProps) {
   const { getDailySummary } = useFoodStore();
+  const { lastFreezeUsedDate, lastRestDayDate } = useSocialStore();
+  const [statusFilter, setStatusFilter] = useState<DailyComplianceStatus | null>(null);
 
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
+  const now = new Date();
+  const isViewingCurrentOrFutureMonth =
+    year > now.getFullYear() || (year === now.getFullYear() && month >= now.getMonth());
+
+  const toggleStatusFilter = (targetStatus: DailyComplianceStatus) => {
+    setStatusFilter((prev) => (prev === targetStatus ? null : targetStatus));
+  };
 
   const days = useMemo(() => {
     return getDaysInMonth(year, month);
@@ -205,8 +217,9 @@ export function CalendarGrid({
             </button>
             <button
               onClick={handleNextMonth}
+              disabled={isViewingCurrentOrFutureMonth}
               aria-label="Bulan Berikutnya"
-              className="p-1.5 rounded-input hover:bg-surface text-text-muted hover:text-text-primary transition-colors active:scale-95"
+              className="p-1.5 rounded-input hover:bg-surface text-text-muted hover:text-text-primary transition-colors active:scale-95 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:active:scale-100"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -241,6 +254,14 @@ export function CalendarGrid({
           const isCellFuture = isFuture(cell.dateKey);
           const hasLogs = summary?.hasLogs ?? false;
           const status = summary?.status ?? "empty";
+          const isFreezeDay = cell.dateKey === lastFreezeUsedDate;
+          const isRestDay = cell.dateKey === lastRestDayDate;
+          const calorieBarWidth = Math.min(100, summary?.percentage ?? 0);
+          const isDimmedByFilter =
+            statusFilter !== null &&
+            cell.isCurrentMonth &&
+            !isCellFuture &&
+            status !== statusFilter;
 
           return (
             <button
@@ -261,6 +282,8 @@ export function CalendarGrid({
                 isCellFuture && "opacity-40 cursor-not-allowed bg-surface-subtle/40",
                 !isCellFuture &&
                   "hover:border-accent-green/50 hover:scale-[1.02] active:translate-y-[2px] cursor-pointer",
+                // Dimmed when legend filter is active
+                isDimmedByFilter && "opacity-25",
                 // Selected state: pale yellow bg + vibrant orange border
                 isSelected
                   ? "border-2 border-[#FF9233] bg-[#FCF8E3] shadow-xs ring-2 ring-[#FF9233]/25 z-10"
@@ -269,7 +292,7 @@ export function CalendarGrid({
                 isCellToday && !isSelected && "ring-2 ring-accent-green/50 border-accent-green"
               )}
             >
-              {/* Top Row: Day Number + Today / XP Badge */}
+              {/* Top Row: Day Number + Today / XP / Protection Badge */}
               <div className="flex items-center justify-between w-full">
                 <span
                   className={cn(
@@ -284,24 +307,55 @@ export function CalendarGrid({
                   {cell.dayNumber}
                 </span>
 
-                {/* Coin / XP mini badge if logged & earned XP */}
-                {hasLogs && (summary?.xpEarned ?? 0) > 0 && !isCellFuture && (
-                  <span
-                    className="hidden sm:inline-flex items-center text-xs font-bold text-accent-orange leading-none"
-                    title={`+${summary?.xpEarned} XP diperoleh`}
-                  >
-                    ★
-                  </span>
-                )}
+                <div className="flex items-center gap-0.5">
+                  {!isCellFuture && isFreezeDay && (
+                    <span
+                      className="flex items-center justify-center w-4 h-4 rounded-full bg-sky-100 text-sky-600"
+                      title="Dilindungi Streak Freeze"
+                    >
+                      <Snowflake className="h-2.5 w-2.5" />
+                    </span>
+                  )}
+                  {!isCellFuture && !isFreezeDay && isRestDay && (
+                    <span
+                      className="flex items-center justify-center w-4 h-4 rounded-full bg-indigo-100 text-indigo-600"
+                      title="Hari Istirahat (Rest Day)"
+                    >
+                      <Moon className="h-2.5 w-2.5" />
+                    </span>
+                  )}
+                  {/* Coin / XP mini badge if logged & earned XP */}
+                  {hasLogs && (summary?.xpEarned ?? 0) > 0 && !isCellFuture && (
+                    <span
+                      className="hidden sm:inline-flex items-center text-xs font-bold text-accent-orange leading-none"
+                      title={`+${summary?.xpEarned} XP diperoleh`}
+                    >
+                      ★
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Middle: Calorie count preview on larger screens */}
-              <div className="my-0.5 sm:my-1 min-h-[14px]">
+              {/* Middle: Calorie count preview + thin progress bar (mobile & desktop) */}
+              <div className="my-0.5 sm:my-1 min-h-[14px] w-full space-y-1">
                 {hasLogs ? (
-                  <span className="hidden sm:block text-[11px] font-extrabold text-text-primary tracking-tight truncate">
-                    {summary?.consumed.calories}{" "}
-                    <span className="text-[9px] font-normal text-text-muted">kcal</span>
-                  </span>
+                  <>
+                    <span className="hidden sm:block text-[11px] font-extrabold text-text-primary tracking-tight truncate">
+                      {summary?.consumed.calories}{" "}
+                      <span className="text-[9px] font-normal text-text-muted">kcal</span>
+                    </span>
+                    <div className="h-1 w-full rounded-full bg-border-divider/60 overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all",
+                          status === "hit" && "bg-[#5B8E55]",
+                          status === "under" && "bg-[#F59E0B]",
+                          status === "over" && "bg-[#F43F5E]"
+                        )}
+                        style={{ width: `${calorieBarWidth}%` }}
+                      />
+                    </div>
+                  </>
                 ) : !isCellFuture && cell.isCurrentMonth ? (
                   <span className="hidden sm:block text-[10px] text-text-muted/60">
                     —
@@ -384,29 +438,54 @@ export function CalendarGrid({
 
       {/* Legend & Month Summary Card */}
       <div className="pt-3 border-t border-border-divider space-y-3">
-        {/* Color Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-4 text-[11px] text-text-primary font-semibold">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#5B8E55] ring-2 ring-[#5B8E55]/30 inline-block" />
-            <span>Target Tercapai</span>
-          </div>
+        {/* Interactive Color Legend (click to filter) */}
+        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 text-[11px] text-text-primary font-semibold">
+          {(
+            [
+              {
+                key: "hit" as const,
+                label: "Target Tercapai",
+                dotClass: "bg-[#5B8E55] ring-2 ring-[#5B8E55]/30",
+              },
+              {
+                key: "under" as const,
+                label: "Di Bawah Target",
+                dotClass: "bg-[#F59E0B]",
+              },
+              {
+                key: "over" as const,
+                label: "Melebihi Target",
+                dotClass: "bg-[#F43F5E]",
+              },
+              {
+                key: "empty" as const,
+                label: "Kosong",
+                dotClass: "bg-neutral-7/40",
+              },
+            ] as const
+          ).map((item) => {
+            const isActive = statusFilter === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => toggleStatusFilter(item.key)}
+                aria-pressed={isActive}
+                title={`Sorot hari dengan status: ${item.label}`}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-pill px-2 py-0.5 border transition-colors cursor-pointer",
+                  isActive
+                    ? "bg-accent-green/15 border-accent-green text-text-primary"
+                    : "border-transparent hover:bg-surface-subtle"
+                )}
+              >
+                <span className={cn("w-2.5 h-2.5 rounded-full inline-block", item.dotClass)} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
 
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] inline-block" />
-            <span>Di Bawah Target</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F43F5E] inline-block" />
-            <span>Melebihi Target</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-neutral-7/40 inline-block" />
-            <span>Kosong</span>
-          </div>
-
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 px-1">
             <span className="text-accent-orange font-bold">★</span>
             <span>XP / Hadiah Pet</span>
           </div>
@@ -428,7 +507,13 @@ export function CalendarGrid({
               Target Dipenuhi
             </span>
             <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
-              {monthStats.daysHit} <span className="text-xs font-semibold text-text-primary">Hari</span>
+              {monthStats.daysHit}{" "}
+              <span className="text-xs font-semibold text-text-primary">Hari</span>
+              {monthStats.daysLogged > 0 && (
+                <span className="ml-1 text-xs font-bold text-[#5B8E55]">
+                  ({monthStats.complianceRate}%)
+                </span>
+              )}
             </p>
           </div>
 
