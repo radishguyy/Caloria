@@ -178,6 +178,8 @@ export function AvatarPreview({
     return evaluateFeedEligibility(normalizedFed, now);
   }, [isHydrated, fedSlotsToday, needsResetDate, clockTick]);
 
+  const canFeedNow = canAffordFeed && feedEligibility.canFeed;
+
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsNativeFullscreen(Boolean(document.fullscreenElement));
@@ -560,7 +562,15 @@ export function AvatarPreview({
             type="button"
             onClick={() => void handleFeedPet()}
             disabled={isSleeping || isFeeding || !canAffordFeed}
-            className="button-primary w-full py-2.5 px-4 text-xs inline-flex items-center justify-center gap-1.5"
+            className={cn(
+              "w-full py-2.5 px-4 rounded-button font-sans font-bold text-xs inline-flex items-center justify-center gap-1.5 transition-colors",
+              canFeedNow && !isSleeping
+                ? "button-primary"
+                : "bg-surface-subtle text-text-muted border border-border-divider opacity-80",
+              isSleeping || isFeeding || !canAffordFeed
+                ? "cursor-not-allowed"
+                : "cursor-pointer",
+            )}
           >
             <span>{isFeeding ? "Memberi Makan..." : "Beri Makan Calpal"}</span>
             <span className="inline-flex items-center gap-1 font-bold">
