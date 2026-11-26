@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Check, Copy, ExternalLink, Stethoscope } from "lucide-react";
+import type { ScanMode } from "@/lib/schemas/nutrition-scan";
 
 export interface NutritionistAskBoxProps {
   summaryText: string;
+  scanMode?: ScanMode;
 }
 
 const NUTRITIONIST_CHAT_URL =
@@ -14,7 +16,10 @@ const NUTRITIONIST_CHAT_URL =
  * Mandatory AI-to-human escalation block ("Tanyakan Ahli Gizi") so users
  * can cross-check AI scan estimates with a real nutritionist.
  */
-export function NutritionistAskBox({ summaryText }: NutritionistAskBoxProps) {
+export function NutritionistAskBox({
+  summaryText,
+  scanMode = "label",
+}: NutritionistAskBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -52,10 +57,12 @@ export function NutritionistAskBox({ summaryText }: NutritionistAskBoxProps) {
       {isOpen && (
         <div className="rounded-2xl border border-border-divider bg-surface p-4 space-y-3">
           <p className="text-sm font-semibold text-neutral-10 leading-relaxed">
-            Salin ringkasan label ini lalu kirim ke ahli gizi untuk saran sesuai kebutuhan medis atau targetmu.
+            {scanMode === "food"
+              ? "Salin ringkasan estimasi makanan ini lalu kirim bersama foto makanannya ke ahli gizi untuk saran sesuai kondisi atau targetmu."
+              : "Salin ringkasan label ini lalu kirim ke ahli gizi untuk saran sesuai kebutuhan medis atau targetmu."}
           </p>
 
-          <pre className="whitespace-pre-wrap font-sans text-sm font-medium text-neutral-10 bg-surface-subtle border border-border-divider rounded-input p-3.5 leading-relaxed">
+          <pre className="whitespace-pre-wrap font-sans text-sm font-medium text-neutral-10 bg-card border border-border-divider rounded-input p-3.5 leading-relaxed">
             {summaryText}
           </pre>
 
@@ -63,7 +70,7 @@ export function NutritionistAskBox({ summaryText }: NutritionistAskBoxProps) {
             <button
               type="button"
               onClick={() => void handleCopy()}
-              className="button-primary flex-1 min-h-12 px-4 py-2.5 text-sm sm:text-base font-extrabold inline-flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none"
+              className="flex-1 min-h-12 px-4 py-2.5 rounded-button bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse text-sm sm:text-base font-extrabold inline-flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none"
             >
               {copied ? (
                 <>

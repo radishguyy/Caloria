@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
-import { NutritionLabelSchema } from "../nutrition-scan";
+import { NutritionLabelSchema, SCAN_MODES } from "../nutrition-scan";
 
 console.log("\n=== SUITE: NutritionLabelSchema ===");
+
+assert.deepEqual(SCAN_MODES, ["label", "food"]);
 
 // 1. Legacy payload without new optional fields still parses cleanly
 {
@@ -90,7 +92,62 @@ console.log("\n=== SUITE: NutritionLabelSchema ===");
   assert.equal(parsed.saturatedFatG, null);
   assert.equal(parsed.sodiumMg, null);
   assert.equal(parsed.productCategory, "other");
+  assert.equal(parsed.scanMode, "label");
+  assert.deepEqual(parsed.detectedItems, []);
+  assert.deepEqual(parsed.hiddenCalorieNotes, []);
   console.log("  ✓ unrecognized productCategory safely falls back to 'other'");
+}
+
+// 4. Real food mode payload preserves detectedItems, hiddenCalorieNotes, portionNote, and suggestedMode
+{
+  const parsed = NutritionLabelSchema.parse({
+    scanMode: "food",
+    foodName: "Nasi Goreng Telur & Ayam",
+    servingSize: 320,
+    servingUnit: "porsi",
+    servingsPerContainer: null,
+    caloriesKcal: 580,
+    proteinG: 20,
+    carbsG: 68,
+    fatG: 24,
+    fiberG: 3,
+    sugarG: 6,
+    saturatedFatG: null,
+    sodiumMg: null,
+    productCategory: "ready_meal",
+    confidenceScore: 0.78,
+    isReadableNutritionLabel: true,
+    detectedItems: ["Nasi goreng (~1.5 centong)", "Telur dadar (~1 butir)", "Ayam suwir"],
+    hiddenCalorieNotes: ["Minyak goreng dan kecap manis dapat menambah kalori di luar yang terlihat."],
+    portionNote: "1 piring standar (~320 g)",
+    suggestedMode: null,
+  });
+
+  assert.equal(parsed.scanMode, "food");
+  assert.equal(parsed.detectedItems.length, 3);
+  assert.equal(parsed.hiddenCalorieNotes.length, 1);
+  assert.equal(parsed.portionNote, "1 piring standar (~320 g)");
+  assert.equal(parsed.suggestedMode, null);
+  console.log("  ✓ real food scan payload validates components, hidden notes, and portionNote");
+}
+
+// 5. Wrong-mode rejection payload preserves suggestedMode cleanly
+{
+  const parsed = NutritionLabelSchema.parse({
+    scanMode: "label",
+    foodName: "Scanned Food",
+    servingSize: null,
+    servingUnit: "g",
+    servingsPerContainer: null,
+    caloriesKcal: 0,
+    isReadableNutritionLabel: false,
+    unreadableReason: "Foto menampilkan makanan langsung, bukan tabel label gizi.",
+    suggestedMode: "food",
+  });
+
+  assert.equal(parsed.isReadableNutritionLabel, false);
+  assert.equal(parsed.suggestedMode, "food");
+  console.log("  ✓ wrong-mode payload retains suggestedMode for Smart Switch");
 }
 
 console.log("\nAll NutritionLabelSchema tests passed! ✅");

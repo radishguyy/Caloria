@@ -1,17 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Loader2, ScanLine } from "lucide-react";
+import { Check, Loader2, ScanLine, UtensilsCrossed } from "lucide-react";
 import type { ScanStage } from "@/lib/nutrition/scan-client";
+import type { ScanMode } from "@/lib/schemas/nutrition-scan";
 import { getScanWaitState } from "@/lib/nutrition/scan-progress";
 import { cn } from "@/lib/utils";
 
 export interface ScanWaitingCardProps {
   stage: ScanStage;
+  mode?: ScanMode;
   previewUrl?: string | null;
 }
 
-export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
+export function ScanWaitingCard({
+  stage,
+  mode = "label",
+  previewUrl,
+}: ScanWaitingCardProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
 
   useEffect(() => {
@@ -22,21 +28,26 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
     return () => window.clearInterval(timer);
   }, []);
 
-  const waitState = getScanWaitState(stage, elapsedMs);
+  const waitState = getScanWaitState(stage, elapsedMs, mode);
+  const isFoodMode = mode === "food";
 
   return (
     <div
       role="status"
       aria-live="polite"
       aria-busy="true"
-      className="relative z-20 mx-4 w-full max-w-md rounded-card border border-white/15 bg-[#111F18]/95 backdrop-blur-md p-5 sm:p-6 space-y-4 text-white shadow-xl"
+      className="relative z-20 mx-4 w-full max-w-md rounded-card border border-white/15 bg-[#111F18]/95 backdrop-blur-md p-5 sm:p-6 space-y-4 text-white"
     >
       {previewUrl && (
         <div className="relative h-32 sm:h-40 w-full rounded-2xl overflow-hidden bg-black/80 border border-white/10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
-            alt="Area label gizi yang sedang dipindai"
+            alt={
+              isFoodMode
+                ? "Foto makanan yang sedang dianalisis"
+                : "Area label gizi yang sedang dipindai"
+            }
             className="w-full h-full object-contain opacity-95"
           />
           <div
@@ -49,7 +60,11 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div className="h-10 w-10 rounded-input bg-accent-green/30 text-accent-green-light flex items-center justify-center shrink-0 mt-0.5">
-            <ScanLine className="h-5 w-5" />
+            {isFoodMode ? (
+              <UtensilsCrossed className="h-5 w-5" />
+            ) : (
+              <ScanLine className="h-5 w-5" />
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-base sm:text-lg font-extrabold font-heading leading-snug">
@@ -68,7 +83,11 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
 
       <div
         role="progressbar"
-        aria-label="Progres pembacaan label gizi"
+        aria-label={
+          isFoodMode
+            ? "Progres estimasi gizi makanan"
+            : "Progres pembacaan label gizi"
+        }
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={waitState.progressPercent}
@@ -103,7 +122,7 @@ export function ScanWaitingCard({ stage, previewUrl }: ScanWaitingCardProps) {
                 "leading-snug",
                 step.status === "done" && "text-accent-green-light font-bold",
                 step.status === "active" && "text-white font-extrabold",
-                step.status === "pending" && "text-white/70 font-semibold",
+                step.status === "pending" && "text-white/70 font-semibold"
               )}
             >
               {step.label}

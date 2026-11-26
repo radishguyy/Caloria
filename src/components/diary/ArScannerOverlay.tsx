@@ -10,18 +10,21 @@ import {
   RefreshCw,
   RotateCcw,
   ScanLine,
+  Search,
+  UtensilsCrossed,
   X,
 } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { ScanInfoTooltip } from "@/components/diary/ScanInfoTooltip";
 import { ScanWaitingCard } from "@/components/diary/ScanWaitingCard";
 import { usePetStore } from "@/store/use-pet-store";
-import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
+import type { NutritionLabelData, ScanMode } from "@/lib/schemas/nutrition-scan";
 import {
   compressImageFile,
   computeReticleCropRect,
   defaultScanClient,
   fitWithinMaxDimension,
+  ScanApiError,
   type ScanStage,
 } from "@/lib/nutrition/scan-client";
 import { cn } from "@/lib/utils";
@@ -29,6 +32,7 @@ import { cn } from "@/lib/utils";
 export interface ArScannerOverlayProps {
   isOpen: boolean;
   mealTime: "breakfast" | "lunch" | "dinner" | "snack";
+  initialMode?: ScanMode;
   onClose: () => void;
   onScanComplete: (data: NutritionLabelData, previewUrl: string) => void;
 }
@@ -47,6 +51,7 @@ export function ArScannerOverlay(props: ArScannerOverlayProps) {
 
 function ArScannerOverlayBody({
   mealTime,
+  initialMode = "label",
   onClose,
   onScanComplete,
 }: ArScannerOverlayProps) {
@@ -65,7 +70,9 @@ function ArScannerOverlayBody({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const ownedPreviewUrlRef = useRef<string | null>(null);
+  const lastCaptureRef = useRef<{ blob: Blob; previewUrl: string } | null>(null);
 
+  const [scanMode, setScanMode] = useState<ScanMode>(initialMode);
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
     "environment",
   );
@@ -82,6 +89,10 @@ function ArScannerOverlayBody({
   );
   const [frozenPreviewUrl, setFrozenPreviewUrl] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [suggestedSwitchMode, setSuggestedSwitchMode] =
+    useState<ScanMode | null>(null);
+
+  const isFoodMode = scanMode === "food";
 
   const stopCameraTracks = useCallback(() => {
     if (streamRef.current) {
@@ -97,6 +108,7 @@ function ArScannerOverlayBody({
       URL.revokeObjectURL(ownedPreviewUrlRef.current);
       ownedPreviewUrlRef.current = null;
     }
+    lastCaptureRef.current = null;
     setFrozenPreviewUrl(null);
   }, []);
 
@@ -116,7 +128,7 @@ function ArScannerOverlayBody({
           setTorchEnabled(false);
           setCameraStatus("fallback");
           setCameraMessage(
-            "Kamera live belum tersedia di browser ini. Pilih foto label dari galeri.",
+            "Kamera live belum tersedia di browser ini. Pilih foto dari galeri.",
           );
         }
         return;
@@ -156,8 +168,8 @@ function ArScannerOverlayBody({
         const name = err instanceof Error ? err.name : "";
         const friendly =
           name === "NotAllowedError" || name === "PermissionDeniedError"
-            ? "Izin kamera ditolak. Pilih foto label kemasan dari galeri."
-            : "Kamera tidak terdeteksi. Pilih foto label kemasan dari galeri.";
+            ? "Izin kamera ditolak. Pilih foto label atau makanan dari galeri."
+            : "Kamera tidak terdeteksi. Pilih foto label atau makanan dari galeri.";
         setTorchSupported(false);
         setTorchEnabled(false);
         setCameraStatus("fallback");
@@ -175,6 +187,7 @@ function ArScannerOverlayBody({
         URL.revokeObjectURL(ownedPreviewUrlRef.current);
         ownedPreviewUrlRef.current = null;
       }
+      lastCaptureRef.current = null;
     };
   }, [facingMode, cameraRetryTick, stopCameraTracks]);
 
@@ -196,36 +209,57 @@ function ArScannerOverlayBody({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [handleClose]);
 
-  const runScanWithBlob = async (blob: Blob, previewUrl: string) => {
+  const runScanWithBlob = async (
+    blob: Blob,
+    previewUrl: string,
+    targetMode: ScanMode,
+  ) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
     ownedPreviewUrlRef.current = previewUrl;
+    lastCaptureRef.current = { blob, previewUrl };
     setFrozenPreviewUrl(previewUrl);
     setScanError(null);
+    setSuggestedSwitchMode(null);
 
     try {
       const data = await defaultScanClient.scanBlob(blob, {
+        mode: targetMode,
         signal: controller.signal,
         onStageChange: (stage) => setProcessingStage(stage),
       });
 
       ownedPreviewUrlRef.current = null;
+      lastCaptureRef.current = null;
       setProcessingStage(null);
+      setSuggestedSwitchMode(null);
       stopCameraTracks();
       onScanComplete(data, previewUrl);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         clearOwnedPreview();
         setProcessingStage(null);
+        setSuggestedSwitchMode(null);
         return;
       }
       setProcessingStage(null);
+      if (
+        err instanceof ScanApiError &&
+        err.suggestedMode &&
+        err.suggestedMode !== targetMode
+      ) {
+        setSuggestedSwitchMode(err.suggestedMode);
+      } else {
+        setSuggestedSwitchMode(null);
+      }
       setScanError(
         err instanceof Error
           ? err.message
-          : "Label gagal dibaca. Foto lebih dekat dengan cahaya terang.",
+          : targetMode === "food"
+            ? "Makanan belum dikenali jelas. Foto piring lebih terang dan utuh."
+            : "Label gagal dibaca. Foto lebih dekat dengan cahaya terang.",
       );
     }
   };
@@ -241,18 +275,24 @@ function ArScannerOverlayBody({
 
     setProcessingStage("compressing");
     setScanError(null);
+    setSuggestedSwitchMode(null);
+    clearOwnedPreview();
 
-    const crop = reticleRef.current
-      ? computeReticleCropRect({
-          videoWidth: video.videoWidth,
-          videoHeight: video.videoHeight,
-          videoRect: video.getBoundingClientRect(),
-          reticleRect: reticleRef.current.getBoundingClientRect(),
-          paddingRatio: 0.12,
-        })
-      : { sx: 0, sy: 0, sw: video.videoWidth, sh: video.videoHeight };
+    const activeMode = scanMode;
+    const crop =
+      activeMode === "label" && reticleRef.current
+        ? computeReticleCropRect({
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            videoRect: video.getBoundingClientRect(),
+            reticleRect: reticleRef.current.getBoundingClientRect(),
+            paddingRatio: 0.12,
+          })
+        : { sx: 0, sy: 0, sw: video.videoWidth, sh: video.videoHeight };
 
-    const { width, height } = fitWithinMaxDimension(crop.sw, crop.sh, 840);
+    const maxDim = activeMode === "food" ? 1024 : 840;
+    const jpegQuality = activeMode === "food" ? 0.78 : 0.72;
+    const { width, height } = fitWithinMaxDimension(crop.sw, crop.sh, maxDim);
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -276,7 +316,7 @@ function ArScannerOverlayBody({
       height,
     );
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((result) => resolve(result), "image/jpeg", 0.72),
+      canvas.toBlob((result) => resolve(result), "image/jpeg", jpegQuality),
     );
 
     if (!blob) {
@@ -286,7 +326,7 @@ function ArScannerOverlayBody({
     }
 
     const previewUrl = URL.createObjectURL(blob);
-    await runScanWithBlob(blob, previewUrl);
+    await runScanWithBlob(blob, previewUrl, activeMode);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -296,17 +336,40 @@ function ArScannerOverlayBody({
 
     setProcessingStage("compressing");
     setScanError(null);
+    setSuggestedSwitchMode(null);
     clearOwnedPreview();
 
+    const activeMode = scanMode;
     try {
-      const { blob, previewUrl } = await compressImageFile(file, 840, 0.72);
-      await runScanWithBlob(blob, previewUrl);
+      const { blob, previewUrl } = await compressImageFile(
+        file,
+        activeMode === "food" ? 1024 : 840,
+        activeMode === "food" ? 0.78 : 0.72,
+      );
+      await runScanWithBlob(blob, previewUrl, activeMode);
     } catch (err) {
       setProcessingStage(null);
       setScanError(
         err instanceof Error ? err.message : "Gagal memproses file gambar.",
       );
     }
+  };
+
+  const handleModeChange = (nextMode: ScanMode) => {
+    if (nextMode === scanMode || processingStage !== null) return;
+    setScanMode(nextMode);
+    setScanError(null);
+    setSuggestedSwitchMode(null);
+    clearOwnedPreview();
+  };
+
+  const handleSmartSwitch = () => {
+    if (!suggestedSwitchMode || !lastCaptureRef.current) return;
+    const targetMode = suggestedSwitchMode;
+    const { blob, previewUrl } = lastCaptureRef.current;
+    setScanMode(targetMode);
+    setProcessingStage("scanning");
+    void runScanWithBlob(blob, previewUrl, targetMode);
   };
 
   const handleToggleTorch = async () => {
@@ -328,11 +391,13 @@ function ArScannerOverlayBody({
     clearOwnedPreview();
     setProcessingStage(null);
     setScanError(null);
+    setSuggestedSwitchMode(null);
   };
 
   const handleRetryCamera = () => {
     clearOwnedPreview();
     setScanError(null);
+    setSuggestedSwitchMode(null);
     if (cameraStatus === "fallback") {
       setCameraStatus("initializing");
       setCameraRetryTick((n) => n + 1);
@@ -346,16 +411,20 @@ function ArScannerOverlayBody({
 
   const isProcessing = processingStage !== null;
   const calpalBubble = scanError
-    ? "Foto lebih dekat & terang ya!"
+    ? isFoodMode
+      ? "Coba foto piring lebih terang ya!"
+      : "Foto lebih dekat & terang ya!"
     : isProcessing
       ? `${petName || "Calpal"} lagi cek gizinya...`
-      : "Khusus tabel gizi kemasan!";
+      : isFoodMode
+        ? "Arahkan ke seluruh piring makanan!"
+        : "Khusus tabel gizi kemasan!";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Scan Label Gizi Kemasan"
+      aria-label={isFoodMode ? "Scan Makanan Real" : "Scan Label Gizi Kemasan"}
       className="fixed inset-0 z-50 h-[100dvh] bg-[#0B1410] text-white flex flex-col overflow-hidden"
     >
       <input
@@ -366,14 +435,14 @@ function ArScannerOverlayBody({
         className="hidden"
       />
 
-      {/* Top AR HUD Bar */}
-      <header className="relative z-30 bg-black/80 px-4 py-3 sm:px-6">
+      {/* Top AR HUD Bar + Dual-Mode Switcher */}
+      <header className="relative z-30 bg-black/85 px-4 py-3 sm:px-6 space-y-2.5">
         <div className="mx-auto max-w-3xl flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={handleClose}
-            aria-label="Tutup Scan Label"
-            className="min-h-12 min-w-12 px-3.5 rounded-navigation bg-white/15 hover:bg-white/25 text-white flex items-center justify-center gap-2 text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+            aria-label="Tutup AR Scanner"
+            className="min-h-11 min-w-11 px-3.5 rounded-button bg-white/15 hover:bg-white/25 text-white flex items-center justify-center gap-2 text-sm sm:text-base font-extrabold transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
           >
             <X className="h-5 w-5" />
             <span className="hidden sm:inline">Tutup</span>
@@ -381,9 +450,13 @@ function ArScannerOverlayBody({
 
           <div className="text-center min-w-0">
             <div className="flex items-center justify-center gap-2">
-              <ScanLine className="h-5 w-5 text-accent-green-light shrink-0" />
+              {isFoodMode ? (
+                <UtensilsCrossed className="h-5 w-5 text-accent-green-light shrink-0" />
+              ) : (
+                <ScanLine className="h-5 w-5 text-accent-green-light shrink-0" />
+              )}
               <h2 className="text-base sm:text-lg font-extrabold font-heading tracking-tight truncate">
-                Scan Label Gizi
+                {isFoodMode ? "Scan Makanan Real" : "Scan Label Gizi"}
               </h2>
             </div>
             <span className="inline-block mt-0.5 px-3 py-0.5 rounded-pill bg-accent-green/30 text-accent-green-light text-sm font-bold">
@@ -395,8 +468,16 @@ function ArScannerOverlayBody({
             <ScanInfoTooltip
               tone="dark"
               align="right"
-              label="Panduan Scan Label Gizi"
-              content="Khusus tabel Informasi Nilai Gizi pada makanan/minuman kemasan. Makanan tanpa label (seperti nasi goreng atau lauk piring) catat lewat pencarian menu. Proses scan dibatasi maks. 10 detik."
+              label={
+                isFoodMode
+                  ? "Panduan Scan Makanan Real"
+                  : "Panduan Scan Label Gizi"
+              }
+              content={
+                isFoodMode
+                  ? "Arahkan kamera ke seluruh piring, mangkuk, atau minuman agar lauk terlihat utuh. Hasil bersifat estimasi visual AI dan porsinya bisa disesuaikan. Proses scan dibatasi maks. 10 detik."
+                  : "Arahkan kotak ke tabel Informasi Nilai Gizi pada kemasan. Untuk makanan tanpa label (seperti nasi goreng), pindah ke tab Makanan Real. Proses scan dibatasi maks. 10 detik."
+              }
             />
             {torchSupported && cameraStatus === "ready" && !isProcessing && (
               <button
@@ -407,7 +488,7 @@ function ArScannerOverlayBody({
                 }
                 aria-pressed={torchEnabled}
                 className={cn(
-                  "min-h-11 min-w-11 rounded-navigation flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none",
+                  "min-h-11 min-w-11 rounded-button flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none",
                   torchEnabled
                     ? "bg-accent-yellow text-text-primary"
                     : "bg-white/15 hover:bg-white/25 text-white",
@@ -421,12 +502,52 @@ function ArScannerOverlayBody({
                 type="button"
                 onClick={handleFlipCamera}
                 aria-label="Ganti kamera depan atau belakang"
-                className="min-h-11 min-w-11 rounded-navigation bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+                className="min-h-11 min-w-11 rounded-button bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
               >
                 <RefreshCw className="h-5 w-5" />
               </button>
             )}
           </div>
+        </div>
+
+        {/* Dual-Mode Toggle (Label Gizi | Makanan Real) */}
+        <div
+          role="tablist"
+          aria-label="Pilih mode AR Scanner"
+          className="mx-auto max-w-md grid grid-cols-2 gap-1.5 p-1 rounded-button bg-white/12"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isFoodMode}
+            disabled={isProcessing}
+            onClick={() => handleModeChange("label")}
+            className={cn(
+              "min-h-11 px-3 py-2 rounded-navigation text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none disabled:opacity-50",
+              !isFoodMode
+                ? "bg-accent-green-light text-text-primary"
+                : "text-white hover:bg-white/15",
+            )}
+          >
+            <ScanLine className="h-4 w-4 shrink-0" />
+            <span>Label Gizi</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isFoodMode}
+            disabled={isProcessing}
+            onClick={() => handleModeChange("food")}
+            className={cn(
+              "min-h-11 px-3 py-2 rounded-navigation text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none disabled:opacity-50",
+              isFoodMode
+                ? "bg-accent-green-light text-text-primary"
+                : "text-white hover:bg-white/15",
+            )}
+          >
+            <UtensilsCrossed className="h-4 w-4 shrink-0" />
+            <span>Makanan Real</span>
+          </button>
         </div>
       </header>
 
@@ -449,64 +570,75 @@ function ArScannerOverlayBody({
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={frozenPreviewUrl}
-            alt="Pratinjau foto label gizi"
+            alt={
+              isFoodMode ? "Pratinjau foto makanan" : "Pratinjau foto label gizi"
+            }
             className="absolute inset-0 w-full h-full object-contain bg-black/90"
           />
         )}
 
-        {/* Spacious Responsive Reticle with Spotlight Mask */}
+        {/* Adaptive Framing Guide: tight reticle for Label, wide full-frame for Real Food */}
         {cameraStatus === "ready" && !frozenPreviewUrl && (
           <div className="pointer-events-none relative z-10 flex flex-col items-center gap-4 px-4">
-            <div
-              ref={reticleRef}
-              className="relative w-[min(90vw,520px)] h-[min(50dvh,380px)] sm:w-[min(82vw,560px)] sm:h-[min(54dvh,420px)] rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.52)] flex items-center justify-center"
-            >
-              {/* Clean SVG corner brackets (no rounded-border collision) */}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-                className="absolute inset-0 w-full h-full overflow-visible"
+            {isFoodMode ? (
+              <div className="relative w-[min(90vw,560px)] h-[min(48dvh,400px)] sm:w-[min(84vw,600px)] sm:h-[min(52dvh,430px)] rounded-[36px] border-2 border-dashed border-accent-green-light/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.34)] flex items-end justify-center pb-4">
+                <span className="px-3.5 py-1 rounded-pill bg-black/75 text-accent-green-light text-sm font-bold">
+                  Estimasi Visual AI • Full Frame
+                </span>
+              </div>
+            ) : (
+              <div
+                ref={reticleRef}
+                className="relative w-[min(90vw,520px)] h-[min(48dvh,360px)] sm:w-[min(82vw,560px)] sm:h-[min(52dvh,400px)] rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.52)] flex items-center justify-center"
               >
-                <path
-                  d="M 2 14 L 2 4 Q 2 2 4 2 L 14 2"
-                  fill="none"
-                  stroke="#BADC58"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <path
-                  d="M 86 2 L 96 2 Q 98 2 98 4 L 98 14"
-                  fill="none"
-                  stroke="#BADC58"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <path
-                  d="M 2 86 L 2 96 Q 2 98 4 98 L 14 98"
-                  fill="none"
-                  stroke="#BADC58"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <path
-                  d="M 86 98 L 96 98 Q 98 98 98 96 L 98 86"
-                  fill="none"
-                  stroke="#BADC58"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  className="absolute inset-0 w-full h-full overflow-visible"
+                >
+                  <path
+                    d="M 2 14 L 2 4 Q 2 2 4 2 L 14 2"
+                    fill="none"
+                    stroke="#BADC58"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <path
+                    d="M 86 2 L 96 2 Q 98 2 98 4 L 98 14"
+                    fill="none"
+                    stroke="#BADC58"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <path
+                    d="M 2 86 L 2 96 Q 2 98 4 98 L 14 98"
+                    fill="none"
+                    stroke="#BADC58"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <path
+                    d="M 86 98 L 96 98 Q 98 98 98 96 L 98 86"
+                    fill="none"
+                    stroke="#BADC58"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
 
-              <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/85" />
-            </div>
+                <div className="w-[88%] h-0.5 rounded-full bg-accent-green-light/85" />
+              </div>
+            )}
 
             <div className="px-4 py-2 rounded-pill bg-black/80 text-sm sm:text-base font-extrabold text-white text-center">
-              Arahkan ke Tabel Informasi Nilai Gizi
+              {isFoodMode
+                ? "Arahkan ke Seluruh Piring atau Minuman"
+                : "Arahkan ke Tabel Informasi Nilai Gizi"}
             </div>
           </div>
         )}
@@ -521,17 +653,25 @@ function ArScannerOverlayBody({
         )}
 
         {cameraStatus === "fallback" && !frozenPreviewUrl && (
-          <div className="relative z-10 mx-4 w-full max-w-md rounded-card border border-white/15 bg-[#182920] p-6 sm:p-7 text-center space-y-5 shadow-xl">
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-card border border-white/15 bg-[#182920] p-6 sm:p-7 text-center space-y-5">
             <div className="mx-auto h-16 w-16 rounded-2xl bg-accent-green/25 text-accent-green-light flex items-center justify-center">
-              <ImagePlus className="h-8 w-8" />
+              {isFoodMode ? (
+                <UtensilsCrossed className="h-8 w-8" />
+              ) : (
+                <ImagePlus className="h-8 w-8" />
+              )}
             </div>
             <div className="space-y-2">
               <h3 className="text-lg sm:text-xl font-extrabold text-white font-heading">
-                Unggah Foto Label Kemasan
+                {isFoodMode
+                  ? "Unggah Foto Makanan Real"
+                  : "Unggah Foto Label Kemasan"}
               </h3>
-              <p className="text-sm sm:text-base font-semibold text-white/85 leading-relaxed">
-                {cameraMessage ||
-                  "Pilih foto tabel Informasi Nilai Gizi kemasan dari galeri."}
+              <p className="text-sm sm:text-base font-semibold text-accent-green-light/90 leading-relaxed">
+                {isFoodMode
+                  ? "Pilih foto piring, mangkuk, atau minuman dari galeri untuk estimasi gizi AI."
+                  : cameraMessage ||
+                    "Pilih foto tabel Informasi Nilai Gizi kemasan dari galeri."}
               </p>
             </div>
 
@@ -539,7 +679,7 @@ function ArScannerOverlayBody({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="button-primary w-full min-h-14 px-5 py-3 text-base font-extrabold flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                className="w-full min-h-14 px-5 py-3 rounded-button bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
                 <ImagePlus className="h-5 w-5" />
                 <span>Pilih Foto dari Galeri</span>
@@ -559,6 +699,7 @@ function ArScannerOverlayBody({
         {isProcessing && processingStage && (
           <ScanWaitingCard
             stage={processingStage}
+            mode={scanMode}
             previewUrl={frozenPreviewUrl}
           />
         )}
@@ -566,19 +707,42 @@ function ArScannerOverlayBody({
         {scanError && !isProcessing && (
           <div
             role="alert"
-            className="relative z-20 mx-4 rounded-card border border-white/15 bg-[#3B181A]/95 p-5 sm:p-6 max-w-md w-full space-y-4 shadow-xl"
+            className="relative z-20 mx-4 rounded-card border border-[#FCA5A5]/30 bg-[#3B181A]/95 p-5 sm:p-6 max-w-md w-full space-y-4"
           >
             <div className="flex items-start gap-3">
               <AlertCircle className="h-6 w-6 text-[#FCA5A5] shrink-0 mt-0.5" />
               <div className="space-y-1.5">
                 <p className="text-base sm:text-lg font-extrabold text-white">
-                  Scan Belum Berhasil
+                  {suggestedSwitchMode
+                    ? "Mode Scan Berbeda"
+                    : "Scan Belum Berhasil"}
                 </p>
                 <p className="text-sm sm:text-base font-semibold text-[#FECACA] leading-relaxed">
                   {scanError}
                 </p>
               </div>
             </div>
+
+            {suggestedSwitchMode && frozenPreviewUrl && (
+              <button
+                type="button"
+                onClick={handleSmartSwitch}
+                className="w-full min-h-12 px-4 py-3 rounded-button bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              >
+                {suggestedSwitchMode === "food" ? (
+                  <>
+                    <UtensilsCrossed className="h-5 w-5 shrink-0" />
+                    <span>Analisis sebagai Makanan Real</span>
+                  </>
+                ) : (
+                  <>
+                    <ScanLine className="h-5 w-5 shrink-0" />
+                    <span>Scan sebagai Label Gizi</span>
+                  </>
+                )}
+              </button>
+            )}
+
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               <button
                 type="button"
@@ -591,12 +755,26 @@ function ArScannerOverlayBody({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="button-primary flex-1 min-h-12 px-4 py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                className={cn(
+                  "flex-1 min-h-12 px-4 py-3 rounded-button text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                  suggestedSwitchMode
+                    ? "bg-white/15 hover:bg-white/25 text-white focus-visible:ring-accent-green-light"
+                    : "bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse focus-visible:ring-white",
+                )}
               >
                 <ImagePlus className="h-4 w-4" />
                 <span>Dari Galeri</span>
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-full min-h-11 px-4 py-2 rounded-button bg-transparent hover:bg-white/10 text-sm font-bold text-[#FECACA] flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-accent-green-light focus-visible:outline-none"
+            >
+              <Search className="h-4 w-4" />
+              <span>Tutup &amp; Cari Menu Manual</span>
+            </button>
           </div>
         )}
 
@@ -616,7 +794,7 @@ function ArScannerOverlayBody({
               title={petName || "Calpal"}
             />
           </div>
-          <div className="mb-3 rounded-2xl border border-border-divider bg-surface/95 text-neutral-10 px-4 py-2.5 text-sm font-extrabold leading-snug shadow-sm">
+          <div className="mb-3 rounded-2xl border border-border-divider bg-surface/95 text-neutral-10 px-4 py-2.5 text-sm font-extrabold leading-snug">
             {calpalBubble}
           </div>
         </div>
@@ -649,7 +827,11 @@ function ArScannerOverlayBody({
               type="button"
               onClick={() => void handleCaptureFrame()}
               disabled={cameraStatus !== "ready"}
-              aria-label="Jepret dan analisis label gizi"
+              aria-label={
+                isFoodMode
+                  ? "Jepret dan estimasi gizi makanan"
+                  : "Jepret dan analisis label gizi"
+              }
               className={cn(
                 "h-[72px] w-[72px] rounded-full bg-accent-green-light hover:bg-accent-green text-text-primary hover:text-text-inverse flex items-center justify-center ring-4 ring-white/30 transition-all active:scale-95 focus-visible:ring-4 focus-visible:ring-white focus-visible:outline-none",
                 cameraStatus !== "ready" && "opacity-40 cursor-not-allowed",
@@ -664,7 +846,9 @@ function ArScannerOverlayBody({
               {isProcessing
                 ? "Memindai..."
                 : cameraStatus === "ready"
-                  ? "Siap jepret"
+                  ? isFoodMode
+                    ? "Siap foto"
+                    : "Siap jepret"
                   : "Mode galeri"}
             </span>
           </div>

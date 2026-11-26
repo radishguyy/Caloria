@@ -1,4 +1,4 @@
-import type { NutritionLabelData } from "@/lib/schemas/nutrition-scan";
+import type { NutritionLabelData, ScanMode } from "@/lib/schemas/nutrition-scan";
 
 export type ScanStage = "compressing" | "scanning" | "analyzing";
 
@@ -6,6 +6,23 @@ const DEFAULT_MAX_DIMENSION = 840;
 const DEFAULT_JPEG_QUALITY = 0.72;
 const DEFAULT_CACHE_LIMIT = 20;
 export const DEFAULT_SCAN_CLIENT_TIMEOUT_MS = 12_000;
+
+export class ScanApiError extends Error {
+  readonly code?: string;
+  readonly suggestedMode: ScanMode | null;
+  readonly status?: number;
+
+  constructor(
+    message: string,
+    meta: { code?: string; suggestedMode?: ScanMode | null; status?: number } = {}
+  ) {
+    super(message);
+    this.name = "ScanApiError";
+    this.code = meta.code;
+    this.suggestedMode = meta.suggestedMode ?? null;
+    this.status = meta.status;
+  }
+}
 
 export function fitWithinMaxDimension(
   width: number,
@@ -108,7 +125,7 @@ export async function hashBlobSha256(blob: Blob): Promise<string> {
 
 /**
  * Downscale and JPEG-compress an image file/blob on the client so AI upload
- * stays fast on mobile networks while keeping Nutrition Facts text sharp.
+ * stays fast on mobile networks while keeping details sharp.
  */
 export async function compressImageFile(
   file: Blob,
@@ -165,6 +182,7 @@ export interface ScanClientDeps {
 }
 
 export interface ScanBlobOptions {
+  mode?: ScanMode;
   signal?: AbortSignal;
   timeoutMs?: number;
   onStageChange?: (stage: ScanStage) => void;
@@ -181,7 +199,8 @@ export function createScanClient(deps: ScanClientDeps = {}) {
     blob: Blob,
     options: ScanBlobOptions = {}
   ): Promise<NutritionLabelData> {
-    const key = await hashFn(blob);
+    const mode: ScanMode = options.mode ?? "label";
+    const key = `${mode}:${await hashFn(blob)}`;
     const cached = cache.get(key);
     if (cached) {
       options.onStageChange?.("analyzing");
@@ -190,7 +209,12 @@ export function createScanClient(deps: ScanClientDeps = {}) {
 
     options.onStageChange?.("scanning");
     const formData = new FormData();
-    formData.append("image", blob, "nutrition-label.jpg");
+    formData.append(
+      "image",
+      blob,
+      mode === "food" ? "real-food.jpg" : "nutrition-label.jpg"
+    );
+    formData.append("mode", mode);
 
     const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
     const controller = new AbortController();
@@ -219,8 +243,11 @@ export function createScanClient(deps: ScanClientDeps = {}) {
       });
     } catch (err) {
       if (timedOut) {
-        throw new Error(
-          "Waktu scan terlalu lama (>12 detik). Pastikan koneksi stabil dan teks label cukup dekat, lalu coba lagi."
+        throw new ScanApiError(
+          mode === "food"
+            ? "Waktu scan terlalu lama (>12 detik). Pastikan koneksi stabil dan foto makanan terlihat jelas, lalu coba lagi."
+            : "Waktu scan terlalu lama (>12 detik). Pastikan koneksi stabil dan teks label cukup dekat, lalu coba lagi.",
+          { code: "SCAN_TIMEOUT", status: 504 }
         );
       }
       throw err;
@@ -233,8 +260,20 @@ export function createScanClient(deps: ScanClientDeps = {}) {
 
     const json = await res.json().catch(() => ({}));
     if (!res.ok || !json?.success || !json?.data) {
-      throw new Error(
-        json?.error || "Gagal mengekstrak informasi nilai gizi dari gambar."
+      const suggestedMode: ScanMode | null =
+        json?.suggestedMode === "label" || json?.suggestedMode === "food"
+          ? json.suggestedMode
+          : null;
+      throw new ScanApiError(
+        json?.error ||
+          (mode === "food"
+            ? "Gagal mengenali makanan dari foto. Pastikan hidangan terlihat jelas dan terang."
+            : "Gagal mengekstrak informasi nilai gizi dari gambar."),
+        {
+          code: typeof json?.code === "string" ? json.code : undefined,
+          suggestedMode,
+          status: res.status,
+        }
       );
     }
 
