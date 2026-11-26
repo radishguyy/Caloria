@@ -140,7 +140,7 @@ export function CaloriaWrappedShelf() {
     const existing = status?.history.find(
       (r) =>
         r.type === currentEligibility.type &&
-        r.cycleNumber === currentEligibility.cycleNumber
+        r.cycleNumber === currentEligibility.cycleNumber,
     );
 
     if (existing && existing.slidesData) {
@@ -191,7 +191,7 @@ export function CaloriaWrappedShelf() {
       return {
         ...prev,
         history: prev.history.map((r) =>
-          r.id === recapId ? { ...r, isViewed: true } : r
+          r.id === recapId ? { ...r, isViewed: true } : r,
         ),
       };
     });
@@ -210,12 +210,10 @@ export function CaloriaWrappedShelf() {
 
   const { eligibility, history } = currentStatus;
   const isAvailable = eligibility.isAvailable;
-  const unitLabel = eligibility.type === "monthly" ? "Bulan" : "Pekan";
 
   const activeExistingRecap = history.find(
     (r) =>
-      r.type === eligibility.type &&
-      r.cycleNumber === eligibility.cycleNumber
+      r.type === eligibility.type && r.cycleNumber === eligibility.cycleNumber,
   );
 
   return (
@@ -235,7 +233,7 @@ export function CaloriaWrappedShelf() {
                 type="button"
                 onClick={handleOpenActiveRecap}
                 disabled={isGenerating}
-                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-accent-green px-5 py-2.5 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 disabled:opacity-50"
+                className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center gap-2 rounded-navigation bg-accent-green px-5 py-2.5 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 disabled:opacity-50 cursor-pointer"
               >
                 {activeExistingRecap ? (
                   <>
@@ -255,7 +253,7 @@ export function CaloriaWrappedShelf() {
                 )}
               </button>
             ) : (
-              <div className="inline-flex items-center gap-2 rounded-xl border border-border-default bg-surface-subtle px-4 py-2.5 text-xs font-bold text-text-muted">
+              <div className="inline-flex min-h-10 items-center gap-2 rounded-navigation border border-border-default bg-surface-subtle px-4 py-2.5 text-xs font-bold text-text-muted">
                 <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>{eligibility.daysRemaining} Hari Lagi</span>
               </div>
@@ -265,9 +263,7 @@ export function CaloriaWrappedShelf() {
 
         {/* Right: Past Rekaps List */}
         <div className="border-t border-border-divider pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-          <h3 className="text-sm font-bold text-text-primary">
-            Riwayat Rekap
-          </h3>
+          <h3 className="text-sm font-bold text-text-primary">Riwayat Rekap</h3>
           <div className="mt-2.5 max-h-[110px] overflow-y-auto pr-1 [scrollbar-width:thin]">
             {history.length === 0 ? (
               <p className="text-xs text-text-muted">
@@ -292,7 +288,7 @@ export function CaloriaWrappedShelf() {
                       <button
                         type="button"
                         onClick={() => handleReplayPastRecap(rec)}
-                        className="shrink-0 font-bold text-text-primary hover:underline"
+                        className="shrink-0 rounded-[10px] border border-border-default bg-surface px-2.5 py-1 text-[11px] font-bold text-text-primary transition-colors hover:bg-accent-green-light cursor-pointer"
                       >
                         Buka
                       </button>

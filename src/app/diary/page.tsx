@@ -14,7 +14,6 @@ import {
   Pencil,
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
-import { QuestWidget } from "@/components/shared/QuestWidget";
 import { MacroBar } from "@/components/diary/macro-bar";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -49,41 +48,19 @@ export default function FoodDiaryPage() {
   );
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6">
+    <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6 pb-28 lg:pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
-        <div className="flex items-center gap-3 min-w-0">
-          <Link
-            href="/dashboard"
-            aria-label="Kembali ke Dashboard"
-            className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </Link>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-primary font-heading">
-            Food Diary
-          </h1>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link
-            href="/diary/archive"
-            data-tour="diary-archive-btn"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-text-primary text-xs font-bold transition-colors"
-          >
-            <Calendar className="h-4 w-4 text-accent-green shrink-0" aria-hidden="true" />
-            <span>Kalender</span>
-          </Link>
-
-          <Link
-            href="/diary/add"
-            data-tour="diary-add-btn"
-            className="button-primary inline-flex items-center gap-2 px-5 py-2.5 text-xs"
-          >
-            <Pencil className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>Catat</span>
-          </Link>
-        </div>
+      <div className="flex items-center gap-3 pb-4 border-b border-border-divider">
+        <Link
+          href="/dashboard"
+          aria-label="Kembali ke Dashboard"
+          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-neutral-10 hover:text-[#244710] transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        </Link>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-primary font-heading">
+          Food Diary
+        </h1>
       </div>
 
       {/* Daily Nutrition Notification Banner */}
@@ -102,11 +79,20 @@ export default function FoodDiaryPage() {
         >
           <div className="flex min-w-0 items-center gap-2.5">
             {latestFeedback.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-accent-green" aria-hidden="true" />
+              <CheckCircle2
+                className="h-5 w-5 shrink-0 text-accent-green"
+                aria-hidden="true"
+              />
             ) : latestFeedback.type === "warning" ? (
-              <AlertTriangle className="h-5 w-5 shrink-0 text-accent-orange-dark" aria-hidden="true" />
+              <AlertTriangle
+                className="h-5 w-5 shrink-0 text-accent-orange-dark"
+                aria-hidden="true"
+              />
             ) : (
-              <Utensils className="h-5 w-5 shrink-0 text-text-primary" aria-hidden="true" />
+              <Utensils
+                className="h-5 w-5 shrink-0 text-text-primary"
+                aria-hidden="true"
+              />
             )}
             <p
               title={latestFeedback.title}
@@ -127,8 +113,26 @@ export default function FoodDiaryPage() {
         </div>
       )}
 
-      {/* Daily Calories Container (Dashboard Bottom Summary Style) */}
-      <QuestWidget />
+      {/* Full-Width Kalender & Catat Action Row (Replacing Quest Container) */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
+        <Link
+          href="/diary/archive"
+          data-tour="diary-archive-btn"
+          className="w-full min-h-14 px-4 sm:px-6 py-3.5 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base sm:text-lg font-extrabold inline-flex items-center justify-center gap-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
+        >
+          <Calendar className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>Kalender</span>
+        </Link>
+
+        <Link
+          href="/diary/add"
+          data-tour="diary-add-btn"
+          className="w-full min-h-14 px-4 sm:px-6 py-3.5 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base sm:text-lg font-extrabold inline-flex items-center justify-center gap-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
+        >
+          <Pencil className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>Catat</span>
+        </Link>
+      </div>
 
       {/* Daily Nutrition Container */}
       <MacroBar className="w-full" />
@@ -138,7 +142,7 @@ export default function FoodDiaryPage() {
         role="tablist"
         aria-label="Filter waktu makan"
         data-tour="diary-filter"
-        className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-border-divider"
+        className="flex flex-wrap items-center gap-2.5 pb-3 border-b border-border-divider"
       >
         <button
           type="button"
@@ -146,10 +150,10 @@ export default function FoodDiaryPage() {
           aria-selected={activeFilter === "all"}
           onClick={() => setActiveFilter("all")}
           className={cn(
-            "nav-item px-4 py-2 text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-none cursor-pointer",
+            "min-h-11 px-4 sm:px-5 py-2.5 rounded-navigation text-base sm:text-lg whitespace-nowrap transition-colors border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710] cursor-pointer",
             activeFilter === "all"
-              ? "is-selected font-bold"
-              : "text-neutral-10",
+              ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+              : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
           )}
         >
           Semua
@@ -165,10 +169,10 @@ export default function FoodDiaryPage() {
               aria-selected={isActive}
               onClick={() => setActiveFilter(m.id)}
               className={cn(
-                "nav-item px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-none cursor-pointer",
+                "min-h-11 px-4 sm:px-5 py-2.5 rounded-navigation text-base sm:text-lg whitespace-nowrap transition-colors border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710] cursor-pointer",
                 isActive
-                  ? "is-selected font-bold"
-                  : "text-neutral-10",
+                  ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                  : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
               )}
             >
               {m.label}
@@ -205,18 +209,21 @@ export default function FoodDiaryPage() {
                 aria-label={meal.label}
                 className="rounded-card border border-border-divider bg-surface p-5 sm:p-6 space-y-3.5 shadow-xs"
               >
-                <div className="flex items-center justify-between gap-3 pb-2 border-b border-border-divider">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <h2 className="text-sm font-bold text-text-primary font-sans">
+                <div className="flex flex-wrap items-center justify-between gap-3 gap-y-2 pb-3 border-b border-border-divider">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary font-heading leading-tight">
                       {meal.label}
                     </h2>
-                    <span className="px-2.5 py-0.5 rounded-pill text-[10px] font-semibold bg-surface-subtle border border-border-divider text-text-muted">
-                      {mealLogs.length} menu
+                    <span
+                      aria-label={`${mealLogs.length} makanan`}
+                      className="px-2.5 py-0.5 rounded-pill text-xs font-bold bg-surface-subtle border border-border-divider text-neutral-10 shrink-0"
+                    >
+                      {mealLogs.length}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2.5 shrink-0">
-                    <span className="text-xs font-extrabold text-text-primary">
+                    <span className="text-xl font-extrabold text-text-primary tabular-nums">
                       {mealCalories} kcal
                     </span>
 
@@ -225,9 +232,9 @@ export default function FoodDiaryPage() {
                       data-tour="diary-meal-add"
                       aria-label={`Tambah makanan untuk ${meal.label}`}
                       title={`Tambah ${meal.label}`}
-                      className="inline-flex items-center justify-center p-1.5 rounded-navigation bg-accent-green-light text-text-primary hover:bg-accent-green hover:text-text-inverse transition-colors text-xs font-bold"
+                      className="inline-flex items-center justify-center min-h-9 min-w-9 p-2 rounded-navigation bg-accent-green-light text-[#244710] hover:bg-accent-green hover:text-text-inverse transition-colors text-xs font-bold"
                     >
-                      <Plus className="h-4 w-4" aria-hidden="true" />
+                      <Plus className="h-5 w-5" aria-hidden="true" />
                     </Link>
                   </div>
                 </div>

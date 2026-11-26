@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, Suspense, useEffect } from "react";
 import Link from "next/link";
@@ -12,7 +12,6 @@ import {
   Camera,
   Loader2,
   Copy,
-  UtensilsCrossed,
   Layers,
   Bookmark,
   History,
@@ -24,7 +23,6 @@ import {
 } from "lucide-react";
 import { useFoodStore } from "@/store/use-food-store";
 import { usePetStore } from "@/store/use-pet-store";
-import { FOOD_CATALOG } from "@/lib/food-catalog";
 import { MEAL_TYPES, MealTypeId } from "@/lib/constants";
 import { FoodCatalogItem, StagedFoodItem } from "@/types";
 import {
@@ -72,18 +70,22 @@ function DiaryAddFoodContent() {
     }
   }, [dateParam, setSelectedDate]);
 
-  const { feedPet, level, exp, stage, coins } = usePetStore();
+  const { feedPet, level, exp, stage } = usePetStore();
 
-  const [activeMeal, setActiveMeal] = useState<MealTypeId>(mealParam || "breakfast");
+  const [activeMeal, setActiveMeal] = useState<MealTypeId>(
+    mealParam || "breakfast",
+  );
 
   useEffect(() => {
-    if (!mealParam) {
+    if (mealParam) return;
+    const timer = setTimeout(() => {
       const hours = new Date().getHours();
       if (hours >= 11 && hours < 15) setActiveMeal("lunch");
       else if (hours >= 15 && hours < 18) setActiveMeal("snack");
       else if (hours >= 18 || hours < 5) setActiveMeal("dinner");
       else setActiveMeal("breakfast");
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [mealParam]);
   const [sourceTab, setSourceTab] = useState<
     "all" | "recent" | "frequent" | "saved" | "branded"
@@ -128,12 +130,10 @@ function DiaryAddFoodContent() {
   }, [activeMeal, getHistoricalMealLogs]);
 
   const [dbCatalogItems, setDbCatalogItems] = useState<FoodCatalogItem[]>([]);
-  const [isSearchingDb, setIsSearchingDb] = useState(false);
 
   useEffect(() => {
     let active = true;
     const fetchDbFoods = async () => {
-      setIsSearchingDb(true);
       try {
         const res = await searchFoodsAction(searchQuery);
         if (active && res.success && res.data && res.data.length > 0) {
@@ -141,8 +141,6 @@ function DiaryAddFoodContent() {
         }
       } catch (err) {
         console.warn("[DiaryAdd] searchFoodsAction failed:", err);
-      } finally {
-        if (active) setIsSearchingDb(false);
       }
     };
 
@@ -179,11 +177,17 @@ function DiaryAddFoodContent() {
         (i) =>
           i.category.toLowerCase().includes("branded") ||
           i.category.toLowerCase().includes("restoran") ||
-          !!i.brandOrSource
+          !!i.brandOrSource,
       );
     }
     return allCatalogItems;
-  }, [sourceTab, allCatalogItems, customFoods, getRecentFoods, getFrequentFoods]);
+  }, [
+    sourceTab,
+    allCatalogItems,
+    customFoods,
+    getRecentFoods,
+    getFrequentFoods,
+  ]);
 
   // Filter catalog by search query
   const filteredItems = useMemo(() => {
@@ -193,7 +197,8 @@ function DiaryAddFoodContent() {
         !query ||
         item.name.toLowerCase().includes(query) ||
         item.category.toLowerCase().includes(query) ||
-        (item.brandOrSource && item.brandOrSource.toLowerCase().includes(query));
+        (item.brandOrSource &&
+          item.brandOrSource.toLowerCase().includes(query));
 
       return matchQuery;
     });
@@ -238,10 +243,13 @@ function DiaryAddFoodContent() {
         item.id === foodId
           ? {
               ...item,
-              servingMultiplier: Math.max(0.01, Math.round(multiplier * 10000) / 10000),
+              servingMultiplier: Math.max(
+                0.01,
+                Math.round(multiplier * 10000) / 10000,
+              ),
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
@@ -257,10 +265,13 @@ function DiaryAddFoodContent() {
           item.id === foodId
             ? {
                 ...item,
-                servingMultiplier: Math.max(0.01, Math.round(parsed * 10000) / 10000),
+                servingMultiplier: Math.max(
+                  0.01,
+                  Math.round(parsed * 10000) / 10000,
+                ),
               }
-            : item
-        )
+            : item,
+        ),
       );
     }
   };
@@ -268,7 +279,7 @@ function DiaryAddFoodContent() {
   const handleCustomGramsChange = (
     foodId: string,
     rawVal: string,
-    gramsPerUnit: number
+    gramsPerUnit: number,
   ) => {
     setEditingInputs((prev) => ({
       ...prev,
@@ -283,10 +294,13 @@ function DiaryAddFoodContent() {
           item.id === foodId
             ? {
                 ...item,
-                servingMultiplier: Math.max(0.01, Math.round(mult * 10000) / 10000),
+                servingMultiplier: Math.max(
+                  0.01,
+                  Math.round(mult * 10000) / 10000,
+                ),
               }
-            : item
-        )
+            : item,
+        ),
       );
     }
   };
@@ -311,11 +325,14 @@ function DiaryAddFoodContent() {
       name: log.name,
       category: "Salinan Kemarin",
       baseCalories: Math.round(log.calories / (log.servingSize || 1)),
-      baseProteinG: Math.round((log.proteinG / (log.servingSize || 1)) * 10) / 10,
+      baseProteinG:
+        Math.round((log.proteinG / (log.servingSize || 1)) * 10) / 10,
       baseCarbsG: Math.round((log.carbsG / (log.servingSize || 1)) * 10) / 10,
       baseFatG: Math.round((log.fatG / (log.servingSize || 1)) * 10) / 10,
-      baseFiberG: Math.round(((log.fiberG ?? 0) / (log.servingSize || 1)) * 10) / 10,
-      baseSugarG: Math.round(((log.sugarG ?? 0) / (log.servingSize || 1)) * 10) / 10,
+      baseFiberG:
+        Math.round(((log.fiberG ?? 0) / (log.servingSize || 1)) * 10) / 10,
+      baseSugarG:
+        Math.round(((log.sugarG ?? 0) / (log.servingSize || 1)) * 10) / 10,
       servingMultiplier: log.servingSize || 1,
       servingUnit: log.servingUnit || "porsi",
       gramsPerUnit: 100,
@@ -324,7 +341,9 @@ function DiaryAddFoodContent() {
     setStagedItems((prev) => {
       const merged = [...prev];
       for (const item of newStaged) {
-        if (!merged.some((m) => m.name.toLowerCase() === item.name.toLowerCase())) {
+        if (
+          !merged.some((m) => m.name.toLowerCase() === item.name.toLowerCase())
+        ) {
           merged.push(item);
         }
       }
@@ -336,13 +355,22 @@ function DiaryAddFoodContent() {
   const trayTotals = useMemo(() => {
     const totals = stagedItems.reduce(
       (acc, item) => ({
-        calories: acc.calories + Math.round(item.baseCalories * item.servingMultiplier),
-        proteinG: acc.proteinG + Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
-        carbsG: acc.carbsG + Math.round(item.baseCarbsG * item.servingMultiplier * 10) / 10,
-        fatG: acc.fatG + Math.round(item.baseFatG * item.servingMultiplier * 10) / 10,
-        fiberG: acc.fiberG + Math.round(item.baseFiberG * item.servingMultiplier * 10) / 10,
+        calories:
+          acc.calories + Math.round(item.baseCalories * item.servingMultiplier),
+        proteinG:
+          acc.proteinG +
+          Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
+        carbsG:
+          acc.carbsG +
+          Math.round(item.baseCarbsG * item.servingMultiplier * 10) / 10,
+        fatG:
+          acc.fatG +
+          Math.round(item.baseFatG * item.servingMultiplier * 10) / 10,
+        fiberG:
+          acc.fiberG +
+          Math.round(item.baseFiberG * item.servingMultiplier * 10) / 10,
       }),
-      { calories: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0 }
+      { calories: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0 },
     );
 
     // Balanced plate combo detector: Protein >= 18g, Carbs >= 20g, and Fiber/Veggie presence
@@ -353,7 +381,7 @@ function DiaryAddFoodContent() {
       stagedItems.some(
         (i) =>
           i.category.toLowerCase().includes("sayur") ||
-          i.category.toLowerCase().includes("buah")
+          i.category.toLowerCase().includes("buah"),
       );
 
     const isComboBalanced = hasProtein && hasCarbs && hasFiberOrVeg;
@@ -375,7 +403,8 @@ function DiaryAddFoodContent() {
       name: item.name,
       category: item.category,
       calories: Math.round(item.baseCalories * item.servingMultiplier),
-      proteinG: Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
+      proteinG:
+        Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
       carbsG: Math.round(item.baseCarbsG * item.servingMultiplier * 10) / 10,
       fatG: Math.round(item.baseFatG * item.servingMultiplier * 10) / 10,
       fiberG: Math.round(item.baseFiberG * item.servingMultiplier * 10) / 10,
@@ -394,28 +423,34 @@ function DiaryAddFoodContent() {
 
     const logsToSave = stagedItems.map((item) => {
       const displayMult = Math.round(item.servingMultiplier * 100) / 100;
-      const totalGrams = Math.round((item.gramsPerUnit || 100) * item.servingMultiplier);
+      const totalGrams = Math.round(
+        (item.gramsPerUnit || 100) * item.servingMultiplier,
+      );
       const cleanUnit = item.servingUnit.replace(/\s*\(\d+g\)/i, "").trim();
       return {
         name: item.name,
         mealType: activeMeal,
         calories: Math.round(item.baseCalories * item.servingMultiplier),
-        proteinG: Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
+        proteinG:
+          Math.round(item.baseProteinG * item.servingMultiplier * 10) / 10,
         carbsG: Math.round(item.baseCarbsG * item.servingMultiplier * 10) / 10,
         fatG: Math.round(item.baseFatG * item.servingMultiplier * 10) / 10,
         fiberG: Math.round(item.baseFiberG * item.servingMultiplier * 10) / 10,
         sugarG: Math.round(item.baseSugarG * item.servingMultiplier * 10) / 10,
         servingSize: displayMult,
         servingUnit: `${displayMult}x ${cleanUnit} (${totalGrams}g)`,
-        loggedDate: dateParam || selectedDate || new Date().toISOString().split("T")[0],
+        loggedDate:
+          dateParam || selectedDate || new Date().toISOString().split("T")[0],
       };
     });
 
     // Persist to Supabase PostgreSQL database via Server Action
     batchLogFoodsAction(
       logsToSave,
-      dateParam || selectedDate || new Date().toISOString().split("T")[0]
-    ).catch((err) => console.warn("Supabase batchLogFoodsAction warning:", err));
+      dateParam || selectedDate || new Date().toISOString().split("T")[0],
+    ).catch((err) =>
+      console.warn("Supabase batchLogFoodsAction warning:", err),
+    );
 
     addBatchLogs(logsToSave, {
       type: result.feedbackType,
@@ -441,50 +476,50 @@ function DiaryAddFoodContent() {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6 pb-32">
+    <div className="container mx-auto max-w-5xl px-4 py-6 sm:py-8 space-y-6 pb-48 lg:pb-36">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-divider">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/diary"
-            className="p-1.5 rounded-navigation border border-border-default hover:bg-accent-green-light text-text-muted hover:text-text-primary transition-colors shrink-0"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-neutral-10 hover:text-[#244710] transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
             aria-label="Kembali ke Food Diary"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-text-primary font-heading flex items-center gap-2">
-              <UtensilsCrossed className="h-5 w-5 text-accent-green" />
-              <span>Multi-Select Staging & Pencatatan Makanan</span>
-            </h1>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-primary font-heading">
+            Catat Makanan
+          </h1>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setIsCustomModalOpen(true)}
-            className="px-3.5 py-2 rounded-button border border-border-default bg-surface hover:bg-surface-subtle text-text-primary text-xs font-bold flex items-center gap-1.5 transition-colors"
+            className="min-h-11 px-4 py-2.5 rounded-navigation border border-border-default bg-surface hover:bg-accent-green-light text-[#244710] text-sm sm:text-base font-bold flex items-center gap-2 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
           >
-            <span>+ Makanan Baru</span>
+            <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Makanan Baru</span>
           </button>
         </div>
       </div>
 
       {/* Meal Selection Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="text-xs font-semibold text-text-muted shrink-0 mr-1">
+      <div className="flex flex-wrap items-center gap-2.5 pb-1">
+        <span className="text-sm sm:text-base font-bold text-neutral-10 shrink-0 mr-1">
           Waktu Makan:
         </span>
         {MEAL_TYPES.map((m) => (
           <button
             key={m.id}
+            type="button"
             onClick={() => setActiveMeal(m.id)}
+            aria-pressed={activeMeal === m.id}
             className={cn(
-              "nav-item px-4 py-2 text-xs font-semibold whitespace-nowrap transition-colors border",
+              "min-h-11 px-4 py-2.5 rounded-navigation text-sm sm:text-base whitespace-nowrap transition-colors border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
               activeMeal === m.id
-                ? "is-selected border-accent-orange font-bold shadow-2xs"
-                : "bg-surface text-neutral-10 border-border-default"
+                ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                : "bg-surface text-neutral-10 border-border-default font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
             )}
           >
             {m.label}
@@ -494,14 +529,18 @@ function DiaryAddFoodContent() {
 
       {/* One-Tap Copy Yesterday Meal Banner */}
       {yesterdayLogs.length > 0 && (
-        <div className="p-3.5 rounded-card bg-accent-green/10 border border-accent-green/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in duration-200">
-          <div className="flex items-center gap-2.5">
-            <Copy className="h-4 w-4 text-accent-green shrink-0" />
-            <div>
-              <span className="font-bold text-text-primary">
-                Salin Menu {MEAL_TYPES.find((m) => m.id === activeMeal)?.label} Kemarin:
+        <div className="p-4 rounded-card bg-accent-green/10 border border-accent-green/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm sm:text-base animate-in fade-in duration-200">
+          <div className="flex items-start sm:items-center gap-3 min-w-0">
+            <Copy
+              className="h-5 w-5 text-[#244710] shrink-0 mt-0.5 sm:mt-0"
+              aria-hidden="true"
+            />
+            <div className="min-w-0">
+              <span className="font-bold text-[#244710]">
+                Salin Menu {MEAL_TYPES.find((m) => m.id === activeMeal)?.label}{" "}
+                Kemarin:
               </span>
-              <p className="text-[11px] text-text-muted mt-0.5">
+              <p className="text-sm text-neutral-10 mt-0.5 break-words">
                 {yesterdayLogs.map((l) => l.name).join(", ")} (
                 {yesterdayLogs.reduce((sum, l) => sum + l.calories, 0)} kcal)
               </p>
@@ -510,26 +549,29 @@ function DiaryAddFoodContent() {
           <button
             type="button"
             onClick={handleCopyYesterdayMeal}
-            className="px-3.5 py-1.5 rounded-button bg-accent-green text-text-inverse font-bold text-xs hover:opacity-90 transition-opacity shrink-0 flex items-center justify-center gap-1.5"
+            className="min-h-11 px-4 py-2.5 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] font-extrabold text-sm sm:text-base transition-colors shrink-0 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Salin ke Piring ({yesterdayLogs.length} Item)</span>
           </button>
         </div>
       )}
 
       {/* Catalog Search & Actions */}
-      <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 space-y-4 shadow-xs">
+      <div className="rounded-card border border-border-divider bg-surface p-4 sm:p-6 space-y-5 shadow-xs">
         {/* Search Bar & AI Label Scan */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div data-tour="diary-add-search" className="relative flex-1">
-            <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-10"
+              aria-hidden="true"
+            />
             <input
               type="text"
-              placeholder="Cari makanan (misal: Nasi Padang, Dada Ayam, Tempe, Gado-Gado)..."
+              placeholder="Cari makanan (misal: Nasi Padang, Dada Ayam, Tempe)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field w-full pl-10 pr-4 py-2.5 text-xs font-medium"
+              className="input-field w-full pl-11 pr-4 py-3 min-h-12 text-base font-medium"
             />
           </div>
 
@@ -537,103 +579,115 @@ function DiaryAddFoodContent() {
             type="button"
             data-tour="diary-add-scan"
             onClick={() => setIsArScannerOpen(true)}
-            className="px-4 py-2.5 rounded-button border border-accent-green bg-accent-green-light/60 hover:bg-accent-green-light text-text-primary text-xs font-black flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+            className="min-h-12 px-6 py-3 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base sm:text-lg font-extrabold flex items-center justify-center gap-2.5 shrink-0 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
           >
-            <Camera className="h-4 w-4 text-accent-green" />
-            <span>Scan Label Gizi</span>
+            <Camera className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span>Scan</span>
           </button>
         </div>
 
         {/* Quick Filter Source Tabs */}
         <div
           data-tour="diary-add-tabs"
-          className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-border-divider text-xs"
+          className="flex flex-wrap items-center gap-2 pb-3 border-b border-border-divider"
         >
           <button
+            type="button"
             onClick={() => setSourceTab("all")}
+            aria-pressed={sourceTab === "all"}
             className={cn(
-              "nav-item px-3.5 py-1.5 rounded-navigation transition-colors flex items-center gap-1.5 whitespace-nowrap",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm sm:text-base transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
               sourceTab === "all"
-                ? "is-selected font-bold"
-                : "text-neutral-10 hover:text-text-primary"
+                ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
             )}
           >
-            <Layers className="h-3.5 w-3.5" />
+            <Layers className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Semua Katalog</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setSourceTab("recent")}
+            aria-pressed={sourceTab === "recent"}
             className={cn(
-              "nav-item px-3.5 py-1.5 rounded-navigation transition-colors flex items-center gap-1.5 whitespace-nowrap",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm sm:text-base transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
               sourceTab === "recent"
-                ? "is-selected font-bold"
-                : "text-neutral-10 hover:text-text-primary"
+                ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
             )}
           >
-            <History className="h-3.5 w-3.5" />
+            <History className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Baru Dimakan</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setSourceTab("frequent")}
+            aria-pressed={sourceTab === "frequent"}
             className={cn(
-              "nav-item px-3.5 py-1.5 rounded-navigation transition-colors flex items-center gap-1.5 whitespace-nowrap",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm sm:text-base transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
               sourceTab === "frequent"
-                ? "is-selected font-bold"
-                : "text-neutral-10 hover:text-text-primary"
+                ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
             )}
           >
-            <TrendingUp className="h-3.5 w-3.5" />
+            <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Paling Sering</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setSourceTab("saved")}
+            aria-pressed={sourceTab === "saved"}
             className={cn(
-              "nav-item px-3.5 py-1.5 rounded-navigation transition-colors flex items-center gap-1.5 whitespace-nowrap",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm sm:text-base transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
               sourceTab === "saved"
-                ? "is-selected font-bold"
-                : "text-neutral-10 hover:text-text-primary"
+                ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
             )}
           >
-            <Bookmark className="h-3.5 w-3.5" />
+            <Bookmark className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Tersimpan / Resep Saya ({customFoods.length})</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setSourceTab("branded")}
+            aria-pressed={sourceTab === "branded"}
             className={cn(
-              "nav-item px-3.5 py-1.5 rounded-navigation transition-colors flex items-center gap-1.5 whitespace-nowrap",
+              "min-h-11 px-4 py-2 rounded-navigation text-sm sm:text-base transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
               sourceTab === "branded"
-                ? "is-selected font-bold"
-                : "text-neutral-10 hover:text-text-primary"
+                ? "bg-accent-orange border-accent-orange text-[#1E1204] font-extrabold"
+                : "bg-surface border-border-default text-neutral-10 font-bold hover:bg-accent-green-light hover:text-[#244710] hover:border-accent-green-light",
             )}
           >
-            <Store className="h-3.5 w-3.5" />
-            <span>Restoran & Branded</span>
+            <Store className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Restoran &amp; Branded</span>
           </button>
         </div>
 
         {/* Multi-Select Item Rows */}
         <div
           data-tour="diary-add-staging"
-          className="divide-y divide-border-divider/70 max-h-[500px] overflow-y-auto pr-1 space-y-1"
+          className="divide-y divide-border-divider/70 max-h-[540px] overflow-y-auto pr-1 space-y-2"
         >
           {filteredItems.length === 0 ? (
-            <div className="py-12 text-center text-xs text-text-muted space-y-2">
-              <p className="font-semibold text-text-primary">
+            <div className="py-12 text-center text-base text-neutral-10 space-y-3">
+              <p className="font-bold text-[#244710]">
                 Makanan tidak ditemukan di tab ini.
               </p>
-              <p>
-                Tidak menemukan menu yang dicari? Daftarkan langsung ke database pribadimu:
+              <p className="text-sm sm:text-base">
+                Tidak menemukan menu yang dicari? Daftarkan langsung ke database
+                pribadimu:
               </p>
               <button
                 type="button"
                 onClick={() => setIsCustomModalOpen(true)}
-                className="button-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs"
+                className="min-h-11 px-5 py-2.5 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] inline-flex items-center gap-2 text-sm sm:text-base font-extrabold transition-colors cursor-pointer"
               >
-                <span>+ Makanan Baru</span>
+                <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Makanan Baru</span>
               </button>
             </div>
           ) : (
@@ -646,49 +700,44 @@ function DiaryAddFoodContent() {
                 <div
                   key={food.id}
                   className={cn(
-                    "p-3 rounded-card transition-all border",
+                    "p-3.5 sm:p-5 rounded-card transition-all border",
                     isChecked
-                      ? "bg-accent-yellow/20 border-accent-orange shadow-2xs"
-                      : "border-transparent hover:bg-surface-subtle"
+                      ? "bg-accent-yellow/25 border-accent-orange"
+                      : "border-transparent hover:bg-surface-subtle",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    {/* Checkbox & Details */}
+                  {/* Top Row: Checkbox + Food Title aligned with Calories + Checkmark */}
+                  <div className="flex items-center justify-between gap-2.5 sm:gap-3">
                     <div
                       onClick={() => toggleItemInTray(food)}
-                      className="flex items-start gap-3 cursor-pointer flex-1"
+                      className="flex items-center gap-2.5 sm:gap-3.5 cursor-pointer flex-1 min-w-0"
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => {}} // Controlled by row click
-                        className="h-4 w-4 mt-0.5 rounded accent-accent-green cursor-pointer shrink-0"
+                        onChange={() => {}}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleItemInTray(food);
+                        }}
+                        aria-label={`Pilih ${food.name}`}
+                        className="h-5 w-5 rounded accent-accent-green cursor-pointer shrink-0"
                       />
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-xs font-bold text-foreground">
-                            {food.name}
-                          </p>
-                          {food.brandOrSource && (
-                            <span className="px-1.5 py-0.2 rounded bg-surface border border-border-default text-[10px] text-text-muted">
-                              {food.brandOrSource}
-                            </span>
-                          )}
-                        </div>
-                        {isChecked && (
-                          <p className="text-[11px] text-text-muted mt-0.5">
-                            Basis: 1 {food.servingUnit} • P:{" "}
-                            <span className="text-macro-protein font-semibold">{food.proteinG}g</span> | K:{" "}
-                            <span className="text-accent-orange font-semibold">{food.carbsG}g</span> | L:{" "}
-                            <span className="text-macro-fat font-semibold">{food.fatG}g</span>
-                          </p>
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <p className="text-base sm:text-lg font-extrabold text-neutral-10 leading-snug">
+                          {food.name}
+                        </p>
+                        {food.brandOrSource && (
+                          <span className="px-2.5 py-0.5 rounded-pill bg-surface border border-border-default text-xs sm:text-sm font-semibold text-neutral-10">
+                            {food.brandOrSource}
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Calories & Quick Add Button */}
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <span className="text-xs font-black text-text-primary">
+                    {/* Calories & Checkmark / Quick Add Button */}
+                    <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                      <span className="text-base sm:text-lg font-black text-[#244710] tabular-nums whitespace-nowrap">
                         {isChecked
                           ? Math.round(food.calories * currentMultiplier)
                           : food.calories}{" "}
@@ -697,40 +746,70 @@ function DiaryAddFoodContent() {
                       <button
                         type="button"
                         onClick={() => toggleItemInTray(food)}
-                        className={cn(
-                          "h-7 w-7 rounded-navigation flex items-center justify-center text-xs transition-colors",
+                        aria-label={
                           isChecked
-                            ? "bg-accent-orange text-text-inverse font-black shadow-xs"
-                            : "bg-surface-subtle border border-border-default text-text-muted hover:border-accent-green hover:text-text-primary"
+                            ? `Batalkan ${food.name}`
+                            : `Tambah ${food.name}`
+                        }
+                        aria-pressed={isChecked}
+                        className={cn(
+                          "h-11 w-11 rounded-navigation flex items-center justify-center transition-colors shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]",
+                          isChecked
+                            ? "bg-accent-orange text-[#1E1204] font-black"
+                            : "bg-surface border border-border-default text-neutral-10 hover:border-accent-green hover:bg-accent-green-light hover:text-[#244710]",
                         )}
                       >
                         {isChecked ? (
-                          <CheckCircle2 className="h-4 w-4" />
+                          <CheckCircle2
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-5 w-5" aria-hidden="true" />
                         )}
                       </button>
                     </div>
                   </div>
 
+                  {/* Explanation Appearing Below Aligned Title & Checkmark Row */}
+                  {isChecked && (
+                    <p className="text-sm sm:text-base font-medium text-neutral-10 mt-2.5 pl-8.5 leading-relaxed">
+                      Basis: 1 {food.servingUnit} • P:{" "}
+                      <span className="text-blue-700 font-bold">
+                        {food.proteinG}g
+                      </span>{" "}
+                      | K:{" "}
+                      <span className="text-amber-700 font-bold">
+                        {food.carbsG}g
+                      </span>{" "}
+                      | L:{" "}
+                      <span className="text-rose-700 font-bold">
+                        {food.fatG}g
+                      </span>
+                    </p>
+                  )}
+
                   {/* Inline Portion Expander when Checked */}
                   {isChecked && (
-                    <div className="mt-3 pt-2.5 border-t border-border-divider/60 flex flex-wrap items-center justify-between gap-3 text-xs animate-in fade-in duration-150">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-text-muted">
+                    <div className="mt-3.5 pt-3 border-t border-border-divider/60 flex flex-wrap items-center justify-between gap-3 text-sm sm:text-base animate-in fade-in duration-150">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-neutral-10">
                           Porsi:
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           {[0.5, 1, 1.5, 2].map((val) => (
                             <button
                               key={val}
                               type="button"
-                              onClick={() => updatePortionMultiplier(food.id, val)}
+                              onClick={() =>
+                                updatePortionMultiplier(food.id, val)
+                              }
                               className={cn(
-                                "px-2 py-0.5 rounded-pill text-[10px] font-bold border transition-colors",
-                                Math.round(currentMultiplier * 100) / 100 === val
-                                  ? "bg-accent-orange text-text-inverse border-accent-orange"
-                                  : "bg-surface border-border-default text-neutral-10 hover:border-accent-orange"
+                                "min-h-10 min-w-11 px-3 py-1.5 rounded-pill text-sm font-bold border transition-colors cursor-pointer",
+                                Math.round(currentMultiplier * 100) / 100 ===
+                                  val
+                                  ? "bg-accent-orange text-[#1E1204] border-accent-orange font-extrabold"
+                                  : "bg-surface border-border-default text-neutral-10 hover:border-accent-orange",
                               )}
                             >
                               {val}x
@@ -740,26 +819,28 @@ function DiaryAddFoodContent() {
                       </div>
 
                       {/* Stepper & Custom Unit / Gram Inputs */}
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2.5">
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
+                            aria-label={`Kurangi porsi ${food.name}`}
                             onClick={() =>
                               updatePortionMultiplier(
                                 food.id,
                                 currentMultiplier <= 1
                                   ? Math.max(0.5, currentMultiplier - 0.5)
-                                  : Math.floor(currentMultiplier) === currentMultiplier
+                                  : Math.floor(currentMultiplier) ===
+                                      currentMultiplier
                                     ? currentMultiplier - 1
-                                    : Math.floor(currentMultiplier)
+                                    : Math.floor(currentMultiplier),
                               )
                             }
-                            className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary shrink-0"
+                            className="h-10 w-10 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-[#244710] shrink-0 cursor-pointer"
                           >
-                            <Minus className="h-3 w-3" />
+                            <Minus className="h-4 w-4" aria-hidden="true" />
                           </button>
 
-                          <label className="h-6 px-2 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1 cursor-text">
+                          <label className="h-10 px-3 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1.5 cursor-text">
                             <input
                               type="number"
                               step="any"
@@ -768,41 +849,46 @@ function DiaryAddFoodContent() {
                               value={
                                 editingInputs[food.id]?.porsi !== undefined
                                   ? editingInputs[food.id].porsi
-                                  : String(Math.round(currentMultiplier * 100) / 100)
+                                  : String(
+                                      Math.round(currentMultiplier * 100) / 100,
+                                    )
                               }
                               onChange={(e) =>
                                 handleCustomPorsiChange(food.id, e.target.value)
                               }
                               onBlur={() => clearEditingInput(food.id)}
-                              className="w-10 text-center font-extrabold text-xs text-text-primary bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-12 text-center font-extrabold text-sm sm:text-base text-[#244710] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
-                            <span className="text-[10px] font-semibold text-text-muted">
-                              {food.servingUnit.replace(/\s*\(\d+g\)/i, "").trim()}
+                            <span className="text-sm font-semibold text-neutral-10">
+                              {food.servingUnit
+                                .replace(/\s*\(\d+g\)/i, "")
+                                .trim()}
                             </span>
                           </label>
 
                           <button
                             type="button"
+                            aria-label={`Tambah porsi ${food.name}`}
                             onClick={() =>
                               updatePortionMultiplier(
                                 food.id,
                                 currentMultiplier < 1
                                   ? 1
-                                  : Math.floor(currentMultiplier) + 1
+                                  : Math.floor(currentMultiplier) + 1,
                               )
                             }
-                            className="h-6 w-6 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-text-primary shrink-0"
+                            className="h-10 w-10 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle flex items-center justify-center text-[#244710] shrink-0 cursor-pointer"
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-4 w-4" aria-hidden="true" />
                           </button>
                         </div>
 
-                        <span className="text-[10px] text-text-muted font-medium">
+                        <span className="text-sm text-neutral-10 font-medium">
                           atau
                         </span>
 
                         {/* Direct Gram Input */}
-                        <label className="h-6 px-2 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1 cursor-text">
+                        <label className="h-10 px-3 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1.5 cursor-text">
                           <input
                             type="number"
                             step="any"
@@ -813,21 +899,22 @@ function DiaryAddFoodContent() {
                                 ? editingInputs[food.id].grams
                                 : String(
                                     Math.round(
-                                      (food.gramsPerUnit || 100) * currentMultiplier
-                                    )
+                                      (food.gramsPerUnit || 100) *
+                                        currentMultiplier,
+                                    ),
                                   )
                             }
                             onChange={(e) =>
                               handleCustomGramsChange(
                                 food.id,
                                 e.target.value,
-                                food.gramsPerUnit || 100
+                                food.gramsPerUnit || 100,
                               )
                             }
                             onBlur={() => clearEditingInput(food.id)}
-                            className="w-12 text-right font-extrabold text-xs text-text-primary bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="w-14 text-right font-extrabold text-sm sm:text-base text-[#244710] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
-                          <span className="text-[10px] font-semibold text-text-muted">
+                          <span className="text-sm font-semibold text-neutral-10">
                             g
                           </span>
                         </label>
@@ -843,88 +930,94 @@ function DiaryAddFoodContent() {
 
       {/* STICKY STAGING TRAY (FATSECRET-STYLE TRAY / BOTTOM DRAWER) */}
       {stagedItems.length > 0 && (
-        <div className="fixed bottom-14 lg:bottom-4 left-3 right-3 sm:left-6 sm:right-6 max-w-4xl mx-auto z-40">
-          <div className="rounded-card border-2 border-accent-green bg-surface/95 backdrop-blur-md shadow-2xl p-3 sm:p-4 transition-all">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="fixed bottom-24 lg:bottom-4 left-3 right-3 sm:left-6 sm:right-6 max-w-4xl mx-auto z-40">
+          <div className="rounded-card border-2 border-accent-green bg-surface/95 backdrop-blur-md shadow-2xl p-4 sm:p-5 transition-all">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5">
               {/* Tray Summary */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <button
                   type="button"
                   onClick={() => setIsTrayDrawerOpen(!isTrayDrawerOpen)}
-                  className="h-9 w-9 rounded-navigation bg-accent-green text-text-inverse flex items-center justify-center font-black shrink-0 shadow-xs hover:opacity-90"
+                  className="h-11 w-11 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] flex items-center justify-center font-black shrink-0 transition-colors cursor-pointer"
                   aria-label="Buka atau tutup piring"
                 >
                   {isTrayDrawerOpen ? (
-                    <ChevronDown className="h-5 w-5" />
+                    <ChevronDown className="h-5 w-5" aria-hidden="true" />
                   ) : (
-                    <ChevronUp className="h-5 w-5" />
+                    <ChevronUp className="h-5 w-5" aria-hidden="true" />
                   )}
                 </button>
 
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-text-primary font-heading">
-                      🍽️ Piring {MEAL_TYPES.find((m) => m.id === activeMeal)?.label}:
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm sm:text-base font-extrabold text-[#244710] font-heading">
+                      Piring{" "}
+                      {MEAL_TYPES.find((m) => m.id === activeMeal)?.label}:
                     </span>
-                    <span className="px-2 py-0.5 rounded-pill bg-accent-green/20 text-text-primary text-[10px] font-black">
+                    <span className="px-2.5 py-0.5 rounded-pill bg-accent-green/20 text-[#244710] text-xs sm:text-sm font-bold">
                       {stagedItems.length} Menu
                     </span>
                     {trayTotals.isComboBalanced && (
-                      <span className="px-2 py-0.5 rounded-pill bg-accent-yellow border border-accent-orange text-text-primary text-[10px] font-black hidden sm:inline-flex items-center gap-1">
-                        ✨ Combo Seimbang (+40% XP)
+                      <span className="px-2.5 py-0.5 rounded-pill bg-accent-yellow border border-accent-orange text-[#244710] text-xs font-bold hidden sm:inline-flex items-center gap-1">
+                        Combo Seimbang (+40% XP)
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs mt-0.5">
-                    <span className="font-extrabold text-text-primary">
+                  <div className="flex flex-wrap items-center gap-2 text-sm sm:text-base mt-0.5">
+                    <span className="font-extrabold text-[#244710]">
                       {trayTotals.calories} kcal
                     </span>
-                    <span className="text-text-muted text-[11px]">
-                      • P: {Math.round(trayTotals.proteinG)}g | K: {Math.round(trayTotals.carbsG)}g | L: {Math.round(trayTotals.fatG)}g
+                    <span className="text-neutral-10 text-sm">
+                      • P: {Math.round(trayTotals.proteinG)}g | K:{" "}
+                      {Math.round(trayTotals.carbsG)}g | L:{" "}
+                      {Math.round(trayTotals.fatG)}g
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsTrayDrawerOpen(!isTrayDrawerOpen)}
-                  className="px-3 py-2 rounded-button border border-border-default bg-surface hover:bg-surface-subtle text-xs font-bold text-text-primary transition-colors"
+                  className="min-h-12 px-3.5 sm:px-4 py-2.5 rounded-navigation border border-border-default bg-surface hover:bg-surface-subtle text-sm sm:text-base font-bold text-neutral-10 whitespace-nowrap transition-colors cursor-pointer"
                 >
-                  {isTrayDrawerOpen ? "Tutup Piring" : `Lihat Piring (${stagedItems.length})`}
+                  {isTrayDrawerOpen
+                    ? "Tutup Piring"
+                    : `Lihat Piring (${stagedItems.length})`}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleBatchCommit}
-                  className="rounded-button bg-accent-green-light hover:bg-accent-green-light/85 text-text-primary px-4 py-2 text-xs flex items-center justify-center gap-1.5 font-black shadow-none transition-colors flex-1 sm:flex-none cursor-pointer"
+                  className="min-h-12 px-4 sm:px-6 py-3 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base sm:text-lg flex items-center justify-center gap-2 font-extrabold whitespace-nowrap transition-colors flex-1 sm:flex-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#244710]"
                 >
-                  <Plus className="h-4 w-4" />
-                  <span>Catat</span>
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <span>Catat Makanan</span>
                 </button>
               </div>
             </div>
 
             {/* Expandable Tray Drawer List */}
             {isTrayDrawerOpen && (
-              <div className="mt-3 pt-3 border-t border-border-divider/80 max-h-56 overflow-y-auto space-y-2 pr-1 animate-in slide-in-from-bottom-2 duration-150">
-                <div className="flex items-center justify-between text-[11px] font-bold text-text-muted pb-1">
+              <div className="mt-3.5 pt-3.5 border-t border-border-divider/80 max-h-60 overflow-y-auto space-y-2.5 pr-1 animate-in slide-in-from-bottom-2 duration-150">
+                <div className="flex items-center justify-between text-sm font-bold text-neutral-10 pb-1">
                   <span>Daftar Menu di Piring:</span>
                   <button
                     type="button"
                     onClick={() => setStagedItems([])}
-                    className="text-destructive hover:underline"
+                    className="min-h-9 px-2 text-destructive hover:underline cursor-pointer"
                   >
                     Kosongkan Piring
                   </button>
                 </div>
 
                 {stagedItems.map((item) => {
-                  const displayMult = Math.round(item.servingMultiplier * 100) / 100;
+                  const displayMult =
+                    Math.round(item.servingMultiplier * 100) / 100;
                   const totalGrams = Math.round(
-                    (item.gramsPerUnit || 100) * item.servingMultiplier
+                    (item.gramsPerUnit || 100) * item.servingMultiplier,
                   );
                   const cleanUnit = item.servingUnit
                     .replace(/\s*\(\d+g\)/i, "")
@@ -932,21 +1025,30 @@ function DiaryAddFoodContent() {
                   return (
                     <div
                       key={item.id}
-                      className="p-2.5 rounded-input bg-surface-subtle border border-border-divider flex items-center justify-between gap-2 text-xs"
+                      className="p-3 rounded-navigation bg-surface-subtle border border-border-divider flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-sm"
                     >
-                      <div>
-                        <p className="font-bold text-text-primary">{item.name}</p>
-                        <p className="text-[10px] text-text-muted">
+                      <div className="min-w-0">
+                        <p className="font-bold text-neutral-10 text-sm sm:text-base">
+                          {item.name}
+                        </p>
+                        <p className="text-xs sm:text-sm text-neutral-10">
                           {displayMult}x {cleanUnit} ({totalGrams}g) •{" "}
-                          {Math.round(item.baseCalories * item.servingMultiplier)} kcal (P:{" "}
-                          {Math.round(item.baseProteinG * item.servingMultiplier)}g)
+                          {Math.round(
+                            item.baseCalories * item.servingMultiplier,
+                          )}{" "}
+                          kcal (P:{" "}
+                          {Math.round(
+                            item.baseProteinG * item.servingMultiplier,
+                          )}
+                          g)
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
+                            aria-label={`Kurangi porsi ${item.name}`}
                             onClick={() =>
                               updatePortionMultiplier(
                                 item.id,
@@ -955,12 +1057,12 @@ function DiaryAddFoodContent() {
                                   : Math.floor(item.servingMultiplier) ===
                                       item.servingMultiplier
                                     ? item.servingMultiplier - 1
-                                    : Math.floor(item.servingMultiplier)
+                                    : Math.floor(item.servingMultiplier),
                               )
                             }
-                            className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
+                            className="h-9 w-9 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-[#244710] cursor-pointer"
                           >
-                            <Minus className="h-2.5 w-2.5" />
+                            <Minus className="h-3.5 w-3.5" aria-hidden="true" />
                           </button>
                           <input
                             type="number"
@@ -976,25 +1078,26 @@ function DiaryAddFoodContent() {
                               handleCustomPorsiChange(item.id, e.target.value)
                             }
                             onBlur={() => clearEditingInput(item.id)}
-                            className="h-5 w-10 rounded-navigation border border-border-default bg-surface text-[11px] font-bold text-center focus:outline-none focus:border-accent-orange [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="h-9 w-12 rounded-navigation border border-border-default bg-surface text-sm font-bold text-center text-[#244710] focus:outline-none focus:border-accent-orange [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
                           <button
                             type="button"
+                            aria-label={`Tambah porsi ${item.name}`}
                             onClick={() =>
                               updatePortionMultiplier(
                                 item.id,
                                 item.servingMultiplier < 1
                                   ? 1
-                                  : Math.floor(item.servingMultiplier) + 1
+                                  : Math.floor(item.servingMultiplier) + 1,
                               )
                             }
-                            className="h-5 w-5 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-text-primary"
+                            className="h-9 w-9 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-[#244710] cursor-pointer"
                           >
-                            <Plus className="h-2.5 w-2.5" />
+                            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                           </button>
                         </div>
 
-                        <label className="h-5 px-1.5 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-0.5 cursor-text">
+                        <label className="h-9 px-2.5 rounded-navigation border border-border-default bg-surface focus-within:border-accent-orange flex items-center gap-1 cursor-text">
                           <input
                             type="number"
                             step="any"
@@ -1009,21 +1112,22 @@ function DiaryAddFoodContent() {
                               handleCustomGramsChange(
                                 item.id,
                                 e.target.value,
-                                item.gramsPerUnit || 100
+                                item.gramsPerUnit || 100,
                               )
                             }
                             onBlur={() => clearEditingInput(item.id)}
-                            className="w-10 text-right text-[11px] font-bold bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="w-12 text-right text-sm font-bold text-[#244710] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
-                          <span className="text-[10px] text-text-muted">g</span>
+                          <span className="text-sm text-neutral-10">g</span>
                         </label>
 
                         <button
                           type="button"
+                          aria-label={`Hapus ${item.name} dari piring`}
                           onClick={() => removeItemFromTray(item.id)}
-                          className="p-1 text-text-muted hover:text-destructive transition-colors"
+                          className="h-9 w-9 rounded-navigation flex items-center justify-center text-neutral-10 hover:text-destructive transition-colors cursor-pointer"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -1085,54 +1189,61 @@ function DiaryAddFoodContent() {
       {rewardResult && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="w-full max-w-md rounded-card border border-border-divider bg-surface p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="h-16 w-16 rounded-pill bg-accent-yellow border-2 border-accent-green text-text-primary flex items-center justify-center mx-auto shadow-xs text-3xl">
+            <div className="h-16 w-16 rounded-pill bg-accent-yellow border-2 border-accent-green text-[#244710] flex items-center justify-center mx-auto shadow-xs text-3xl">
               {rewardResult.isDailyJackpot
                 ? "🎰"
                 : rewardResult.isComboBalanced
-                ? "✨"
-                : "⭐"}
+                  ? "✨"
+                  : "⭐"}
             </div>
 
-            <div className="space-y-1">
-              <span className="px-3 py-1 rounded-pill text-xs font-bold uppercase tracking-wider bg-accent-green/15 text-text-primary">
+            <div className="space-y-1.5">
+              <span className="inline-block px-3 py-1 rounded-pill text-sm font-bold uppercase tracking-wider bg-accent-green/15 text-[#244710]">
                 {rewardResult.isComboBalanced
                   ? "COMBO PIRING SEIMBANG!"
                   : "REWARD GIZI DITERIMA"}
               </span>
-              <h3 className="text-xl font-black text-text-primary font-heading">
+              <h3 className="text-2xl font-black text-[#244710] font-heading">
                 {rewardResult.title}
               </h3>
-              <p className="text-xs text-text-muted max-w-sm mx-auto">
+              <p className="text-sm sm:text-base text-neutral-10 max-w-sm mx-auto">
                 {rewardResult.message}
               </p>
             </div>
 
             {/* XP & Coin Breakdown */}
-            <div className="review-card grid grid-cols-2 gap-3 p-4 border border-accent-green/25 text-xs">
+            <div className="review-card grid grid-cols-2 gap-3 p-4 border border-accent-green/25 text-sm">
               <div className="space-y-0.5">
-                <span className="text-[10px] text-neutral-10">Total XP Didapat</span>
-                <p className="text-xl font-black text-text-primary font-heading">
+                <span className="text-xs sm:text-sm font-semibold text-neutral-10">
+                  Total XP Didapat
+                </span>
+                <p className="text-2xl font-black text-[#244710] font-heading">
                   +{rewardResult.totalXp} XP
                 </p>
                 {rewardResult.bonusMultiplier > 1 && (
-                  <span className="text-[9px] font-bold text-text-primary">
+                  <span className="text-xs font-bold text-[#244710]">
                     (x{rewardResult.bonusMultiplier} Combo Multiplier)
                   </span>
                 )}
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-[10px] text-neutral-10">Total Kalori</span>
-                <p className="text-xl font-black text-accent-green font-heading flex items-center justify-center gap-1">
+                <span className="text-xs sm:text-sm font-semibold text-neutral-10">
+                  Total Kalori
+                </span>
+                <p className="text-2xl font-black text-[#244710] font-heading flex items-center justify-center gap-1">
                   +{rewardResult.totalBatchCalories}
                 </p>
-                <span className="text-[9px] text-neutral-10">Kkal Tercatat</span>
+                <span className="text-xs sm:text-sm font-semibold text-neutral-10">
+                  Kkal Tercatat
+                </span>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={handleFinishReward}
-              className="button-primary w-full py-3 text-xs font-black"
+              className="min-h-12 w-full py-3 px-6 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base font-extrabold transition-colors cursor-pointer"
             >
               Lanjut ke Food Diary
             </button>
@@ -1145,27 +1256,30 @@ function DiaryAddFoodContent() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
           <div className="w-full max-w-sm rounded-card bg-surface border-2 border-accent-green p-6 text-center space-y-4 shadow-2xl animate-in zoom-in-90 duration-300">
             <div className="text-4xl animate-bounce">🎉</div>
-            <div className="space-y-1">
-              <span className="px-3 py-1 rounded-pill text-xs font-black uppercase tracking-wider bg-accent-orange text-text-inverse">
+            <div className="space-y-1.5">
+              <span className="inline-block px-3 py-1 rounded-pill text-sm font-black uppercase tracking-wider bg-accent-orange text-[#1E1204]">
                 LEVEL UP!
               </span>
-              <h2 className="text-2xl font-black text-text-primary font-heading">
+              <h2 className="text-2xl font-black text-[#244710] font-heading">
                 Pet Naik ke Level {rewardResult.newLevel}!
               </h2>
               {rewardResult.evolvedStage && (
-                <p className="text-xs font-bold text-accent-orange-dark">
-                  ✨ Evolusi Fisik: Pet kini telah bertransformasi ke Tahap {rewardResult.newStage}!
+                <p className="text-sm font-bold text-[#244710]">
+                  Evolusi Fisik: Pet kini telah bertransformasi ke Tahap{" "}
+                  {rewardResult.newStage}!
                 </p>
               )}
             </div>
 
-            <p className="text-xs text-text-muted">
-              Piring nutrisi seimbangmu membuat Pet semakin kuat dan ceria. Terus pertahankan asupan gizi harianmu!
+            <p className="text-sm sm:text-base text-neutral-10">
+              Piring nutrisi seimbangmu membuat Pet semakin kuat dan ceria.
+              Terus pertahankan asupan gizi harianmu!
             </p>
 
             <button
+              type="button"
               onClick={handleFinishReward}
-              className="button-primary w-full py-3 text-xs font-black"
+              className="min-h-12 w-full py-3 px-6 rounded-navigation bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] text-base font-extrabold transition-colors cursor-pointer"
             >
               Hore! Lanjutkan
             </button>
@@ -1183,7 +1297,7 @@ export default function DiaryAddFoodPage() {
         <div className="container max-w-4xl mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-accent-green" />
-            <p className="text-sm font-medium text-text-muted">
+            <p className="text-base font-medium text-neutral-10">
               Memuat pencatatan makanan...
             </p>
           </div>

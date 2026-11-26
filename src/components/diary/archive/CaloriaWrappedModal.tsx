@@ -2,12 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-} from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { usePetStore } from "@/store/use-pet-store";
 import { getCharacterDefinition } from "@/lib/character-assets/catalog";
@@ -59,7 +54,9 @@ export function CaloriaWrappedModal({
         .then(() => {
           if (onViewed) onViewed(recap.id);
         })
-        .catch((err) => console.warn("[WrappedModal] Failed marking as viewed:", err));
+        .catch((err) =>
+          console.warn("[WrappedModal] Failed marking as viewed:", err),
+        );
     }
   }, [isOpen, recap, onViewed]);
 
@@ -80,7 +77,11 @@ export function CaloriaWrappedModal({
   }, [currentSlideIndex]);
 
   useEffect(() => {
-    if (!isOpen || isPaused || (currentSlideIndex >= totalSlides - 1 && progress >= 100)) {
+    if (
+      !isOpen ||
+      isPaused ||
+      (currentSlideIndex >= totalSlides - 1 && progress >= 100)
+    ) {
       return;
     }
 
@@ -131,7 +132,7 @@ export function CaloriaWrappedModal({
     : {
         ...charDef.defaultColors,
         ...Object.fromEntries(
-          Object.entries(customColors || {}).filter(([, v]) => Boolean(v))
+          Object.entries(customColors || {}).filter(([, v]) => Boolean(v)),
         ),
       };
 
@@ -196,10 +197,19 @@ export function CaloriaWrappedModal({
 
       const rawStats = storyData.rawStats;
       const statItems = [
-        { label: "KEPATUHAN KALORI", val: `${rawStats?.depkesPercentage || 0}% (${rawStats?.daysLogged || 0} hari)` },
-        { label: "RATA-RATA HARIAN", val: `${(rawStats?.averageCalories || 0).toLocaleString("id-ID")} kkal` },
+        {
+          label: "KEPATUHAN KALORI",
+          val: `${rawStats?.depkesPercentage || 0}% (${rawStats?.daysLogged || 0} hari)`,
+        },
+        {
+          label: "RATA-RATA HARIAN",
+          val: `${(rawStats?.averageCalories || 0).toLocaleString("id-ID")} kkal`,
+        },
         { label: "MENU UTAMA", val: rawStats?.topFood || "-" },
-        { label: "PROGRES PET", val: `+${rawStats?.expEarned || 150} XP • +${rawStats?.coinsGained || 50} Koin` },
+        {
+          label: "PROGRES PET",
+          val: `+${rawStats?.expEarned || 150} XP • +${rawStats?.coinsGained || 50} Koin`,
+        },
       ];
 
       let startY = 340;
@@ -299,9 +309,10 @@ export function CaloriaWrappedModal({
           </span>
 
           <button
+            type="button"
             onClick={onClose}
             aria-label="Tutup"
-            className="rounded-xl p-1 text-text-muted hover:bg-surface-subtle hover:text-text-primary transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-[12px] text-text-muted hover:bg-surface-subtle hover:text-text-primary transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -420,7 +431,9 @@ export function CaloriaWrappedModal({
                           Rata-Rata / Hari
                         </p>
                         <p className="mt-1 font-heading text-2xl font-extrabold text-text-primary">
-                          {(storyData.rawStats?.averageCalories || 0).toLocaleString("id-ID")}
+                          {(
+                            storyData.rawStats?.averageCalories || 0
+                          ).toLocaleString("id-ID")}
                           <span className="ml-1 text-xs font-bold text-text-muted">
                             kkal
                           </span>
@@ -431,7 +444,9 @@ export function CaloriaWrappedModal({
                           Total Siklus
                         </p>
                         <p className="mt-1 font-heading text-2xl font-extrabold text-text-primary">
-                          {(storyData.rawStats?.totalCalories || 0).toLocaleString("id-ID")}
+                          {(
+                            storyData.rawStats?.totalCalories || 0
+                          ).toLocaleString("id-ID")}
                           <span className="ml-1 text-xs font-bold text-text-muted">
                             kkal
                           </span>
@@ -475,14 +490,16 @@ export function CaloriaWrappedModal({
                             Menu Lainnya
                           </p>
                           <ul className="divide-y divide-border-divider/60">
-                            {storyData.rawStats.topFoods.slice(1, 3).map((food, i) => (
-                              <li
-                                key={i}
-                                className="py-1.5 text-xs font-medium text-neutral-10"
-                              >
-                                {i + 2}. {food}
-                              </li>
-                            ))}
+                            {storyData.rawStats.topFoods
+                              .slice(1, 3)
+                              .map((food, i) => (
+                                <li
+                                  key={i}
+                                  className="py-1.5 text-xs font-medium text-neutral-10"
+                                >
+                                  {i + 2}. {food}
+                                </li>
+                              ))}
                           </ul>
                         </div>
                       )}
@@ -628,7 +645,7 @@ export function CaloriaWrappedModal({
                       type="button"
                       onClick={handleExportShareCard}
                       disabled={isDownloading}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-border-default bg-surface py-2.5 px-4 text-xs font-bold text-neutral-10 hover:bg-surface-subtle transition-colors"
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-navigation border border-border-default bg-surface py-2.5 px-4 text-xs font-bold text-neutral-10 hover:bg-surface-subtle transition-colors cursor-pointer"
                     >
                       <Download className="h-3.5 w-3.5" />
                       <span>{isDownloading ? "Mengunduh..." : "Unduh"}</span>
@@ -637,7 +654,7 @@ export function CaloriaWrappedModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-green py-2.5 px-4 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90"
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-navigation bg-accent-green py-2.5 px-4 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 cursor-pointer"
                     >
                       <span>Selesai</span>
                     </button>
@@ -654,7 +671,7 @@ export function CaloriaWrappedModal({
             type="button"
             onClick={goToPrevSlide}
             disabled={currentSlideIndex === 0}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-10 disabled:opacity-30 hover:text-text-primary transition-colors"
+            className="inline-flex min-h-9 items-center gap-1 rounded-[12px] px-3 py-1.5 text-xs font-semibold text-neutral-10 disabled:opacity-30 hover:bg-surface-subtle hover:text-text-primary transition-colors cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4" />
             <span>Sebelumnya</span>
@@ -668,7 +685,7 @@ export function CaloriaWrappedModal({
             type="button"
             onClick={goToNextSlide}
             disabled={currentSlideIndex === totalSlides - 1}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-10 disabled:opacity-30 hover:text-text-primary transition-colors"
+            className="inline-flex min-h-9 items-center gap-1 rounded-[12px] px-3 py-1.5 text-xs font-semibold text-neutral-10 disabled:opacity-30 hover:bg-surface-subtle hover:text-text-primary transition-colors cursor-pointer"
           >
             <span>Selanjutnya</span>
             <ChevronRight className="h-4 w-4" />

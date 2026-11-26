@@ -10,11 +10,7 @@ import { CaloriaWrappedShelf } from "@/components/diary/archive/CaloriaWrappedSh
 import { useFoodStore } from "@/store/use-food-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useAutoTour } from "@/components/tour/useAutoTour";
-import {
-  parseDateKey,
-  getTodayKey,
-  isFuture,
-} from "@/lib/date-utils";
+import { parseDateKey, getTodayKey, isFuture } from "@/lib/date-utils";
 
 function CalendarSkeleton() {
   return (
@@ -73,7 +69,7 @@ function DiaryArchiveContent() {
           <Link
             href="/diary"
             aria-label="Kembali ke Food Diary"
-            className="shrink-0 rounded-xl border border-border-default p-1.5 text-text-muted transition-colors hover:bg-accent-green-light hover:text-text-primary"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-navigation border border-border-default text-text-muted transition-colors hover:bg-accent-green-light hover:text-text-primary"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
@@ -84,7 +80,7 @@ function DiaryArchiveContent() {
 
         <Link
           href="/diary/add"
-          className="inline-flex items-center gap-2 rounded-xl bg-accent-green px-4 py-2 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90"
+          className="inline-flex min-h-10 items-center gap-2 rounded-navigation bg-accent-green px-4 py-2 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           <span>Catat Makanan</span>
@@ -107,7 +103,10 @@ function DiaryArchiveContent() {
           />
         </div>
 
-        <div data-tour="diary-archive-detail" className="lg:col-span-5 sticky top-20">
+        <div
+          data-tour="diary-archive-detail"
+          className="lg:col-span-5 sticky top-20"
+        >
           <DailyArchiveDetail
             selectedDate={activeDate}
             onSelectDate={handleSelectDate}

@@ -27,6 +27,20 @@ import { DailyNutritionSummary, DailyComplianceStatus } from "@/types";
 import { fetchUserArchiveSummariesAction } from "@/app/actions/diary";
 import { cn } from "@/lib/utils";
 
+interface ArchiveCalendarSummary {
+  totalCalories?: number;
+  calorieTarget?: number;
+  isCalorieTargetMet?: boolean;
+  totalProtein?: number;
+  totalCarbs?: number;
+  totalFat?: number;
+  proteinTarget?: number;
+  carbsTarget?: number;
+  fatTarget?: number;
+  isMacroBalanced?: boolean;
+  baseXpTotal?: number;
+}
+
 interface CalendarGridProps {
   selectedDate: string;
   onSelectDate: (dateKey: string) => void;
@@ -42,13 +56,15 @@ export function CalendarGrid({
 }: CalendarGridProps) {
   const { getDailySummary } = useFoodStore();
   const { lastFreezeUsedDate, lastRestDayDate } = useSocialStore();
-  const [statusFilter, setStatusFilter] = useState<DailyComplianceStatus | null>(null);
+  const [statusFilter, setStatusFilter] =
+    useState<DailyComplianceStatus | null>(null);
 
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
   const now = new Date();
   const isViewingCurrentOrFutureMonth =
-    year > now.getFullYear() || (year === now.getFullYear() && month >= now.getMonth());
+    year > now.getFullYear() ||
+    (year === now.getFullYear() && month >= now.getMonth());
 
   const toggleStatusFilter = (targetStatus: DailyComplianceStatus) => {
     setStatusFilter((prev) => (prev === targetStatus ? null : targetStatus));
@@ -58,7 +74,9 @@ export function CalendarGrid({
     return getDaysInMonth(year, month);
   }, [year, month]);
 
-  const [serverSummaries, setServerSummaries] = useState<Record<string, any>>({});
+  const [serverSummaries, setServerSummaries] = useState<
+    Record<string, ArchiveCalendarSummary>
+  >({});
 
   useEffect(() => {
     let isCancelled = false;
@@ -69,12 +87,17 @@ export function CalendarGrid({
     fetchUserArchiveSummariesAction(start, end)
       .then((res) => {
         if (!isCancelled && res.success && res.data) {
-          setServerSummaries(res.data);
+          setServerSummaries(
+            res.data as Record<string, ArchiveCalendarSummary>,
+          );
         }
       })
       .catch((err) => {
         if (!isCancelled) {
-          console.warn("[CalendarGrid] fetchUserArchiveSummariesAction failed:", err);
+          console.warn(
+            "[CalendarGrid] fetchUserArchiveSummariesAction failed:",
+            err,
+          );
         }
       });
 
@@ -98,8 +121,8 @@ export function CalendarGrid({
         const status: DailyComplianceStatus = s.isCalorieTargetMet
           ? "hit"
           : cal < target * 0.85
-          ? "under"
-          : "over";
+            ? "under"
+            : "over";
 
         map.set(cell.dateKey, {
           date: cell.dateKey,
@@ -202,8 +225,9 @@ export function CalendarGrid({
 
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
+            type="button"
             onClick={handleJumpToToday}
-            className="px-3 py-1.5 rounded-navigation border border-border-default bg-surface-subtle hover:bg-accent-green-light text-text-primary text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5"
+            className="min-h-10 px-3.5 py-2 rounded-navigation border border-border-default bg-surface-subtle hover:bg-accent-green-light text-text-primary text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
             title="Lompat ke Hari Ini"
           >
             <Sparkles className="h-3.5 w-3.5 text-accent-green" />
@@ -212,17 +236,19 @@ export function CalendarGrid({
 
           <div className="flex items-center gap-1 bg-surface-subtle border border-border-divider rounded-navigation p-1">
             <button
+              type="button"
               onClick={handlePrevMonth}
               aria-label="Bulan Sebelumnya"
-              className="p-1.5 rounded-input hover:bg-surface text-text-muted hover:text-text-primary transition-colors active:scale-95"
+              className="flex h-8 w-8 items-center justify-center rounded-[10px] hover:bg-surface text-text-muted hover:text-text-primary transition-colors active:scale-95 cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
+              type="button"
               onClick={handleNextMonth}
               disabled={isViewingCurrentOrFutureMonth}
               aria-label="Bulan Berikutnya"
-              className="p-1.5 rounded-input hover:bg-surface text-text-muted hover:text-text-primary transition-colors active:scale-95 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:active:scale-100"
+              className="flex h-8 w-8 items-center justify-center rounded-[10px] hover:bg-surface text-text-muted hover:text-text-primary transition-colors active:scale-95 cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:active:scale-100"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -239,7 +265,7 @@ export function CalendarGrid({
               key={day}
               className={cn(
                 "py-1.5 text-sm sm:text-base font-bold uppercase tracking-wider rounded-input font-heading",
-                isWeekend ? "text-accent-orange-dark/80" : "text-text-muted"
+                isWeekend ? "text-accent-orange-dark/80" : "text-text-muted",
               )}
             >
               {day}
@@ -269,11 +295,14 @@ export function CalendarGrid({
           return (
             <button
               key={cell.dateKey}
+              type="button"
               onClick={() => !isCellFuture && onSelectDate(cell.dateKey)}
               disabled={isCellFuture}
               aria-pressed={isSelected}
               aria-label={`${formatDateDisplay(cell.dateKey, "full")}${
-                hasLogs ? `, ${summary?.consumed.calories} kalori` : ", Belum dicatat"
+                hasLogs
+                  ? `, ${summary?.consumed.calories} kalori`
+                  : ", Belum dicatat"
               }`}
               className={cn(
                 "relative group flex flex-col justify-between p-1.5 sm:p-2 min-h-[64px] sm:min-h-[82px] rounded-2xl border text-left transition-all duration-150 select-none",
@@ -282,7 +311,8 @@ export function CalendarGrid({
                   ? "bg-surface text-foreground"
                   : "bg-surface-subtle/50 text-text-muted/60 opacity-60",
                 // Future vs selectable
-                isCellFuture && "opacity-40 cursor-not-allowed bg-surface-subtle/40",
+                isCellFuture &&
+                  "opacity-40 cursor-not-allowed bg-surface-subtle/40",
                 !isCellFuture &&
                   "hover:border-accent-green/50 hover:scale-[1.02] active:translate-y-[2px] cursor-pointer",
                 // Dimmed when legend filter is active
@@ -292,7 +322,9 @@ export function CalendarGrid({
                   ? "border-2 border-[#FF9233] bg-[#FCF8E3] shadow-xs ring-2 ring-[#FF9233]/25 z-10"
                   : "border-border-divider",
                 // Today indicator subtle outline if not selected
-                isCellToday && !isSelected && "ring-2 ring-accent-green/50 border-accent-green"
+                isCellToday &&
+                  !isSelected &&
+                  "ring-2 ring-accent-green/50 border-accent-green",
               )}
             >
               {/* Top Row: Day Number + Today / XP / Protection Badge */}
@@ -303,8 +335,8 @@ export function CalendarGrid({
                     isCellToday
                       ? "flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-pill bg-accent-green text-text-inverse shadow-xs"
                       : isSelected
-                      ? "text-accent-orange-dark font-extrabold"
-                      : "text-foreground"
+                        ? "text-accent-orange-dark font-extrabold"
+                        : "text-foreground",
                   )}
                 >
                   {cell.dayNumber}
@@ -345,7 +377,9 @@ export function CalendarGrid({
                   <>
                     <span className="hidden sm:block text-[11px] font-extrabold text-text-primary tracking-tight truncate">
                       {summary?.consumed.calories}{" "}
-                      <span className="text-[9px] font-normal text-text-muted">kcal</span>
+                      <span className="text-[9px] font-normal text-text-muted">
+                        kcal
+                      </span>
                     </span>
                     <div className="h-1 w-full rounded-full bg-border-divider/60 overflow-hidden">
                       <div
@@ -353,7 +387,7 @@ export function CalendarGrid({
                           "h-full rounded-full transition-all",
                           status === "hit" && "bg-[#5B8E55]",
                           status === "under" && "bg-[#F59E0B]",
-                          status === "over" && "bg-[#F43F5E]"
+                          status === "over" && "bg-[#F43F5E]",
                         )}
                         style={{ width: `${calorieBarWidth}%` }}
                       />
@@ -374,19 +408,20 @@ export function CalendarGrid({
                     <span
                       className={cn(
                         "inline-block w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full transition-transform",
-                        status === "hit" && "bg-[#5B8E55] ring-2 ring-[#5B8E55]/30",
+                        status === "hit" &&
+                          "bg-[#5B8E55] ring-2 ring-[#5B8E55]/30",
                         status === "under" && "bg-[#F59E0B]",
                         status === "over" && "bg-[#F43F5E]",
-                        status === "empty" && "bg-neutral-7/40"
+                        status === "empty" && "bg-neutral-7/40",
                       )}
                       title={
                         status === "hit"
                           ? "Target Kalori Tercapai"
                           : status === "under"
-                          ? "Di Bawah Target Kalori"
-                          : status === "over"
-                          ? "Melebihi Target Kalori"
-                          : "Belum Ada Catatan"
+                            ? "Di Bawah Target Kalori"
+                            : status === "over"
+                              ? "Melebihi Target Kalori"
+                              : "Belum Ada Catatan"
                       }
                     />
 
@@ -398,7 +433,7 @@ export function CalendarGrid({
                             "w-2 h-2 rounded-full",
                             summary?.macroStatus.protein === "hit"
                               ? "bg-[#10B981]"
-                              : "bg-[#10B981]/40"
+                              : "bg-[#10B981]/40",
                           )}
                           title="Protein"
                         />
@@ -407,7 +442,7 @@ export function CalendarGrid({
                             "w-2 h-2 rounded-full",
                             summary?.macroStatus.carbs === "hit"
                               ? "bg-[#38BDF8]"
-                              : "bg-[#38BDF8]/40"
+                              : "bg-[#38BDF8]/40",
                           )}
                           title="Karbohidrat"
                         />
@@ -416,7 +451,7 @@ export function CalendarGrid({
                             "w-2 h-2 rounded-full",
                             summary?.macroStatus.fat === "hit"
                               ? "bg-[#F43F5E]"
-                              : "bg-[#F43F5E]/40"
+                              : "bg-[#F43F5E]/40",
                           )}
                           title="Lemak"
                         />
@@ -476,13 +511,18 @@ export function CalendarGrid({
                 aria-pressed={isActive}
                 title={`Sorot hari dengan status: ${item.label}`}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-pill px-2 py-0.5 border transition-colors cursor-pointer",
+                  "flex items-center gap-1.5 rounded-[10px] px-2.5 py-1 border transition-colors cursor-pointer",
                   isActive
                     ? "bg-accent-green/15 border-accent-green text-text-primary"
-                    : "border-transparent hover:bg-surface-subtle"
+                    : "border-transparent hover:bg-surface-subtle",
                 )}
               >
-                <span className={cn("w-2.5 h-2.5 rounded-full inline-block", item.dotClass)} />
+                <span
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full inline-block",
+                    item.dotClass,
+                  )}
+                />
                 <span>{item.label}</span>
               </button>
             );
@@ -501,7 +541,10 @@ export function CalendarGrid({
               Hari Tercatat
             </span>
             <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
-              {monthStats.daysLogged} <span className="text-xs font-semibold text-text-primary">Hari</span>
+              {monthStats.daysLogged}{" "}
+              <span className="text-xs font-semibold text-text-primary">
+                Hari
+              </span>
             </p>
           </div>
 
@@ -511,7 +554,9 @@ export function CalendarGrid({
             </span>
             <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
               {monthStats.daysHit}{" "}
-              <span className="text-xs font-semibold text-text-primary">Hari</span>
+              <span className="text-xs font-semibold text-text-primary">
+                Hari
+              </span>
               {monthStats.daysLogged > 0 && (
                 <span className="ml-1 text-xs font-bold text-[#5B8E55]">
                   ({monthStats.complianceRate}%)
@@ -526,7 +571,9 @@ export function CalendarGrid({
             </span>
             <p className="text-base font-extrabold text-text-primary font-heading mt-0.5">
               {monthStats.avgCalories}{" "}
-              <span className="text-xs font-semibold text-text-primary">kcal</span>
+              <span className="text-xs font-semibold text-text-primary">
+                kcal
+              </span>
             </p>
           </div>
 
