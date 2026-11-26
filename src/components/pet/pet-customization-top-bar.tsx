@@ -70,16 +70,16 @@ export function PetCustomizationTopBar() {
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         {/* Currency Display (Squircle) */}
         <div
-          className="inline-flex h-11 items-center gap-2 rounded-navigation border border-border-default bg-accent-yellow px-4 text-sm font-extrabold text-[#244710] transition-colors"
+          className="inline-flex h-11 items-center gap-2 rounded-navigation border border-border-default bg-accent-yellow px-4 text-base font-extrabold text-[#244710] transition-colors"
           title="Saldo Caloria Coins"
           aria-label={`Saldo Caloria Coins: ${coins} Koin`}
         >
           <CircleDollarSign
-            className="h-5 w-5 text-accent-orange shrink-0"
+            className="h-6 w-6 text-accent-orange shrink-0"
             aria-hidden="true"
           />
           <span suppressHydrationWarning className="tabular-nums">
-            {coins} Koin
+            {coins}
           </span>
         </div>
 
@@ -90,6 +90,10 @@ export function PetCustomizationTopBar() {
         <SegmentedToggle
           options={TOGGLES}
           label="Navigasi Kustomisasi Calpal"
+          className="h-11 gap-0 overflow-hidden p-0 shadow-none"
+          optionClassName="h-full rounded-navigation px-3.5 sm:px-4 py-0 text-sm"
+          activeOptionClassName="bg-accent-green-light text-text-primary shadow-none"
+          iconClassName="h-4 w-4"
         />
       </div>
     </header>

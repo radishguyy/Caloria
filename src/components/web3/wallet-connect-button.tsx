@@ -45,8 +45,7 @@ export function WalletConnectButton({ className }: { className?: string }) {
   const isWrongChain = isConnected && chainId !== TARGET_CHAIN.id;
   const isLinkedMatch =
     Boolean(linkedAddress) &&
-    (!isConnected ||
-      linkedAddress?.toLowerCase() === address?.toLowerCase());
+    (!isConnected || linkedAddress?.toLowerCase() === address?.toLowerCase());
 
   const isBusy = isConnecting || isSigning || isSwitching || isLinking;
 
@@ -86,7 +85,9 @@ export function WalletConnectButton({ className }: { className?: string }) {
       } else if (msg.includes("rejected")) {
         toast.error("Koneksi wallet dibatalkan.");
       } else {
-        toast.error("Gagal menghubungkan wallet. Pastikan ekstensi wallet sudah dibuka.");
+        toast.error(
+          "Gagal menghubungkan wallet. Pastikan ekstensi wallet sudah dibuka.",
+        );
       }
     }
   };
@@ -161,7 +162,7 @@ export function WalletConnectButton({ className }: { className?: string }) {
     return (
       <div
         className={cn(
-          "inline-flex h-10 w-36 items-center justify-center rounded-navigation border border-border-default bg-surface px-3.5 text-xs font-bold text-text-muted",
+          "inline-flex h-11 w-36 items-center justify-center rounded-navigation border border-accent-green/40 bg-accent-green-light px-4 text-xs sm:text-sm font-bold text-text-primary opacity-75",
           className,
         )}
       >
@@ -180,7 +181,7 @@ export function WalletConnectButton({ className }: { className?: string }) {
             type="button"
             onClick={handleSwitchNetwork}
             disabled={isBusy}
-            className="inline-flex h-10 items-center gap-1.5 rounded-navigation border border-accent-orange/40 bg-accent-orange/10 px-3 text-xs font-bold text-accent-orange transition-colors hover:bg-accent-orange/20"
+            className="inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-navigation border border-accent-orange/40 bg-accent-orange/10 px-3.5 text-xs font-bold text-accent-orange transition-colors hover:bg-accent-orange/20 disabled:pointer-events-none disabled:opacity-50"
             title={`Beralih ke ${TARGET_CHAIN.name}`}
           >
             {isBusy ? (
@@ -198,15 +199,18 @@ export function WalletConnectButton({ className }: { className?: string }) {
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-10 items-center gap-2 rounded-navigation border border-accent-green/40 bg-accent-green/10 px-3.5 text-xs font-bold text-text-primary shadow-2xs transition-colors hover:bg-accent-green/20"
+            className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-navigation border border-accent-green/40 bg-accent-green-light px-4 text-xs sm:text-sm font-bold text-text-primary transition-colors hover:bg-[color-mix(in_srgb,var(--color-accent-green-light)_88%,var(--color-accent-green))]"
             title="Wallet terverifikasi di Base Sepolia"
           >
             <CheckCircle2
-              className="h-4 w-4 shrink-0 text-accent-green"
+              className="h-4 w-4 shrink-0 text-text-primary"
               aria-hidden="true"
             />
             <span className="font-mono">{shortenAddress(linkedAddress)}</span>
-            <ExternalLink className="h-3 w-3 opacity-60" aria-hidden="true" />
+            <ExternalLink
+              className="h-3.5 w-3.5 opacity-70"
+              aria-hidden="true"
+            />
           </a>
         )}
 
@@ -214,7 +218,7 @@ export function WalletConnectButton({ className }: { className?: string }) {
           type="button"
           onClick={handleUnlink}
           disabled={isBusy}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-navigation border border-border-default bg-surface text-text-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+          className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-navigation border border-border-default bg-surface text-text-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
           title="Putuskan tautan wallet"
           aria-label="Putuskan tautan wallet"
         >
@@ -237,7 +241,7 @@ export function WalletConnectButton({ className }: { className?: string }) {
           onClick={handleSwitchNetwork}
           disabled={isBusy}
           className={cn(
-            "inline-flex h-10 items-center gap-2 rounded-navigation border border-accent-orange/40 bg-accent-orange/15 px-3.5 text-xs font-bold text-accent-orange shadow-2xs transition-colors hover:bg-accent-orange/25",
+            "inline-flex h-11 cursor-pointer items-center gap-2 rounded-navigation border border-accent-orange/40 bg-accent-orange/15 px-4 text-xs sm:text-sm font-bold text-accent-orange transition-colors hover:bg-accent-orange/25 disabled:pointer-events-none disabled:opacity-50",
             className,
           )}
         >
@@ -257,11 +261,12 @@ export function WalletConnectButton({ className }: { className?: string }) {
         onClick={
           isAuthenticated
             ? handleVerifyAndLink
-            : () => toast.error("Login akun Caloria dulu untuk menautkan wallet.")
+            : () =>
+                toast.error("Login akun Caloria dulu untuk menautkan wallet.")
         }
         disabled={isBusy}
         className={cn(
-          "inline-flex h-10 items-center gap-2 rounded-navigation border border-accent-green bg-accent-green-light px-3.5 text-xs font-bold text-text-primary shadow-2xs transition-colors hover:bg-accent-green hover:text-text-inverse",
+          "inline-flex h-11 cursor-pointer items-center gap-2 rounded-navigation border border-accent-green/40 bg-accent-green-light px-4 text-xs sm:text-sm font-bold text-text-primary transition-colors hover:bg-[color-mix(in_srgb,var(--color-accent-green-light)_88%,var(--color-accent-green))] disabled:pointer-events-none disabled:opacity-50",
           className,
         )}
         title="Gratis — tanda tangan pesan tanpa gas fee"
@@ -283,7 +288,7 @@ export function WalletConnectButton({ className }: { className?: string }) {
       onClick={handleConnect}
       disabled={isBusy}
       className={cn(
-        "inline-flex h-10 items-center gap-2 rounded-navigation border border-border-default bg-surface px-3.5 text-xs sm:text-sm font-bold text-text-primary shadow-2xs transition-colors hover:bg-accent-green-light",
+        "inline-flex h-11 cursor-pointer items-center gap-2 rounded-navigation border border-accent-green/40 bg-accent-green-light px-4 text-xs sm:text-sm font-bold text-text-primary transition-colors hover:bg-[color-mix(in_srgb,var(--color-accent-green-light)_88%,var(--color-accent-green))] disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
     >

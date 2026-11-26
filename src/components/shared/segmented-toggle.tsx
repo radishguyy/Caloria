@@ -16,6 +16,8 @@ interface SegmentedToggleProps {
   label: string;
   className?: string;
   optionClassName?: string;
+  activeOptionClassName?: string;
+  iconClassName?: string;
 }
 
 /**
@@ -27,6 +29,8 @@ export function SegmentedToggle({
   label,
   className,
   optionClassName,
+  activeOptionClassName,
+  iconClassName,
 }: SegmentedToggleProps) {
   const pathname = usePathname();
 
@@ -49,12 +53,18 @@ export function SegmentedToggle({
             className={cn(
               "inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-1.5 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-ink",
               isActive
-                ? "bg-accent-green text-text-inverse shadow-2xs"
-                : "text-neutral-10 hover:bg-surface hover:text-text-primary",
+                ? cn(
+                    "bg-accent-green text-text-inverse shadow-2xs",
+                    activeOptionClassName,
+                  )
+                : "cursor-pointer text-neutral-10 hover:bg-accent-green-light/50 hover:text-text-primary",
               optionClassName,
             )}
           >
-            <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <Icon
+              className={cn("h-3.5 w-3.5 shrink-0", iconClassName)}
+              aria-hidden="true"
+            />
             <span className="whitespace-nowrap">{optionLabel}</span>
           </Link>
         );

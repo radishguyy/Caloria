@@ -13,6 +13,8 @@ import {
   Loader2,
   ShieldCheck,
   ShieldMinus,
+  Snowflake,
+  Moon,
   ExternalLink,
   ChevronDown,
   ChevronUp,
@@ -317,6 +319,8 @@ export default function PetShopPage() {
     {
       key: "freeze" as const,
       name: "Pembeku Streak",
+      icon: Snowflake,
+      iconClassName: "text-sky-500",
       description: "Menjaga streak tetap menyala saat lupa mencatat",
       count: streakFreezes,
       maxCount: STREAK_RULES.MAX_FREEZE_COUNT,
@@ -326,6 +330,8 @@ export default function PetShopPage() {
     {
       key: "rest" as const,
       name: "Kupon Jeda",
+      icon: Moon,
+      iconClassName: "text-indigo-600",
       description: "Jadwalkan hari istirahat tanpa kehilangan streak-mu",
       count: restPasses,
       maxCount: STREAK_RULES.MAX_REST_PASS_COUNT,
@@ -389,6 +395,7 @@ export default function PetShopPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {powerUpItems.map((powerUp) => {
+            const PowerUpIcon = powerUp.icon;
             const isExpanded = expandedPowerUps[powerUp.key];
             const isMaxed = powerUp.count >= powerUp.maxCount;
             const isBuying = buyingPowerUp === powerUp.key;
@@ -401,8 +408,15 @@ export default function PetShopPage() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center flex-wrap gap-2 min-w-0">
-                    <p className="text-base sm:text-lg font-extrabold text-text-primary leading-snug">
-                      {powerUp.name}
+                    <p className="inline-flex items-center gap-2 text-base sm:text-lg font-extrabold text-text-primary leading-snug">
+                      <PowerUpIcon
+                        className={cn(
+                          "h-4 w-4 sm:h-5 sm:w-5 shrink-0",
+                          powerUp.iconClassName,
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span>{powerUp.name}</span>
                     </p>
                     <span className="inline-flex items-center rounded-pill border border-border-default bg-surface px-2.5 py-0.5 text-xs font-bold text-neutral-10 tabular-nums">
                       {powerUp.count}/{powerUp.maxCount}
@@ -433,7 +447,7 @@ export default function PetShopPage() {
                     disabled={
                       buyingPowerUp !== null || isMaxed || coins < powerUp.price
                     }
-                    className="button-primary inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs shrink-0"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-button bg-accent-green-light px-3.5 py-2 text-xs font-bold text-text-primary transition-colors hover:bg-[color-mix(in_srgb,var(--color-accent-green-light)_88%,var(--color-accent-green))] disabled:cursor-not-allowed disabled:opacity-55 shrink-0"
                   >
                     {isBuying ? (
                       <Loader2
@@ -619,9 +633,9 @@ export default function PetShopPage() {
                     type="button"
                     onClick={() => setConfirmModalItem(item)}
                     className={cn(
-                      "w-full py-2.5 px-4 rounded-button font-bold text-sm transition-all flex items-center justify-center gap-1.5",
+                      "w-full py-2.5 px-4 rounded-button font-bold text-sm transition-colors flex items-center justify-center gap-1.5",
                       canAfford
-                        ? "button-primary"
+                        ? "bg-accent-green-light text-text-primary hover:bg-[color-mix(in_srgb,var(--color-accent-green-light)_88%,var(--color-accent-green))]"
                         : "bg-surface-subtle border border-border-default text-text-muted hover:bg-surface hover:text-text-primary",
                     )}
                   >
