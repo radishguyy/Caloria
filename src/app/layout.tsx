@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/shared/session-provider";
 import { Navbar } from "@/components/shared/navbar";
 import { BottomNav } from "@/components/shared/bottom-nav";
+import { FloatingConsultButton } from "@/components/shared/floating-consult-button";
 import { NotificationDrawer } from "@/components/shared/notification-drawer";
 import { Web3Provider } from "@/components/shared/web3-provider";
 import { AppToaster } from "@/components/shared/app-toaster";
@@ -14,7 +15,11 @@ const openRunde = localFont({
   src: [
     { path: "./fonts/OpenRunde-Regular.woff2", weight: "400", style: "normal" },
     { path: "./fonts/OpenRunde-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/OpenRunde-Semibold.woff2", weight: "600", style: "normal" },
+    {
+      path: "./fonts/OpenRunde-Semibold.woff2",
+      weight: "600",
+      style: "normal",
+    },
     { path: "./fonts/OpenRunde-Bold.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-open-runde",
@@ -57,6 +62,7 @@ export default function RootLayout({
               <Navbar />
               <main className="flex-1 pb-24 lg:pb-12">{children}</main>
               <BottomNav />
+              <FloatingConsultButton />
               <NotificationDrawer />
               <AppToaster />
               <CursorEffects />
