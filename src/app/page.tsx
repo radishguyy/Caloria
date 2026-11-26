@@ -13,17 +13,26 @@ import {
   BarChart3,
   MessageSquare,
   ShieldMinus,
+  Sparkles,
+  CalendarDays,
+  History,
+  ShieldCheck,
+  RefreshCw,
 } from "lucide-react";
 import { AvatarRenderer } from "@/components/pet/avatar-renderer";
 import { CalpalShowcase } from "@/components/landing/CalpalShowcase";
 import {
   AnimateSection,
+  AnimateStagger,
+  AnimateItem,
   FloatCharacter,
 } from "@/components/landing/AnimateSection";
 import { CoopStreakIllustration } from "@/components/landing/CoopStreakIllustration";
 import { GoalPathIllustration } from "@/components/landing/GoalPathIllustration";
 import { AiFeaturesIllustration } from "@/components/landing/AiFeaturesIllustration";
 import { DuolingoJourneyMap } from "@/components/landing/DuolingoJourneyMap";
+import { WrappedArchiveIllustration } from "@/components/landing/WrappedArchiveIllustration";
+import { Web3MintIllustration } from "@/components/landing/Web3MintIllustration";
 import {
   HERO_CLUSTER,
   type CalpalVariant,
@@ -124,6 +133,42 @@ const COOP_FEATURES = [
   },
 ];
 
+const WRAPPED_ARCHIVE_FEATURES = [
+  {
+    icon: Sparkles,
+    title: "Caloria Wrapped",
+    desc: "Rekap otomatis mingguan berisi 5 slide animasi yang bisa diputar ulang dan diunduh.",
+    iconBg: "bg-accent-green text-text-inverse",
+  },
+  {
+    icon: CalendarDays,
+    title: "Kalender Kepatuhan",
+    desc: "Pantau konsistensi target kalori, Pembeku Streak, dan Kupon Jeda dalam satu tampilan bulan.",
+    iconBg: "bg-accent-green-light text-text-primary",
+  },
+  {
+    icon: History,
+    title: "Riwayat Menu Harian",
+    desc: "Klik tanggal mana saja untuk melihat kembali detail asupan dan makro harianmu.",
+    iconBg: "bg-accent-orange text-text-inverse",
+  },
+];
+
+const WEB3_NFT_FEATURES = [
+  {
+    icon: ShieldCheck,
+    title: "Mint dari Wardrobe",
+    desc: "Cetak Calpal milikmu langsung ke blockchain Base kapan pun kamu siap.",
+    iconBg: "bg-accent-green/15 text-text-primary",
+  },
+  {
+    icon: RefreshCw,
+    title: "Metadata Dinamis",
+    desc: "Progres evolusi dan level Calpal dapat disinkronkan langsung ke metadata NFT (EIP-4906).",
+    iconBg: "bg-accent-orange/15 text-accent-orange",
+  },
+];
+
 const SAMPLE = calculateClinicalBenchmarks({
   gender: "male",
   age: 20,
@@ -193,7 +238,10 @@ export default function LandingPage() {
           </header>
 
           <div className="grid items-center gap-10 py-10 md:grid-cols-2 md:py-20">
-            <div className="relative mx-auto aspect-square w-full max-w-[340px] sm:max-w-[420px] min-w-0 order-2 md:order-1">
+            <AnimateSection
+              delay={0.08}
+              className="relative mx-auto aspect-square w-full max-w-[340px] sm:max-w-[420px] min-w-0 order-2 md:order-1"
+            >
               <div className="absolute inset-[8%] rounded-full border border-border-divider bg-surface-subtle" />
               <div className="absolute inset-[22%] rounded-full bg-accent-green/10" />
 
@@ -240,7 +288,7 @@ export default function LandingPage() {
               >
                 <Calpal v={c4} />
               </FloatCharacter>
-            </div>
+            </AnimateSection>
 
             <AnimateSection className="min-w-0 space-y-6 text-center md:text-left order-1 md:order-2">
               <h1 className="font-heading text-4xl font-extrabold leading-[1.15] tracking-tight text-text-primary sm:text-5xl">
@@ -350,31 +398,30 @@ export default function LandingPage() {
                   gizimu kapan saja.
                 </p>
 
-                <div className="space-y-3 text-left max-w-md mx-auto lg:mx-0">
+                <AnimateStagger className="space-y-3 text-left max-w-md mx-auto lg:mx-0">
                   {SMART_FEATURES.map((feat) => {
                     const FeatIcon = feat.icon;
                     return (
-                      <div
-                        key={feat.title}
-                        className="flex items-start gap-3.5 rounded-2xl border border-border-divider bg-surface-subtle p-4"
-                      >
-                        <div
-                          className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${feat.iconBg}`}
-                        >
-                          <FeatIcon className="h-5 w-5" aria-hidden="true" />
+                      <AnimateItem key={feat.title}>
+                        <div className="flex items-start gap-3.5 rounded-2xl border border-border-divider bg-surface-subtle p-4">
+                          <div
+                            className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${feat.iconBg}`}
+                          >
+                            <FeatIcon className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                          <div className="min-w-0 space-y-0.5">
+                            <h3 className="text-sm sm:text-base font-bold text-text-primary">
+                              {feat.title}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-neutral-10 leading-relaxed">
+                              {feat.desc}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 space-y-0.5">
-                          <h3 className="text-sm sm:text-base font-bold text-text-primary">
-                            {feat.title}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-neutral-10 leading-relaxed">
-                            {feat.desc}
-                          </p>
-                        </div>
-                      </div>
+                      </AnimateItem>
                     );
                   })}
-                </div>
+                </AnimateStagger>
               </AnimateSection>
             </div>
 
@@ -387,7 +434,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. Co-op Streak & Power-Up */}
+      {/* 5. Caloria Wrapped & Kalender Arsip Nutrisi */}
+      <section className="py-16 sm:py-20 bg-white overflow-hidden">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-12">
+            <div className="min-w-0 lg:col-span-6 space-y-5 text-center lg:text-left">
+              <AnimateSection className="space-y-5">
+                <h2 className="font-heading text-3xl font-extrabold leading-[1.15] tracking-tight text-text-primary sm:text-4xl">
+                  Kilas Balik Nutrisi & Arsip Harian
+                </h2>
+                <p className="mx-auto max-w-md text-base leading-relaxed text-neutral-10 lg:mx-0 sm:text-lg">
+                  Putar ulang progres mingguanmu dalam format story dan telusuri
+                  catatan makan per tanggal kapan saja.
+                </p>
+
+                <AnimateStagger className="space-y-3 text-left max-w-md mx-auto lg:mx-0">
+                  {WRAPPED_ARCHIVE_FEATURES.map((feat) => {
+                    const ArchiveIcon = feat.icon;
+                    return (
+                      <AnimateItem key={feat.title}>
+                        <div className={`${CARD} flex items-start gap-3.5 p-4`}>
+                          <div
+                            className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${feat.iconBg}`}
+                          >
+                            <ArchiveIcon className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                          <div className="min-w-0 space-y-0.5">
+                            <h3 className="text-sm sm:text-base font-bold text-text-primary">
+                              {feat.title}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-neutral-10 leading-relaxed">
+                              {feat.desc}
+                            </p>
+                          </div>
+                        </div>
+                      </AnimateItem>
+                    );
+                  })}
+                </AnimateStagger>
+              </AnimateSection>
+            </div>
+
+            <div className="min-w-0 lg:col-span-6 flex justify-center">
+              <AnimateSection delay={0.15} className="w-full">
+                <WrappedArchiveIllustration />
+              </AnimateSection>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Co-op Streak & Power-Up */}
       <section className="py-16 sm:py-20 bg-white overflow-hidden">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-12">
@@ -407,38 +504,37 @@ export default function LandingPage() {
                   setiap hari.
                 </p>
 
-                <div className="space-y-3 text-left max-w-md mx-auto lg:mx-0">
+                <AnimateStagger className="space-y-3 text-left max-w-md mx-auto lg:mx-0">
                   {COOP_FEATURES.map((feat) => {
                     const CoopIcon = feat.icon;
                     return (
-                      <div
-                        key={feat.title}
-                        className={`${CARD} flex items-center gap-3.5 p-4`}
-                      >
-                        <div
-                          className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${feat.iconBg}`}
-                        >
-                          <CoopIcon className="h-5 w-5" aria-hidden="true" />
+                      <AnimateItem key={feat.title}>
+                        <div className={`${CARD} flex items-center gap-3.5 p-4`}>
+                          <div
+                            className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${feat.iconBg}`}
+                          >
+                            <CoopIcon className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                          <div className="min-w-0 space-y-0.5">
+                            <h3 className="text-sm sm:text-base font-bold text-text-primary">
+                              {feat.title}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-neutral-10 leading-relaxed">
+                              {feat.desc}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 space-y-0.5">
-                          <h3 className="text-sm sm:text-base font-bold text-text-primary">
-                            {feat.title}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-neutral-10 leading-relaxed">
-                            {feat.desc}
-                          </p>
-                        </div>
-                      </div>
+                      </AnimateItem>
                     );
                   })}
-                </div>
+                </AnimateStagger>
               </AnimateSection>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 6. Wardrobe & Toko CalPal */}
+      {/* 7. Wardrobe & Toko CalPal */}
       <section className="py-16 sm:py-20 bg-white overflow-hidden">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-12">
@@ -468,7 +564,59 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 7. Target Gizi Klinis & Misi Harian */}
+      {/* 8. Koleksi Calpal On-Chain (NFT) */}
+      <section className="py-16 sm:py-20 bg-white overflow-hidden">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-12">
+            <div className="min-w-0 lg:col-span-6 flex justify-center order-2 lg:order-1">
+              <AnimateSection delay={0.1} className="w-full">
+                <Web3MintIllustration />
+              </AnimateSection>
+            </div>
+
+            <div className="min-w-0 lg:col-span-6 space-y-5 text-center lg:text-left order-1 lg:order-2">
+              <AnimateSection className="space-y-5">
+                <h2 className="font-heading text-3xl font-extrabold leading-[1.15] tracking-tight text-text-primary sm:text-4xl">
+                  Abadikan Calpal Sebagai NFT
+                </h2>
+                <p className="mx-auto max-w-md text-base leading-relaxed text-neutral-10 lg:mx-0 sm:text-lg">
+                  Sudah merawat dan mengevolusikan Calpal hingga tahap lanjut?
+                  Cetak ke jaringan Base dan sinkronkan progres levelnya
+                  langsung dari Wardrobe—tanpa wajib wallet untuk mulai mencatat
+                  nutrisi.
+                </p>
+
+                <AnimateStagger className="space-y-3 text-left max-w-md mx-auto lg:mx-0">
+                  {WEB3_NFT_FEATURES.map((feat) => {
+                    const Web3Icon = feat.icon;
+                    return (
+                      <AnimateItem key={feat.title}>
+                        <div className={`${CARD} flex items-start gap-3.5 p-4`}>
+                          <div
+                            className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${feat.iconBg}`}
+                          >
+                            <Web3Icon className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                          <div className="min-w-0 space-y-0.5">
+                            <h3 className="text-sm sm:text-base font-bold text-text-primary">
+                              {feat.title}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-neutral-10 leading-relaxed">
+                              {feat.desc}
+                            </p>
+                          </div>
+                        </div>
+                      </AnimateItem>
+                    );
+                  })}
+                </AnimateStagger>
+              </AnimateSection>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. Target Gizi Klinis & Misi Harian */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <div className="grid items-center gap-10 md:grid-cols-2">
@@ -621,7 +769,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 8. Final CTA & Footer */}
+      {/* 10. Final CTA & Footer */}
       <section className="bg-white pt-12 sm:pt-16">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <AnimateSection>
