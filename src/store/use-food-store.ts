@@ -12,7 +12,7 @@ import {
 } from "@/types";
 import { MealTypeId } from "@/lib/constants";
 import { FOOD_CATALOG } from "@/lib/food-catalog";
-import { formatDateKey, subDays } from "@/lib/date-utils";
+import { formatDateKey } from "@/lib/date-utils";
 import {
   calculateClinicalBenchmarks,
   calculateIMT,
@@ -57,6 +57,8 @@ export interface FoodStoreState {
   depkesStatus: DepkesComplianceCode;
   waterLoggedMl: number;
   completedMissions: string[];
+  manualMissionOverrides: Record<string, boolean>;
+  rewardedMissions: string[];
 
   // Actions
   setSelectedDate: (date: string) => void;
@@ -151,11 +153,31 @@ const autoEvaluateAndSyncMissions = (
   waterLoggedMl: number,
   questPlan: DailyQuestPlan,
   currentCompleted: string[],
-): string[] => {
+  manualOverrides: Record<string, boolean> = {},
+  currentRewarded: string[] = [],
+): { completedMissions: string[]; rewardedMissions: string[] } => {
   let nextCompleted = [...currentCompleted];
+  const nextRewarded = [...currentRewarded];
+  const mainIds = new Set(questPlan.mainMissions.map((m) => m.id));
   const allMissions = [...questPlan.mainMissions, ...questPlan.sideMissions];
 
   for (const item of allMissions) {
+    if (Object.prototype.hasOwnProperty.call(manualOverrides, item.id)) {
+      const forcedDone = manualOverrides[item.id];
+      const isAlreadyDone = nextCompleted.includes(item.id);
+      if (forcedDone && !isAlreadyDone) {
+        nextCompleted.push(item.id);
+      } else if (!forcedDone && isAlreadyDone) {
+        nextCompleted = nextCompleted.filter((id) => id !== item.id);
+      }
+      continue;
+    }
+
+    const isAutoEvaluated = mainIds.has(item.id) || item.type === "water";
+    if (!isAutoEvaluated) {
+      continue;
+    }
+
     const status = evaluateMissionAutoStatus(item, {
       consumedCalories: consumed.calories,
       consumedProtein: consumed.protein,
@@ -171,14 +193,20 @@ const autoEvaluateAndSyncMissions = (
     const isAlreadyDone = nextCompleted.includes(item.id);
     if (status.isCompleted && !isAlreadyDone) {
       nextCompleted.push(item.id);
-      usePetStore.getState().gainExp(item.xpReward ?? 30);
-      usePetStore.getState().addCoins(item.coinReward ?? 15);
+      if (!nextRewarded.includes(item.id)) {
+        usePetStore.getState().gainExp(item.xpReward ?? 30);
+        usePetStore.getState().addCoins(item.coinReward ?? 15);
+        nextRewarded.push(item.id);
+      }
     } else if (!status.isCompleted && isAlreadyDone) {
       nextCompleted = nextCompleted.filter((id) => id !== item.id);
     }
   }
 
-  return nextCompleted;
+  return {
+    completedMissions: nextCompleted,
+    rewardedMissions: nextRewarded,
+  };
 };
 
 const computeTargetsFromPlan = (plan: UserGoalPlan): MacroTargets => {
@@ -237,6 +265,8 @@ export const useFoodStore = create<FoodStoreState>()(
       depkesStatus: "defisit_berat",
       waterLoggedMl: 750,
       completedMissions: [],
+      manualMissionOverrides: {},
+      rewardedMissions: [],
 
       setSelectedDate: (date: string) => set({ selectedDate: date }),
 
@@ -268,6 +298,8 @@ export const useFoodStore = create<FoodStoreState>()(
           }
 
           let nextCompletedMissions = state.completedMissions;
+          let nextManualOverrides = state.manualMissionOverrides ?? {};
+          let nextRewardedMissions = state.rewardedMissions ?? [];
 
           // Requirement 2: If a user changes their path, reset progress on previous path!
           if (isPathChanged && !newPlan.startDate) {
@@ -276,6 +308,8 @@ export const useFoodStore = create<FoodStoreState>()(
             updatedPlan.startDate = getTodayFormatted();
             updatedPlan.streakConsecutiveLogs = 0;
             nextCompletedMissions = [];
+            nextManualOverrides = {};
+            nextRewardedMissions = [];
           }
 
           const imtEval = calculateIMT(
@@ -309,6 +343,8 @@ export const useFoodStore = create<FoodStoreState>()(
             targets: nextTargets,
             depkesStatus: depkes.code,
             completedMissions: nextCompletedMissions,
+            manualMissionOverrides: nextManualOverrides,
+            rewardedMissions: nextRewardedMissions,
           };
         }),
 
@@ -371,17 +407,20 @@ export const useFoodStore = create<FoodStoreState>()(
         const dayLogs = get().getLogsByDate(get().selectedDate);
         const currentCompleted = get().completedMissions;
 
-        const nextCompleted = autoEvaluateAndSyncMissions(
+        const synced = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           clamped,
           questPlan,
           currentCompleted,
+          get().manualMissionOverrides ?? {},
+          get().rewardedMissions ?? [],
         );
 
         set({
           waterLoggedMl: clamped,
-          completedMissions: nextCompleted,
+          completedMissions: synced.completedMissions,
+          rewardedMissions: synced.rewardedMissions,
         });
       },
 
@@ -390,30 +429,43 @@ export const useFoodStore = create<FoodStoreState>()(
         xpReward = 30,
         coinReward = 15,
       ) => {
-        // Requirement 4: Tasks can only be completed based on calories consumed, not as a to-do list.
-        const questPlan = get().getQuestPlan();
-        const mainMission = questPlan.mainMissions.find(
-          (m) => m.id === missionId,
-        );
-        if (mainMission) {
-          // Intake missions cannot be manually checked as to-do list!
-          return get().completedMissions.includes(missionId);
-        }
-
         const current = get().completedMissions;
-        const exists = current.includes(missionId);
+        const currentOverrides = get().manualMissionOverrides ?? {};
+        const currentRewarded = get().rewardedMissions ?? [];
+        const evaluated = get()
+          .getEvaluatedMissions()
+          .find((entry) => entry.mission.id === missionId);
+        const isCurrentlyDone = evaluated
+          ? evaluated.status.isCompleted
+          : current.includes(missionId);
 
-        if (exists) {
+        if (isCurrentlyDone) {
           set({
             completedMissions: current.filter((id) => id !== missionId),
+            manualMissionOverrides: {
+              ...currentOverrides,
+              [missionId]: false,
+            },
           });
           return false;
         } else {
+          const alreadyRewarded = currentRewarded.includes(missionId);
           set({
-            completedMissions: [...current, missionId],
+            completedMissions: current.includes(missionId)
+              ? current
+              : [...current, missionId],
+            manualMissionOverrides: {
+              ...currentOverrides,
+              [missionId]: true,
+            },
+            rewardedMissions: alreadyRewarded
+              ? currentRewarded
+              : [...currentRewarded, missionId],
           });
-          usePetStore.getState().gainExp(xpReward);
-          usePetStore.getState().addCoins(coinReward);
+          if (!alreadyRewarded) {
+            usePetStore.getState().gainExp(xpReward);
+            usePetStore.getState().addCoins(coinReward);
+          }
           return true;
         }
       },
@@ -497,17 +549,20 @@ export const useFoodStore = create<FoodStoreState>()(
           targets.calories,
         );
         const dayLogs = get().getLogsByDate(get().selectedDate);
-        const nextCompleted = autoEvaluateAndSyncMissions(
+        const synced = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           get().waterLoggedMl,
           get().getQuestPlan(),
           get().completedMissions,
+          get().manualMissionOverrides ?? {},
+          get().rewardedMissions ?? [],
         );
         set({
           latestFeedback: feedback,
           depkesStatus: depkes.code,
-          completedMissions: nextCompleted,
+          completedMissions: synced.completedMissions,
+          rewardedMissions: synced.rewardedMissions,
         });
         return feedback;
       },
@@ -581,17 +636,20 @@ export const useFoodStore = create<FoodStoreState>()(
           targets.calories,
         );
         const dayLogs = get().getLogsByDate(get().selectedDate);
-        const nextCompleted = autoEvaluateAndSyncMissions(
+        const synced = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           get().waterLoggedMl,
           get().getQuestPlan(),
           get().completedMissions,
+          get().manualMissionOverrides ?? {},
+          get().rewardedMissions ?? [],
         );
         set({
           latestFeedback: feedback,
           depkesStatus: depkes.code,
-          completedMissions: nextCompleted,
+          completedMissions: synced.completedMissions,
+          rewardedMissions: synced.rewardedMissions,
         });
         return feedback;
       },
@@ -618,14 +676,20 @@ export const useFoodStore = create<FoodStoreState>()(
           get().targets.calories,
         );
         const dayLogs = get().getLogsByDate(get().selectedDate);
-        const nextCompleted = autoEvaluateAndSyncMissions(
+        const synced = autoEvaluateAndSyncMissions(
           consumed,
           dayLogs,
           get().waterLoggedMl,
           get().getQuestPlan(),
           get().completedMissions,
+          get().manualMissionOverrides ?? {},
+          get().rewardedMissions ?? [],
         );
-        set({ depkesStatus: depkes.code, completedMissions: nextCompleted });
+        set({
+          depkesStatus: depkes.code,
+          completedMissions: synced.completedMissions,
+          rewardedMissions: synced.rewardedMissions,
+        });
       },
 
       setLogs: (logs: ExtendedFoodLog[]) => set({ logs }),
@@ -893,6 +957,8 @@ export const useFoodStore = create<FoodStoreState>()(
         const dayLogs = get().getLogsByDate(dateToUse);
         const questPlan = get().getQuestPlan();
         const waterLoggedMl = get().waterLoggedMl;
+        const manualOverrides = get().manualMissionOverrides ?? {};
+        const completedSet = new Set(get().completedMissions ?? []);
 
         const results: Array<{
           mission: QuestMainMission | QuestSideMission;
@@ -901,7 +967,7 @@ export const useFoodStore = create<FoodStoreState>()(
         }> = [];
 
         for (const main of questPlan.mainMissions) {
-          const status = evaluateMissionAutoStatus(main, {
+          const baseStatus = evaluateMissionAutoStatus(main, {
             consumedCalories: consumed.calories,
             consumedProtein: consumed.protein,
             consumedCarbs: consumed.carbs,
@@ -912,11 +978,20 @@ export const useFoodStore = create<FoodStoreState>()(
             dayLogsCount: dayLogs.length,
             waterLoggedMl,
           });
-          results.push({ mission: main, status, isMain: true });
+          const override = manualOverrides[main.id];
+          const isCompleted =
+            override !== undefined
+              ? override
+              : baseStatus.isCompleted || completedSet.has(main.id);
+          results.push({
+            mission: main,
+            status: { ...baseStatus, isCompleted },
+            isMain: true,
+          });
         }
 
         for (const side of questPlan.sideMissions) {
-          const status = evaluateMissionAutoStatus(side, {
+          const baseStatus = evaluateMissionAutoStatus(side, {
             consumedCalories: consumed.calories,
             consumedProtein: consumed.protein,
             consumedCarbs: consumed.carbs,
@@ -927,7 +1002,16 @@ export const useFoodStore = create<FoodStoreState>()(
             dayLogsCount: dayLogs.length,
             waterLoggedMl,
           });
-          results.push({ mission: side, status, isMain: false });
+          const override = manualOverrides[side.id];
+          const isCompleted =
+            override !== undefined
+              ? override
+              : completedSet.has(side.id) || baseStatus.isCompleted;
+          results.push({
+            mission: side,
+            status: { ...baseStatus, isCompleted },
+            isMain: false,
+          });
         }
 
         return results;
@@ -936,12 +1020,16 @@ export const useFoodStore = create<FoodStoreState>()(
     {
       name: "caloria-food-storage",
       version: 3,
-      migrate: (persistedState: any, version: number) => {
+      migrate: (rawState: unknown, version: number) => {
+        const persistedState =
+          rawState && typeof rawState === "object"
+            ? (rawState as Partial<FoodStoreState> & {
+                logs?: Array<Partial<ExtendedFoodLog>>;
+              })
+            : undefined;
         if (version < 3 || !persistedState) {
           const cleanLogs = Array.isArray(persistedState?.logs)
-            ? persistedState.logs.filter(
-                (l: any) => !l.id?.startsWith("sample-"),
-              )
+            ? persistedState.logs.filter((l) => !l.id?.startsWith("sample-"))
             : [];
           return {
             ...persistedState,
@@ -958,6 +1046,9 @@ export const useFoodStore = create<FoodStoreState>()(
             depkesStatus: persistedState?.depkesStatus || "defisit_berat",
             waterLoggedMl: persistedState?.waterLoggedMl ?? 0,
             completedMissions: persistedState?.completedMissions || [],
+            manualMissionOverrides:
+              persistedState?.manualMissionOverrides || {},
+            rewardedMissions: persistedState?.rewardedMissions || [],
           };
         }
         return persistedState;

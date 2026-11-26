@@ -572,27 +572,29 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* CalPal (Virtual Pet) + Daily Nutrition Target Side-by-Side */}
+      {/* CalPal (Virtual Pet) + Unified Daily Nutrition, Calendar & Quick Log Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: CalPal Container (PetShowcase) */}
         <PetShowcase className="lg:col-span-6" />
 
-        {/* Right Column: Daily Nutrition Target + Catat Makanan */}
-        <div className="lg:col-span-6 flex flex-col gap-3">
-          <MacroBar />
-          {/* 2. Unified Nutrition Summary & Calendar Strip */}
-          <DashboardCalendarStrip />
-          {/* Catat Makanan primary CTA */}
-          <button
-            type="button"
-            data-tour="dashboard-quick-log"
-            onClick={() => setQuickLogModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-border-divider bg-surface py-3.5 text-sm font-bold text-text-primary shadow-xs transition-colors hover:bg-accent-green-light hover:border-accent-green hover:text-text-primary active:scale-[0.98] cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Catat Makanan</span>
-          </button>
-        </div>
+        {/* Right Column: Unified Nutrition Progress, Calendar & Catat Makanan */}
+        <MacroBar
+          className="lg:col-span-6"
+          footer={
+            <div className="space-y-4 sm:space-y-5">
+              <DashboardCalendarStrip embedded />
+              <button
+                type="button"
+                data-tour="dashboard-quick-log"
+                onClick={() => setQuickLogModalOpen(true)}
+                className="w-full min-h-12 py-3 px-4 rounded-button bg-accent-green-light hover:bg-[#a9ce46] text-[#244710] font-sans font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors active:scale-[0.98] cursor-pointer"
+              >
+                <Plus className="h-4 w-4 stroke-[2.5]" />
+                <span>Catat Makanan</span>
+              </button>
+            </div>
+          }
+        />
       </div>
 
       {/* Quick Action Modal: Fast Log Food ("Catat Cepat") */}
@@ -808,13 +810,17 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
-                  <span className="block text-[9px] text-text-muted">Karbo</span>
+                  <span className="block text-[9px] text-text-muted">
+                    Karbo
+                  </span>
                   <span className="text-xs font-black text-macro-carbs">
                     {quickSuccessModal.totalCarbs}g
                   </span>
                 </div>
                 <div className="p-2 rounded-xl bg-surface border border-border-divider/50">
-                  <span className="block text-[9px] text-text-muted">Lemak</span>
+                  <span className="block text-[9px] text-text-muted">
+                    Lemak
+                  </span>
                   <span className="text-xs font-black text-macro-fat">
                     {quickSuccessModal.totalFat}g
                   </span>

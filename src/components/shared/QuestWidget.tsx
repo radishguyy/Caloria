@@ -62,17 +62,21 @@ export function QuestWidget({ className }: QuestWidgetProps) {
       )}
       aria-label="Progres Misi Nutrisi"
     >
-      <div className="grid grid-cols-2 items-center gap-4 lg:grid-cols-[1fr_1fr_auto]">
+      <div className="grid grid-cols-2 items-center gap-4 lg:grid-cols-3">
         <div className="min-w-0 lg:pr-6">
-          <p className="text-xs font-semibold text-text-muted">Misi hari ini</p>
-          <p className="mt-1 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
+          <p className="text-sm sm:text-base font-bold text-text-muted">
+            Misi hari ini
+          </p>
+          <p className="mt-1.5 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
             {completedDaily} / {totalDaily}
           </p>
         </div>
 
-        <div className="min-w-0 border-border-divider pl-0 lg:border-l lg:pl-6">
-          <p className="text-xs font-semibold text-text-muted">Misi mingguan</p>
-          <p className="mt-1 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
+        <div className="min-w-0 border-l border-border-divider pl-4 lg:pl-6">
+          <p className="text-sm sm:text-base font-bold text-text-muted">
+            Misi mingguan
+          </p>
+          <p className="mt-1.5 font-heading text-2xl font-extrabold leading-none text-text-primary sm:text-3xl">
             {completedWeekly} / {totalWeekly}
           </p>
         </div>
@@ -80,10 +84,10 @@ export function QuestWidget({ className }: QuestWidgetProps) {
         <div className="col-span-2 flex justify-center border-t border-border-divider pt-3 lg:col-span-1 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <Link
             href="/quests"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-green px-5 py-2.5 text-xs font-bold text-text-inverse transition-colors hover:bg-accent-green/90 lg:w-auto"
+            className="inline-flex min-h-13 sm:min-h-14 w-full items-center justify-center gap-2.5 rounded-button bg-accent-green-light px-6 py-3.5 text-base sm:text-lg font-extrabold text-[#244710] transition-colors hover:bg-[#a9ce46] active:scale-[0.98]"
           >
             <span>Detail Misi</span>
-            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
           </Link>
         </div>
       </div>

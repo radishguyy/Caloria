@@ -16,7 +16,6 @@ import {
   Heart,
   Maximize2,
   Moon,
-  Sparkles,
   X,
 } from "lucide-react";
 import { AvatarRenderer } from "./avatar-renderer";
@@ -29,6 +28,7 @@ import { usePetStore } from "@/store/use-pet-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { evaluatePetCondition } from "@/lib/pet/decay-evaluator";
 import {
+  type FeedEligibilityResult,
   evaluateFeedEligibility,
   getMealSlotConfig,
   normalizeDailyFedSlots,
@@ -41,6 +41,44 @@ import {
   toastInsufficientCoins,
 } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+
+function getTimePeriodId(hour: number): "pagi" | "siang" | "sore" | "malam" {
+  if (hour >= 5 && hour < 11) return "pagi";
+  if (hour >= 11 && hour < 15) return "siang";
+  if (hour >= 15 && hour < 18) return "sore";
+  return "malam";
+}
+
+function formatFeedCooldownBubble(
+  eligibility: FeedEligibilityResult,
+  now: Date,
+): string {
+  const period = getTimePeriodId(now.getHours());
+
+  if (eligibility.reason === "MAX_DAILY_FEEDS_REACHED") {
+    return "Aku sudah makan 3x hari ini! Beri makan lagi besok pagi ya!";
+  }
+
+  if (eligibility.reason === "OUTSIDE_MEAL_HOURS") {
+    return "Sekarang masih malam, beri makan aku lagi nanti pagi ya!";
+  }
+
+  if (eligibility.reason === "SLOT_ALREADY_FED") {
+    if (eligibility.currentSlot === "breakfast") {
+      return "Aku sudah makan pagi! Beri makan lagi nanti siang ya!";
+    }
+    if (eligibility.currentSlot === "lunch") {
+      return period === "siang"
+        ? "Aku sudah makan siang! Beri makan lagi nanti sore ya!"
+        : "Aku sudah makan sore! Beri makan lagi nanti malam ya!";
+    }
+    return period === "sore"
+      ? "Aku sudah makan sore! Beri makan lagi besok pagi ya!"
+      : "Aku sudah makan malam! Beri makan lagi besok pagi ya!";
+  }
+
+  return eligibility.message;
+}
 
 export interface AvatarPreviewProps {
   nickname: string;
@@ -61,6 +99,8 @@ export interface AvatarPreviewProps {
   changedCategoryCount?: number;
   onSave?: () => void;
   onCancel?: () => void;
+  onPet?: () => void | Promise<void>;
+  dataTour?: string;
   className?: string;
 }
 
@@ -76,6 +116,8 @@ export function AvatarPreview({
   changedCategoryCount = 0,
   onSave,
   onCancel,
+  onPet,
+  dataTour,
   className,
 }: AvatarPreviewProps) {
   const isHydrated = useHydrated();
@@ -83,12 +125,12 @@ export function AvatarPreview({
     level,
     exp,
     coins,
+    animationState: storeAnimationState,
     moodStatus,
     lastFedAt,
     fedSlotsToday,
     needsResetDate,
     feedWithCoins,
-    getExpNeededForNextLevel,
   } = usePetStore();
 
   const [animationState, setAnimationState] =
@@ -106,7 +148,13 @@ export function AvatarPreview({
   const heartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isFullscreenView = isNativeFullscreen || isFallbackFullscreen;
-  const isSleeping = animationState === "sleeping";
+  const activeAnimationState =
+    animationState !== "idle"
+      ? animationState
+      : isHydrated
+        ? storeAnimationState
+        : "idle";
+  const isSleeping = activeAnimationState === "sleeping";
 
   const condition = useMemo(() => {
     if (!isHydrated) {
@@ -125,28 +173,8 @@ export function AvatarPreview({
 
   const isComplaining = condition.isComplaining || moodStatus === "complaining";
 
-  const speechBubbleText = useMemo(() => {
-    if (animationState === "sleeping") {
-      return "Zzz... Calpal sedang tidur nyenyak";
-    }
-    if (animationState === "eating") {
-      return "Nyam nyam! Enak sekali!";
-    }
-    if (isComplaining) {
-      if (condition.hoursSinceFed >= 20) {
-        return `Perutku lapar nih... sudah ${condition.hoursSinceFed} jam belum makan!`;
-      }
-      return "Aku agak lemas, beri makan dulu ya!";
-    }
-    return "Calpal kenyang & penuh energi! Semangat hidup sehat!";
-  }, [animationState, isComplaining, condition.hoursSinceFed]);
-
-  const expNeeded = getExpNeededForNextLevel();
-  const expPercent = Math.min(
-    100,
-    Math.round((exp / Math.max(1, expNeeded)) * 100),
-  );
-  const canAffordFeed = coins >= 5;
+  const displayLevel = isHydrated ? level : 1;
+  const canAffordFeed = isHydrated ? coins >= 5 : true;
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -177,6 +205,36 @@ export function AvatarPreview({
     );
     return evaluateFeedEligibility(normalizedFed, now);
   }, [isHydrated, fedSlotsToday, needsResetDate, clockTick]);
+
+  const speechBubbleText = useMemo(() => {
+    void clockTick;
+    if (activeAnimationState === "sleeping") {
+      return "Zzz... Calpal sedang tidur nyenyak";
+    }
+    if (activeAnimationState === "eating") {
+      return "Nyam nyam! Enak sekali!";
+    }
+    if (isComplaining) {
+      if (condition.hoursSinceFed > 10) {
+        return "Perutku lapar nih... sudah lama sekali belum makan!";
+      }
+      return "Perutku lapar nih... sudah lama belum makan!";
+    }
+    if (isHydrated && !feedEligibility.canFeed && feedEligibility.message) {
+      return formatFeedCooldownBubble(
+        feedEligibility as FeedEligibilityResult,
+        new Date(),
+      );
+    }
+    return "Calpal kenyang & penuh energi! Semangat hidup sehat!";
+  }, [
+    clockTick,
+    activeAnimationState,
+    isComplaining,
+    condition.hoursSinceFed,
+    isHydrated,
+    feedEligibility,
+  ]);
 
   const canFeedNow = canAffordFeed && feedEligibility.canFeed;
 
@@ -265,6 +323,10 @@ export function AvatarPreview({
     petTimerRef.current = setTimeout(() => {
       setAnimationState("idle");
     }, 1400);
+
+    if (onPet) {
+      void onPet();
+    }
   };
 
   const toggleSleep = () => {
@@ -336,9 +398,12 @@ export function AvatarPreview({
     }
   };
 
+  const showDraftActions = Boolean(onSave || onCancel);
+
   return (
     <div
       ref={stageRef}
+      data-tour={dataTour}
       className={cn(
         "flex flex-col justify-between border border-border-divider bg-surface shadow-xs",
         isFullscreenView
@@ -347,63 +412,39 @@ export function AvatarPreview({
         className,
       )}
     >
-      {/* Header: nickname + distinct level badge + XP bar + fullscreen toggle */}
-      <div className="space-y-3 border-b border-border-divider pb-4">
-        <div className="flex w-full items-center justify-between gap-3">
-          <div className="flex min-w-0 items-baseline gap-2.5">
-            <h2 className="min-w-0 truncate text-2xl font-extrabold text-text-primary font-heading">
-              {nickname}
-            </h2>
-            <span
-              suppressHydrationWarning
-              className="shrink-0 rounded-pill bg-accent-yellow px-2.5 py-0.5 text-sm font-black tracking-wide text-[#7C3A0D] font-mono tabular-nums"
-            >
-              Lv. {level}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            aria-label={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
-            title={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
-            className="min-h-11 min-w-11 shrink-0 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-neutral-10 transition-colors hover:bg-surface-subtle hover:text-text-primary"
+      {/* Header: nickname + distinct level badge + fullscreen toggle */}
+      <div className="flex w-full items-center justify-between gap-3 border-b border-border-divider pb-4">
+        <div className="flex min-w-0 items-baseline gap-2.5">
+          <h2
+            suppressHydrationWarning
+            className="min-w-0 truncate text-2xl font-extrabold text-text-primary font-heading"
           >
-            {isFullscreenView ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Maximize2 className="h-5 w-5" />
-            )}
-          </button>
+            {nickname}
+          </h2>
+          <span
+            suppressHydrationWarning
+            className="shrink-0 rounded-pill bg-accent-yellow px-2.5 py-0.5 text-sm font-black tracking-wide text-[#7C3A0D] font-mono tabular-nums"
+          >
+            Lv. {displayLevel}
+          </span>
         </div>
 
-        {/* XP Progress Bar */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-sm font-bold font-sans">
-            <span className="inline-flex items-center gap-1.5 text-[#244710]">
-              <Sparkles className="h-4 w-4 text-accent-green" />
-              <span>XP</span>
-            </span>
-            <span
-              suppressHydrationWarning
-              className="text-neutral-10 tabular-nums"
-            >
-              {exp} / {expNeeded} ({expPercent}%)
-            </span>
-          </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-pill border border-border-divider bg-surface-subtle">
-            <div
-              className={cn(
-                "h-full rounded-pill transition-all duration-500",
-                isComplaining ? "bg-accent-orange" : "bg-accent-green",
-              )}
-              style={{ width: `${expPercent}%` }}
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
+          title={isFullscreenView ? "Keluar layar penuh" : "Layar penuh"}
+          className="min-h-11 min-w-11 shrink-0 rounded-navigation border border-border-default bg-surface flex items-center justify-center text-neutral-10 transition-colors hover:bg-surface-subtle hover:text-text-primary cursor-pointer"
+        >
+          {isFullscreenView ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Maximize2 className="h-5 w-5" />
+          )}
+        </button>
       </div>
 
-      {/* Calpal Speech Bubble (matching Dashboard) */}
+      {/* Calpal Speech Bubble */}
       <div className="min-h-[54px] flex items-center justify-center pt-4">
         <AnimatePresence mode="wait">
           <motion.div
@@ -412,22 +453,10 @@ export function AvatarPreview({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
-            className={cn(
-              "relative max-w-sm rounded-2xl border px-4 py-2.5 text-center text-sm font-bold font-sans leading-snug",
-              isComplaining
-                ? "border-accent-orange/40 bg-[#FCF8E3] text-[#B45309]"
-                : "border-accent-green/25 bg-accent-yellow/55 text-[#244710]",
-            )}
+            className="relative max-w-sm rounded-2xl bg-accent-yellow px-4 py-2.5 text-center text-sm font-bold font-sans leading-snug text-[#1e293b]"
           >
             <span>{speechBubbleText}</span>
-            <div
-              className={cn(
-                "absolute -bottom-1.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-b border-r",
-                isComplaining
-                  ? "border-accent-orange/40 bg-[#FCF8E3]"
-                  : "border-accent-green/25 bg-accent-yellow/55",
-              )}
-            />
+            <div className="absolute -bottom-1.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-accent-yellow" />
           </motion.div>
         </AnimatePresence>
       </div>
@@ -462,109 +491,96 @@ export function AvatarPreview({
           }}
         />
 
-        <motion.div
-          onClick={handlePet}
-          className="relative flex h-64 sm:h-72 max-h-full max-w-full cursor-pointer items-center justify-center aspect-[128/160]"
-          animate={
-            animationState === "eating"
-              ? { scale: [1, 1.08, 0.96, 1.04, 1], y: [0, -8, 2, -4, 0] }
-              : animationState === "happy"
-                ? { y: [0, -16, 0, -8, 0], rotate: [0, -4, 4, -2, 0] }
-                : animationState === "sleeping"
-                  ? { y: [0, 4, 0], scale: [1, 0.98, 1] }
-                  : { y: [0, -5, 0] }
+        <div
+          className={
+            isFullscreenView
+              ? "absolute inset-0 flex items-center justify-center"
+              : "relative flex h-full w-full items-center justify-center"
           }
-          transition={{
-            duration: animationState === "idle" ? 3.2 : 1.1,
-            repeat:
-              animationState === "idle" || animationState === "sleeping"
-                ? Infinity
-                : 0,
-            ease: "easeInOut",
-          }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.96 }}
+          style={isFullscreenView ? { containerType: "size" } : undefined}
         >
-          <AvatarRenderer
-            characterId={characterId}
-            colors={colors}
-            earsVariant={earsVariant}
-            tailVariant={tailVariant}
-            faceVariant={faceVariant}
-            animationState={animationState}
-            moodStatus={isComplaining ? "complaining" : "happy"}
-            equipped={equipped}
-            className="h-full w-full drop-shadow-md"
-          />
-        </motion.div>
+          <motion.div
+            onClick={handlePet}
+            className={cn(
+              "relative flex cursor-pointer items-center justify-center aspect-[128/160]",
+              !isFullscreenView && "h-64 sm:h-72 max-h-full max-w-full",
+            )}
+            style={
+              isFullscreenView
+                ? {
+                    height: "min(92cqh, calc(96cqw * 1.25))",
+                    width: "min(96cqw, calc(92cqh * 0.8))",
+                  }
+                : undefined
+            }
+            animate={
+              activeAnimationState === "eating"
+                ? { scale: [1, 1.08, 0.96, 1.04, 1], y: [0, -8, 2, -4, 0] }
+                : activeAnimationState === "happy"
+                  ? { y: [0, -16, 0, -8, 0], rotate: [0, -4, 4, -2, 0] }
+                  : activeAnimationState === "sleeping"
+                    ? { y: [0, 4, 0], scale: [1, 0.98, 1] }
+                    : { y: [0, -5, 0] }
+            }
+            transition={{
+              duration: activeAnimationState === "idle" ? 3.2 : 1.1,
+              repeat:
+                activeAnimationState === "idle" ||
+                activeAnimationState === "sleeping"
+                  ? Infinity
+                  : 0,
+              ease: "easeInOut",
+            }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            <AvatarRenderer
+              characterId={characterId}
+              colors={colors}
+              earsVariant={earsVariant}
+              tailVariant={tailVariant}
+              faceVariant={faceVariant}
+              animationState={activeAnimationState}
+              moodStatus={isComplaining ? "complaining" : "happy"}
+              equipped={equipped}
+              className="h-full w-full drop-shadow-md"
+            />
+          </motion.div>
+        </div>
       </div>
 
-      {/* Bottom controls: pet interactions + draft save + Beri Makan Calpal button */}
-      <div className="mt-3 space-y-3 border-t border-border-divider pt-4">
-        <div className="flex w-full items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handlePet}
-              disabled={isSleeping}
-              aria-label="Elus Calpal"
-              title="Elus"
-              className="flex h-11 w-11 items-center justify-center rounded-navigation border border-border-default bg-surface text-neutral-10 transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-50"
-            >
-              <HandHeart className="h-5 w-5" />
-            </button>
+      {/* Bottom controls: Elus & Tidurkan (equal combined width with Beri Makan Calpal) */}
+      <div className="mt-3 space-y-2.5 pt-2">
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={handlePet}
+            disabled={isSleeping}
+            aria-label="Elus Calpal"
+            className="min-h-12 w-full py-3 px-4 rounded-button border border-border-default bg-surface text-neutral-10 font-sans font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <HandHeart className="h-5 w-5 shrink-0" />
+            <span>Elus</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={toggleSleep}
-              aria-label={isSleeping ? "Bangunkan Calpal" : "Tidurkan Calpal"}
-              aria-pressed={isSleeping}
-              title={isSleeping ? "Bangunkan" : "Tidurkan"}
-              className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-navigation border transition-colors",
-                isSleeping
-                  ? "border-accent-orange bg-accent-yellow text-text-primary"
-                  : "border-border-default bg-surface text-neutral-10 hover:bg-surface-subtle hover:text-text-primary",
-              )}
-            >
-              <Moon className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={!isDirty}
-              aria-label="Batalkan perubahan"
-              title="Batalkan perubahan"
-              className="flex h-11 w-11 items-center justify-center rounded-navigation border border-border-default bg-surface text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={onSave}
-              disabled={!isDirty}
-              aria-label="Simpan perubahan"
-              title="Simpan perubahan"
-              className="relative flex h-11 w-11 items-center justify-center rounded-navigation bg-accent-green-light text-[#244710] transition-colors hover:bg-[#a9ce46] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Check className="h-5 w-5 stroke-[2.5]" />
-              {isDirty && changedCategoryCount > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-[6px] bg-accent-orange px-1 text-xs font-bold leading-none text-text-inverse ring-2 ring-surface"
-                >
-                  {changedCategoryCount}
-                </span>
-              )}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={toggleSleep}
+            aria-label={isSleeping ? "Bangunkan Calpal" : "Tidurkan Calpal"}
+            aria-pressed={isSleeping}
+            className={cn(
+              "min-h-12 w-full py-3 px-4 rounded-button border font-sans font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors cursor-pointer",
+              isSleeping
+                ? "border-accent-orange bg-accent-yellow text-text-primary"
+                : "border-border-default bg-surface text-neutral-10 hover:bg-surface-subtle hover:text-text-primary",
+            )}
+          >
+            <Moon className="h-5 w-5 shrink-0" />
+            <span>{isSleeping ? "Bangunkan" : "Tidurkan"}</span>
+          </button>
         </div>
 
-        {/* Beri Makan Calpal Button (matching Dashboard flat green button style, no fork/knife, CircleDollarSign) */}
+        {/* Beri Makan Calpal Button */}
         <div className="space-y-1.5">
           <button
             type="button"
@@ -583,26 +599,57 @@ export function AvatarPreview({
             <span>{isFeeding ? "Memberi Makan..." : "Beri Makan Calpal"}</span>
             <span className="inline-flex items-center gap-1 font-bold">
               <span>(5</span>
-              <CircleDollarSign className="h-4 w-4 text-accent-orange-dark shrink-0" />
+              <CircleDollarSign
+                className="h-4 w-4 shrink-0"
+                aria-hidden="true"
+              />
               <span>)</span>
             </span>
           </button>
 
-          {!canAffordFeed ? (
+          {isHydrated && !canAffordFeed && (
             <p className="text-sm text-rose-600 text-center font-sans font-semibold flex items-center justify-center gap-1.5">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Koin kurang. Catat makanan untuk mendapat koin.</span>
             </p>
-          ) : (
-            isHydrated &&
-            !feedEligibility.canFeed &&
-            feedEligibility.message && (
-              <p className="text-sm text-text-muted text-center font-sans font-semibold">
-                {feedEligibility.message}
-              </p>
-            )
           )}
         </div>
+
+        {showDraftActions && (
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={!isDirty}
+              aria-label="Batalkan perubahan"
+              title="Batalkan perubahan"
+              className="min-h-11 w-full py-2.5 px-4 rounded-button border border-border-default bg-surface text-destructive font-sans font-bold text-sm flex items-center justify-center gap-2 transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+            >
+              <X className="h-4 w-4 shrink-0" />
+              <span>Batalkan</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={!isDirty}
+              aria-label="Simpan perubahan"
+              title="Simpan perubahan"
+              className="relative min-h-11 w-full py-2.5 px-4 rounded-button bg-accent-green-light text-[#244710] font-sans font-bold text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#a9ce46] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+            >
+              <Check className="h-4 w-4 shrink-0 stroke-[2.5]" />
+              <span>Simpan</span>
+              {isDirty && changedCategoryCount > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="inline-flex h-5 min-w-5 items-center justify-center rounded-pill bg-accent-orange px-1.5 text-xs font-bold leading-none text-[#1e293b]"
+                >
+                  {changedCategoryCount}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
